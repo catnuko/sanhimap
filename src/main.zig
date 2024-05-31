@@ -10,7 +10,7 @@ pub fn main() !void {
     const v = Vec2.eql(a, b);
     print("res is {}\n", .{v});
 
-    const point = LngLatAlt.new(10.0, 10.0, 10.0);
+    const point = LngLatAlt.from_degrees(10.0, 10.0, 10.0);
     print("point x is {}\n", .{point.longitude});
 
     const z = std.math.log(f64, std.math.e, 2.0);
