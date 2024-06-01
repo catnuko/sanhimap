@@ -30,19 +30,19 @@ pub const WebMercatorProjection = struct {
             max_elevation,
         ));
     }
-    pub fn project_point(self: WebMercatorProjection, geo_point: GeoCoordinates) Vec3 {
-        const x = ((geo_point.longitude + 180) / 360) * self.unit_scale;
-        const sy = stdmath.sin(latitude_clamp(geo_point.latitude_in_radians()));
+    pub fn project_point(self: WebMercatorProjection, geopoint: GeoCoordinates) Vec3 {
+        const x = ((geopoint.longitude + 180) / 360) * self.unit_scale;
+        const sy = stdmath.sin(latitude_clamp(geopoint.latitude_in_radians()));
         const y = (0.5 - stdmath.log((1 + sy) / (1 - sy)) / (4 * stdmath.pi)) * self.unit_scale;
-        const z = geo_point.altitude orelse 0;
+        const z = geopoint.altitude orelse 0;
         return Vec3.new(x, y, z);
     }
-    pub fn unproject_point(self: WebMercatorProjection, world_point: Vec3) GeoCoordinates {
-        const x = world_point.x / self.unit_scale - 0.5;
-        const y = 0.5 - world_point.y / self.unit_scale;
+    pub fn unproject_point(self: WebMercatorProjection, worldpoint: Vec3) GeoCoordinates {
+        const x = worldpoint.x / self.unit_scale - 0.5;
+        const y = 0.5 - worldpoint.y / self.unit_scale;
         const longitude = 360 * x;
         const latitude = 90 - (360 * stdmath.atan(stdmath.exp(-y * 2 * stdmath.pi))) / stdmath.pi;
-        return GeoCoordinates.from_degrees(latitude, longitude, world_point.z);
+        return GeoCoordinates.from_degrees(latitude, longitude, worldpoint.z);
     }
     pub fn surface_normal() Vec3 {
         return Vec3.new(0.0, 0.0, 1.0);

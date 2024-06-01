@@ -2,18 +2,17 @@ const std = @import("std");
 const stdmath = std.math;
 const print = std.debug.print;
 const testing = std.testing;
-const math = @import("../math/index.zig");
-const GeoCoordinates = @import("../lib.zig").coord.GeoCoordinates;
+const Box3 = @import("../math/box3.zig").Box3;
+const Vec3 = @import("../math/generic_vector.zig").Vec3;
+const GeoCoordinates = @import("../coord/geo_coordinates.zig").GeoCoordinates;
 const earth = @import("./earth.zig");
-const Box3 = math.Box3;
-const Vec3 = math.Vec3;
 
 pub const ProjectionType = enum { Planar, Spherical };
 /// convert geo coordinate to world point
-pub fn project(geo_point: GeoCoordinates, unit_scale: f64) Vec3 {
-    const radius = unit_scale + (geo_point.altitude orelse 0);
-    const latitude = stdmath.degreesToRadians(geo_point.latitude);
-    const longitude = stdmath.degreesToRadians(geo_point.longitude);
+pub fn project(geopoint: GeoCoordinates, unit_scale: f64) Vec3 {
+    const radius = unit_scale + (geopoint.altitude orelse 0);
+    const latitude = stdmath.degreesToRadians(geopoint.latitude);
+    const longitude = stdmath.degreesToRadians(geopoint.longitude);
     const cosLatitude = stdmath.cos(latitude);
     return Vec3.new(radius * cosLatitude * stdmath.cos(longitude), radius * cosLatitude * stdmath.sin(longitude), radius * stdmath.sin(latitude));
 }
@@ -37,33 +36,33 @@ pub const SphereProjection = struct {
             radius,
         ));
     }
-    pub fn project_point(self: SphereProjection, geo_point: GeoCoordinates) Vec3 {
-        return project(geo_point, self.unit_scale);
+    pub fn project_point(self: SphereProjection, geopoint: GeoCoordinates) Vec3 {
+        return project(geopoint, self.unit_scale);
     }
-    pub fn unproject_point(self: SphereProjection, world_point: Vec3) GeoCoordinates {
-        const parallelRadiusSq = world_point.x() * world_point.x() + world_point.y() * world_point.y();
+    pub fn unproject_point(self: SphereProjection, worldpoint: Vec3) GeoCoordinates {
+        const parallelRadiusSq = worldpoint.x() * worldpoint.x() + worldpoint.y() * worldpoint.y();
         const parallelRadius = stdmath.sqrt(parallelRadiusSq);
-        const v = world_point.z() / parallelRadius;
+        const v = worldpoint.z() / parallelRadius;
 
         if (stdmath.isNan(v)) {
             return GeoCoordinates.fromRadians(0, 0, -self.unit_scale);
         }
-        const radius = stdmath.sqrt(parallelRadiusSq + world_point.z * world_point.z);
-        return GeoCoordinates.from_radians(stdmath.atan(v), stdmath.atan2(world_point.y(), world_point.x()), radius - self.unit_scale);
+        const radius = stdmath.sqrt(parallelRadiusSq + worldpoint.z * worldpoint.z);
+        return GeoCoordinates.from_radians(stdmath.atan(v), stdmath.atan2(worldpoint.y(), worldpoint.x()), radius - self.unit_scale);
     }
-    pub fn unproject_altitude(_: SphereProjection, world_point: Vec3) f64 {
-        return world_point.length() - earth.EQUATORIAL_RADIUS;
+    pub fn unproject_altitude(_: SphereProjection, worldpoint: Vec3) f64 {
+        return worldpoint.length() - earth.EQUATORIAL_RADIUS;
     }
-    pub fn ground_distance(self: SphereProjection, world_point: Vec3) f64 {
-        return world_point.length() - self.unit_scale;
+    pub fn ground_distance(self: SphereProjection, worldpoint: Vec3) f64 {
+        return worldpoint.length() - self.unit_scale;
     }
-    pub fn scale_point_to_surface(self: SphereProjection, world_point: Vec3) Vec3 {
-        var length = world_point.length();
+    pub fn scale_point_to_surface(self: SphereProjection, worldpoint: Vec3) Vec3 {
+        var length = worldpoint.length();
         if (length == 0) {
             length = 1.0;
         }
         const scale = self.unit_scale / length;
-        return world_point.scale(scale);
+        return worldpoint.scale(scale);
     }
 };
 pub const sphereProjection = SphereProjection.new(earth.EQUATORIAL_RADIUS);

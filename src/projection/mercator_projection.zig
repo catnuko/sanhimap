@@ -29,15 +29,15 @@ pub const MercatorProjection = struct {
             max_elevation,
         ));
     }
-    pub fn project_point(self: MercatorProjection, geo_point: GeoCoordinates) Vec3 {
-        const x = ((geo_point.longitude + 180) / 360) * self.unit_scale;
-        const y = (latitude_clamp_proejct(geo_point.latitude_in_radians) * 0.5 + 0.5) *
+    pub fn project_point(self: MercatorProjection, geopoint: GeoCoordinates) Vec3 {
+        const x = ((geopoint.longitude + 180) / 360) * self.unit_scale;
+        const y = (latitude_clamp_proejct(geopoint.latitude_in_radians) * 0.5 + 0.5) *
             self.unit_scale;
-        const z = geo_point.altitude orelse 0;
+        const z = geopoint.altitude orelse 0;
         return Vec3.new(x, y, z);
     }
-    pub fn unproject_point(self: MercatorProjection, world_point: Vec3) GeoCoordinates {
-        return GeoCoordinates.from_radians(unproject_latitude((world_point.y / self.unit_scale - 0.5) * 2.0), (world_point.x / self.unit_scale) * 2 * stdmath.pi - stdmath.pi, world_point.z);
+    pub fn unproject_point(self: MercatorProjection, worldpoint: Vec3) GeoCoordinates {
+        return GeoCoordinates.from_radians(unproject_latitude((worldpoint.y / self.unit_scale - 0.5) * 2.0), (worldpoint.x / self.unit_scale) * 2 * stdmath.pi - stdmath.pi, worldpoint.z);
     }
     //static methods
     pub fn surface_normal(_: MercatorProjection) Vec3 {
@@ -55,16 +55,16 @@ pub const MercatorProjection = struct {
     pub fn latitude_clamp_proejct(_: MercatorProjection, latitude: f64) f64 {
         return latitude_project(latitude_clamp(latitude));
     }
-    pub fn unproject_altitude(_: MercatorProjection, world_point: Vec3) f64 {
-        return world_point.z;
+    pub fn unproject_altitude(_: MercatorProjection, worldpoint: Vec3) f64 {
+        return worldpoint.z;
     }
-    pub fn ground_distance(_: MercatorProjection, world_point: Vec3) f64 {
-        return world_point.z;
+    pub fn ground_distance(_: MercatorProjection, worldpoint: Vec3) f64 {
+        return worldpoint.z;
     }
-    pub fn scale_point_to_surface(_: MercatorProjection, world_point: *Vec3) Vec3 {
-        const z_mut = world_point.zMut();
+    pub fn scale_point_to_surface(_: MercatorProjection, worldpoint: *Vec3) Vec3 {
+        const z_mut = worldpoint.zMut();
         z_mut = 0;
-        return world_point;
+        return worldpoint;
     }
 };
 pub const mercator_projection = MercatorProjection.new(earth.EQUATORIAL_RADIUS);
