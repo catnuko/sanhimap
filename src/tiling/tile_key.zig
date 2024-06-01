@@ -1,9 +1,10 @@
 const math = @import("std").math;
+const std = @import("std");
 pub const TileKey = struct {
     row: u32,
     column: u32,
     level: u32,
-    m_mortonCode: undefined,
+    m_mortonCode: u32 = undefined,
     pub fn new(row: u32, column: u32, level: u32) TileKey {
         return .{
             .row = row,
@@ -17,7 +18,6 @@ pub const TileKey = struct {
     pub fn eq(self: TileKey, other: TileKey) bool {
         return self.row == other.row and self.column == other.column and self.level == other.level;
     }
-
     pub fn mortoncode(self: *TileKey) u32 {
         if (self.m_mortonCode == undefined) {
             const column = self.column;

@@ -16,10 +16,11 @@ pub fn FlatTileBoundingBoxGenerator(comptime TilingScheme: type) type {
         }
         pub fn get_world_box(this: This, tilekey: TileKey) Box3 {
             const level = tilekey.level;
-            const levelDimensionX = this.subdivisionScheme.get_level_dimension_x(level);
-            const levelDimensionY = this.subdivisionScheme.get_level_dimension_y(level);
-            const sizeX = this.m_worldDimensions.x / levelDimensionX;
-            const sizeY = this.m_worldDimensions.y / levelDimensionY;
+            const subdivisionScheme = this.m_tilngscheme.subdivisionScheme;
+            const levelDimensionX = subdivisionScheme.get_level_dimension_x(level);
+            const levelDimensionY = subdivisionScheme.get_level_dimension_y(level);
+            const sizeX = this.m_world_dimensions.x / levelDimensionX;
+            const sizeY = this.m_world_dimensions.y / levelDimensionY;
             const originX = this.m_worldBox.min.x + sizeX * tilekey.column;
             const originY = this.m_worldBox.min.y + sizeY * tilekey.row;
             return Box3.new(Vec3.new(originX, originY, this.m_world_box.min.z()), Vec3.new(originX + sizeX, originY + sizeY, this.m_world_box.z()));

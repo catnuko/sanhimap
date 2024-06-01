@@ -6,29 +6,30 @@ const tilekeyUtils = @import("./tile_key_utils.zig");
 const FlatTileBoundingBoxGenerator = @import("./box_generator.zig").FlatTileBoundingBoxGenerator;
 pub fn GenericVector(comptime SubdivisionScheme: type, comptime Projection: type) type {
     return extern struct {
-        const Self = @This();
+        const This = @This();
         subdivisionScheme: SubdivisionScheme,
         projection: Projection,
-        bounding_box_generator: FlatTileBoundingBoxGenerator(Self) = undefined,
-        pub fn new(subdivisionScheme: SubdivisionScheme, projection: Projection) Self {
-            const self = .{ .subdivisionScheme = subdivisionScheme, .projection = projection };
-            self.bounding_box_generator = FlatTileBoundingBoxGenerator(Self).new(&self);
-            return self;
+        bounding_box_generator: FlatTileBoundingBoxGenerator(This) = undefined,
+        pub fn new(subdivisionScheme: SubdivisionScheme, projection: Projection) This {
+            const this = .{ .subdivisionScheme = subdivisionScheme, .projection = projection };
+            this.bounding_box_generator = FlatTileBoundingBoxGenerator(This).new(&this);
+            return this;
         }
-        pub fn get_sub_tile_keys(self: Self, tile_key: TileKey) TileKey {
-            return self.subdivisionScheme.sub_tiles(tile_key);
+        pub fn get_sub_tile_keys(this: This, tile_key: TileKey) TileKey {
+            const div_x = this.m_subdivisionScheme.get_subdivision_x(tile_key.level);
+            const div_y = this.m_subdivisionScheme.get_subdivision_y(tile_key.level);
         }
-        pub fn get_tile_key(self: Self, geopoint: GeoCoordinates) ?TileKey {
-            return tilekeyUtils.geocoordinates_to_tilekey(Self, geopoint, self.level);
+        pub fn get_tile_key(this: This, geopoint: GeoCoordinates) ?TileKey {
+            return tilekeyUtils.geocoordinates_to_tilekey(This, geopoint, this.level);
         }
-        pub fn get_tile_keys(_: Self, geobox: GeoBox, level: f64) ArrayList(TileKey) {
-            return tilekeyUtils.georectangle_to_tilekeys(Self, geobox, level);
+        pub fn get_tile_keys(_: This, geobox: GeoBox, level: f64) ArrayList(TileKey) {
+            return tilekeyUtils.georectangle_to_tilekeys(This, geobox, level);
         }
-        pub fn get_geo_box(self: Self, tile_key: TileKey) GeoBox {
-            return self.bounding_box_generator.get_geo_box(tile_key);
+        pub fn get_geo_box(this: This, tile_key: TileKey) GeoBox {
+            return this.bounding_box_generator.get_geo_box(tile_key);
         }
-        pub fn get_world_box(self: Self, tile_key: TileKey) GeoBox {
-            return self.bounding_box_generator.get_world_box(tile_key);
+        pub fn get_world_box(this: This, tile_key: TileKey) GeoBox {
+            return this.bounding_box_generator.get_world_box(tile_key);
         }
     };
 }
