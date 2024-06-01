@@ -7,18 +7,18 @@ const util = @import("util.zig");
 const generic_vector = @import("generic_vector.zig");
 const quat = @import("quaternion.zig");
 
-const Vec3 = generic_vector.Vec3;
-const Vec3_f64 = generic_vector.Vec3_f64;
+const Vec3_f32 = generic_vector.Vec3_f32;
 const GenericVector = generic_vector.GenericVector;
 const Quaternion = quat.Quaternion;
 const Quat = quat.Quat;
 
-pub const Mat4 = Mat4x4(f32);
+pub const Mat4_f32 = Mat4x4(f32);
 pub const Mat4_f64 = Mat4x4(f64);
-pub const perspective = Mat4.perspective;
-pub const perspectiveReversedZ = Mat4.perspectiveReversedZ;
-pub const orthographic = Mat4.orthographic;
-pub const lookAt = Mat4.lookAt;
+pub const Mat4 = Mat4_f64;
+pub const perspective = Mat4_f32.perspective;
+pub const perspectiveReversedZ = Mat4_f32.perspectiveReversedZ;
+pub const orthographic = Mat4_f32.orthographic;
+pub const lookAt = Mat4_f32.lookAt;
 
 /// A column-major 4x4 matrix
 /// Note: Column-major means accessing data like m.data[COLUMN][ROW].
@@ -128,7 +128,7 @@ pub fn Mat4x4(comptime T: type) type {
             return Self.mul(trans_mat, self);
         }
 
-        /// Get translation Vec3 from current matrix.
+        /// Get translation Vec3_f32 from current matrix.
         pub fn extractTranslation(self: Self) Vector3 {
             return Vector3.new(self.data[3][0], self.data[3][1], self.data[3][2]);
         }
@@ -399,7 +399,7 @@ pub fn Mat4x4(comptime T: type) type {
 
         /// Return 4x4 matrix from given all transform components; `translation`, `rotation` and `scale`.
         /// The final order is T * R * S.
-        /// Note: `rotation` could be `Vec3` (Euler angles) or a `quat`.
+        /// Note: `rotation` could be `Vec3_f32` (Euler angles) or a `quat`.
         pub fn recompose(translation: Vector3, rotation: anytype, scalar: Vector3) Self {
             var r = switch (@TypeOf(rotation)) {
                 Quaternion(T) => Quaternion(T).toMat4(rotation),
@@ -493,18 +493,18 @@ pub fn Mat4x4(comptime T: type) type {
     };
 }
 
-test "zalgebra.Mat4.eql" {
-    const a = Mat4.identity();
-    const b = Mat4.identity();
-    const c = Mat4.zero();
+test "zalgebra.Mat4_f32.eql" {
+    const a = Mat4_f32.identity();
+    const b = Mat4_f32.identity();
+    const c = Mat4_f32.zero();
 
-    try expectEqual(Mat4.eql(a, b), true);
-    try expectEqual(Mat4.eql(a, c), false);
+    try expectEqual(Mat4_f32.eql(a, b), true);
+    try expectEqual(Mat4_f32.eql(a, c), false);
 }
 
-test "zalgebra.Mat4.set" {
-    const a = Mat4.set(12);
-    const b = Mat4{
+test "zalgebra.Mat4_f32.set" {
+    const a = Mat4_f32.set(12);
+    const b = Mat4_f32{
         .data = .{
             .{ 12, 12, 12, 12 },
             .{ 12, 12, 12, 12 },
@@ -516,8 +516,8 @@ test "zalgebra.Mat4.set" {
     try expectEqual(a, b);
 }
 
-test "zalgebra.Mat4.negate" {
-    const a = Mat4{
+test "zalgebra.Mat4_f32.negate" {
+    const a = Mat4_f32{
         .data = .{
             .{ 1, 2, 3, 4 },
             .{ 5, -6, 7, 8 },
@@ -525,7 +525,7 @@ test "zalgebra.Mat4.negate" {
             .{ 13, 14, 15, 16 },
         },
     };
-    const a_negated = Mat4{
+    const a_negated = Mat4_f32{
         .data = .{
             .{ -1, -2, -3, -4 },
             .{ -5, 6, -7, -8 },
@@ -537,8 +537,8 @@ test "zalgebra.Mat4.negate" {
     try expectEqual(a.negate(), a_negated);
 }
 
-test "zalgebra.Mat4.transpose" {
-    const a = Mat4{
+test "zalgebra.Mat4_f32.transpose" {
+    const a = Mat4_f32{
         .data = .{
             .{ 1, 2, 3, 4 },
             .{ 5, 6, 7, 8 },
@@ -546,7 +546,7 @@ test "zalgebra.Mat4.transpose" {
             .{ 13, 14, 15, 16 },
         },
     };
-    const b = Mat4{
+    const b = Mat4_f32{
         .data = .{
             .{ 1, 5, 9, 13 },
             .{ 2, 6, 10, 14 },
@@ -558,17 +558,17 @@ test "zalgebra.Mat4.transpose" {
     try expectEqual(a.transpose(), b);
 }
 
-test "zalgebra.Mat4.fromSlice" {
+test "zalgebra.Mat4_f32.fromSlice" {
     const data = [_]f32{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
-    const result = Mat4.fromSlice(&data);
+    const result = Mat4_f32.fromSlice(&data);
 
-    try expectEqual(result, Mat4.identity());
+    try expectEqual(result, Mat4_f32.identity());
 }
 
-test "zalgebra.Mat4.fromTranslate" {
-    const a = Mat4.fromTranslate(Vec3.new(2, 3, 4));
+test "zalgebra.Mat4_f32.fromTranslate" {
+    const a = Mat4_f32.fromTranslate(Vec3_f32.new(2, 3, 4));
 
-    try expectEqual(a, Mat4{
+    try expectEqual(a, Mat4_f32{
         .data = .{
             .{ 1, 0, 0, 0 },
             .{ 0, 1, 0, 0 },
@@ -578,11 +578,11 @@ test "zalgebra.Mat4.fromTranslate" {
     });
 }
 
-test "zalgebra.Mat4.translate" {
-    const a = Mat4.fromTranslate(Vec3.new(2, 3, 2));
-    const result = Mat4.translate(a, Vec3.new(2, 3, 4));
+test "zalgebra.Mat4_f32.translate" {
+    const a = Mat4_f32.fromTranslate(Vec3_f32.new(2, 3, 2));
+    const result = Mat4_f32.translate(a, Vec3_f32.new(2, 3, 4));
 
-    try expectEqual(result, Mat4{
+    try expectEqual(result, Mat4_f32{
         .data = .{
             .{ 1, 0, 0, 0 },
             .{ 0, 1, 0, 0 },
@@ -592,10 +592,10 @@ test "zalgebra.Mat4.translate" {
     });
 }
 
-test "zalgebra.Mat4.fromScale" {
-    const a = Mat4.fromScale(Vec3.new(2, 3, 4));
+test "zalgebra.Mat4_f32.fromScale" {
+    const a = Mat4_f32.fromScale(Vec3_f32.new(2, 3, 4));
 
-    try expectEqual(a, Mat4{
+    try expectEqual(a, Mat4_f32{
         .data = .{
             .{ 2, 0, 0, 0 },
             .{ 0, 3, 0, 0 },
@@ -605,11 +605,11 @@ test "zalgebra.Mat4.fromScale" {
     });
 }
 
-test "zalgebra.Mat4.scale" {
-    const a = Mat4.fromScale(Vec3.new(2, 3, 4));
-    const result = Mat4.scale(a, Vec3.set(2));
+test "zalgebra.Mat4_f32.scale" {
+    const a = Mat4_f32.fromScale(Vec3_f32.new(2, 3, 4));
+    const result = Mat4_f32.scale(a, Vec3_f32.set_scalar(2));
 
-    try expectEqual(result, Mat4{
+    try expectEqual(result, Mat4_f32{
         .data = .{
             .{ 4, 0, 0, 0 },
             .{ 0, 6, 0, 0 },
@@ -619,8 +619,8 @@ test "zalgebra.Mat4.scale" {
     });
 }
 
-test "zalgebra.Mat4.det" {
-    const a: Mat4 = .{
+test "zalgebra.Mat4_f32.det" {
+    const a: Mat4_f32 = .{
         .data = .{
             .{ 2, 0, 0, 4 },
             .{ 0, 2, 0, 0 },
@@ -632,8 +632,8 @@ test "zalgebra.Mat4.det" {
     try expectEqual(a.det(), -48);
 }
 
-test "zalgebra.Mat4.inv" {
-    const a: Mat4 = .{
+test "zalgebra.Mat4_f32.inv" {
+    const a: Mat4_f32 = .{
         .data = .{
             .{ 2, 0, 0, 4 },
             .{ 0, 2, 0, 0 },
@@ -642,7 +642,7 @@ test "zalgebra.Mat4.inv" {
         },
     };
 
-    try expectEqual(a.inv(), Mat4{
+    try expectEqual(a.inv(), Mat4_f32{
         .data = .{
             .{ -0.1666666716337204, 0, 0, 0.3333333432674408 },
             .{ 0, 0.5, 0, 0 },
@@ -652,33 +652,33 @@ test "zalgebra.Mat4.inv" {
     });
 }
 
-test "zalgebra.Mat4.extractTranslation" {
-    var a = Mat4.fromTranslate(Vec3.new(2, 3, 2));
-    a = a.translate(Vec3.new(2, 3, 2));
+test "zalgebra.Mat4_f32.extractTranslation" {
+    var a = Mat4_f32.fromTranslate(Vec3_f32.new(2, 3, 2));
+    a = a.translate(Vec3_f32.new(2, 3, 2));
 
-    try expectEqual(a.extractTranslation(), Vec3.new(4, 6, 4));
+    try expectEqual(a.extractTranslation(), Vec3_f32.new(4, 6, 4));
 }
 
-test "zalgebra.Mat4.extractEulerAngles" {
-    const a = Mat4.fromEulerAngles(Vec3.new(45, -5, 20));
-    try expectEqual(a.extractEulerAngles(), Vec3.new(45.000003814697266, -4.99052524, 19.999998092651367));
+test "zalgebra.Mat4_f32.extractEulerAngles" {
+    const a = Mat4_f32.fromEulerAngles(Vec3_f32.new(45, -5, 20));
+    try expectEqual(a.extractEulerAngles(), Vec3_f32.new(45.000003814697266, -4.99052524, 19.999998092651367));
 }
 
-test "zalgebra.Mat4.extractScale" {
-    var a = Mat4.fromScale(Vec3.new(2, 4, 8));
-    a = a.scale(Vec3.new(2, 4, 8));
+test "zalgebra.Mat4_f32.extractScale" {
+    var a = Mat4_f32.fromScale(Vec3_f32.new(2, 4, 8));
+    a = a.scale(Vec3_f32.new(2, 4, 8));
 
-    try expectEqual(a.extractScale(), Vec3.new(4, 16, 64));
+    try expectEqual(a.extractScale(), Vec3_f32.new(4, 16, 64));
 }
 
-test "zalgebra.Mat4.recompose" {
-    const result = Mat4.recompose(
-        Vec3.set(2),
-        Vec3.new(45, 5, 0),
-        Vec3.one(),
+test "zalgebra.Mat4_f32.recompose" {
+    const result = Mat4_f32.recompose(
+        Vec3_f32.set_scalar(2),
+        Vec3_f32.new(45, 5, 0),
+        Vec3_f32.one(),
     );
 
-    try expectEqual(result, Mat4{ .data = .{
+    try expectEqual(result, Mat4_f32{ .data = .{
         .{ 0.9961947202682495, 0, -0.08715573698282242, 0 },
         .{ 0.06162841245532036, 0.7071067690849304, 0.704416036605835, 0 },
         .{ 0.06162841245532036, -0.7071067690849304, 0.704416036605835, 0 },
@@ -686,22 +686,22 @@ test "zalgebra.Mat4.recompose" {
     } });
 }
 
-test "zalgebra.Mat4.decompose" {
-    const a = Mat4.recompose(
-        Vec3.new(10, 5, 5),
-        Vec3.new(45, 5, 0),
-        Vec3.set(1),
+test "zalgebra.Mat4_f32.decompose" {
+    const a = Mat4_f32.recompose(
+        Vec3_f32.new(10, 5, 5),
+        Vec3_f32.new(45, 5, 0),
+        Vec3_f32.set_scalar(1),
     );
 
     const result = a.decompose();
 
-    try expectEqual(result.t, Vec3.new(10, 5, 5));
-    try expectEqual(result.s, Vec3.set(1));
-    try expectEqual(result.r.extractEulerAngles(), Vec3.new(45, 5, 0.00000010712935250012379));
+    try expectEqual(result.t, Vec3_f32.new(10, 5, 5));
+    try expectEqual(result.s, Vec3_f32.set_scalar(1));
+    try expectEqual(result.r.extractEulerAngles(), Vec3_f32.new(45, 5, 0.00000010712935250012379));
 }
 
-test "zalgebra.Mat4.cast" {
-    const a = Mat4{ .data = .{
+test "zalgebra.Mat4_f32.cast" {
+    const a = Mat4_f32{ .data = .{
         .{ 0.9961947202682495, 0, -0.08715573698282242, 0 },
         .{ 0.06162841245532036, 0.7071067690849304, 0.704416036605835, 0 },
         .{ 0.06162841245532036, -0.7071067690849304, 0.704416036605835, 0 },

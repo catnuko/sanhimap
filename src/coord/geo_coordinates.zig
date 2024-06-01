@@ -1,12 +1,12 @@
 const std = @import("std");
-const Vec3 = @import("../math/index.zig").Vec3_f64;
+const Vec3 = @import("../math/index.zig").Vec3;
 const math = std.math;
 
 pub const MAX_LATITUDE: i16 = 90;
 pub const MIN_LATITUDE: i16 = -90;
 pub const MAX_LONGITUDE: i16 = 180;
 pub const MIN_LONGITUDE: i16 = -180;
-pub const LngLatAlt = struct {
+pub const GeoCoordinates = struct {
     const Self = @This();
     longitude: f64,
     latitude: f64,
@@ -17,10 +17,10 @@ pub const LngLatAlt = struct {
     pub inline fn from_radians(longitude: f64, latitude: f64, altitude: ?f64) Self {
         return Self.from_degrees(math.radiansToDegrees(longitude), math.radiansToDegrees(latitude), altitude);
     }
-    pub inline fn lng_in_radians(self: Self) f64 {
+    pub inline fn longitude_in_radians(self: Self) f64 {
         return math.degreesToRadians(self.longitude);
     }
-    pub inline fn lat_in_radians(self: Self) f64 {
+    pub inline fn latitude_in_radians(self: Self) f64 {
         return math.degreesToRadians(self.latitude);
     }
     pub inline fn eql(self: Self, other: Self) bool {
@@ -55,3 +55,10 @@ pub const LngLatAlt = struct {
         return Vec3.new(self.longitude, self.latitude, self.altitude);
     }
 };
+
+test "coord_geo_coordinates" {
+    const point = GeoCoordinates.from_degrees(120, 30, null);
+    try std.testing.expectEqual(point.longitude, 120);
+    try std.testing.expectEqual(point.latitude, 30);
+    try std.testing.expectEqual(point.altitude, null);
+}

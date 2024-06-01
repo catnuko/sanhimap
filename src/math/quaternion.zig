@@ -14,8 +14,8 @@ const assert = std.debug.assert;
 
 const GenericVector = generic_vector.GenericVector;
 
-const Vec3 = generic_vector.Vec3;
-const Vec4 = generic_vector.Vec4;
+const Vec3 = generic_vector.Vec3_f32;
+const Vec4 = generic_vector.Vec4_f32;
 const Mat3x3 = mat3.Mat3x3;
 const Mat4x4 = mat4.Mat4x4;
 
@@ -482,7 +482,7 @@ test "zalgebra.Quaternion.extractEulerAngles" {
 }
 
 test "zalgebra.Quaternion.rotateVec" {
-    const q = Quat.fromEulerAngles(Vec3.set(45));
+    const q = Quat.fromEulerAngles(Vec3.set_scalar(45));
     const m = q.toMat4();
 
     const v = Vec3.up();

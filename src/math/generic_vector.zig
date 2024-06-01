@@ -5,20 +5,23 @@ const expectEqual = std.testing.expectEqual;
 const expect = std.testing.expect;
 const panic = std.debug.panic;
 
-pub const Vec2 = GenericVector(2, f32);
+pub const Vec2_f32 = GenericVector(2, f32);
 pub const Vec2_f64 = GenericVector(2, f64);
 pub const Vec2_i32 = GenericVector(2, i32);
 pub const Vec2_usize = GenericVector(2, usize);
+pub const Vec2 = Vec2_f64;
 
-pub const Vec3 = GenericVector(3, f32);
+pub const Vec3_f32 = GenericVector(3, f32);
 pub const Vec3_f64 = GenericVector(3, f64);
 pub const Vec3_i32 = GenericVector(3, i32);
 pub const Vec3_usize = GenericVector(3, usize);
+pub const Vec3 = Vec3_f64;
 
-pub const Vec4 = GenericVector(4, f32);
+pub const Vec4_f32 = GenericVector(4, f32);
 pub const Vec4_f64 = GenericVector(4, f64);
 pub const Vec4_i32 = GenericVector(4, i32);
 pub const Vec4_usize = GenericVector(4, usize);
+pub const Vec4 = Vec4_f64;
 
 /// A generic vector.
 pub fn GenericVector(comptime dimensions: comptime_int, comptime T: type) type {
@@ -74,6 +77,10 @@ pub fn GenericVector(comptime dimensions: comptime_int, comptime T: type) type {
 
                 pub inline fn fromVec4(vec4: GenericVector(4, T)) Self {
                     return Self.new(vec4.x(), vec4.y());
+                }
+                pub inline fn set(self: *Self, x_: T, y_: T) void {
+                    self.data[0] = x_;
+                    self.data[1] = y_;
                 }
             },
             3 => extern struct {
@@ -131,6 +138,11 @@ pub fn GenericVector(comptime dimensions: comptime_int, comptime T: type) type {
                 pub inline fn fromVec4(vec4: GenericVector(4, T)) Self {
                     return Self.new(vec4.x(), vec4.y(), vec4.z());
                 }
+                pub inline fn set(self: *Self, x_: T, y_: T, z_: T) void {
+                    self.data[0] = x_;
+                    self.data[1] = y_;
+                    self.data[2] = z_;
+                }
             },
             4 => extern struct {
                 /// Construct new vector.
@@ -179,6 +191,12 @@ pub fn GenericVector(comptime dimensions: comptime_int, comptime T: type) type {
                 pub inline fn fromVec3(vec3: GenericVector(3, T), vw: T) Self {
                     return Self.new(vec3.x(), vec3.y(), vec3.z(), vw);
                 }
+                pub inline fn set(self: *Self, x_: T, y_: T, z_: T, w_: T) void {
+                    self.data[0] = x_;
+                    self.data[1] = y_;
+                    self.data[2] = z_;
+                    self.data[3] = w_;
+                }
             },
             else => unreachable,
         };
@@ -200,19 +218,19 @@ pub fn GenericVector(comptime dimensions: comptime_int, comptime T: type) type {
         }
 
         /// Set all components to the same given value.
-        pub fn set(val: T) Self {
+        pub fn set_scalar(val: T) Self {
             const result: Data = @splat(val);
             return .{ .data = result };
         }
 
         /// Shorthand for (0..).
         pub fn zero() Self {
-            return set(0);
+            return set_scalar(0);
         }
 
         /// Shorthand for (1..).
         pub fn one() Self {
-            return set(1);
+            return set_scalar(1);
         }
 
         /// Shorthand for (0, 1).
@@ -377,113 +395,113 @@ pub fn GenericVector(comptime dimensions: comptime_int, comptime T: type) type {
 }
 
 test "zalgebra.Vectors.eql" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.new(1, 2);
-        const b = Vec2.new(1, 2);
-        const c = Vec2.new(1.5, 2);
+        const a = Vec2_f32.new(1, 2);
+        const b = Vec2_f32.new(1, 2);
+        const c = Vec2_f32.new(1.5, 2);
 
-        try expectEqual(Vec2.eql(a, b), true);
-        try expectEqual(Vec2.eql(a, c), false);
+        try expectEqual(Vec2_f32.eql(a, b), true);
+        try expectEqual(Vec2_f32.eql(a, c), false);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.new(1, 2, 3);
-        const b = Vec3.new(1, 2, 3);
-        const c = Vec3.new(1.5, 2, 3);
+        const a = Vec3_f32.new(1, 2, 3);
+        const b = Vec3_f32.new(1, 2, 3);
+        const c = Vec3_f32.new(1.5, 2, 3);
 
-        try expectEqual(Vec3.eql(a, b), true);
-        try expectEqual(Vec3.eql(a, c), false);
+        try expectEqual(Vec3_f32.eql(a, b), true);
+        try expectEqual(Vec3_f32.eql(a, c), false);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.new(1, 2, 3, 4);
-        const b = Vec4.new(1, 2, 3, 4);
-        const c = Vec4.new(1.5, 2, 3, 4);
+        const a = Vec4_f32.new(1, 2, 3, 4);
+        const b = Vec4_f32.new(1, 2, 3, 4);
+        const c = Vec4_f32.new(1.5, 2, 3, 4);
 
-        try expectEqual(Vec4.eql(a, b), true);
-        try expectEqual(Vec4.eql(a, c), false);
+        try expectEqual(Vec4_f32.eql(a, b), true);
+        try expectEqual(Vec4_f32.eql(a, c), false);
     }
 }
 
-test "zalgebra.Vectors.set" {
-    // Vec2
+test "zalgebra.Vectors.set_scalar" {
+    // Vec2_f32
     {
-        const a = Vec2.new(2.5, 2.5);
-        const b = Vec2.set(2.5);
+        const a = Vec2_f32.new(2.5, 2.5);
+        const b = Vec2_f32.set_scalar(2.5);
         try expectEqual(a, b);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.new(2.5, 2.5, 2.5);
-        const b = Vec3.set(2.5);
+        const a = Vec3_f32.new(2.5, 2.5, 2.5);
+        const b = Vec3_f32.set_scalar(2.5);
         try expectEqual(a, b);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.new(2.5, 2.5, 2.5, 2.5);
-        const b = Vec4.set(2.5);
+        const a = Vec4_f32.new(2.5, 2.5, 2.5, 2.5);
+        const b = Vec4_f32.set_scalar(2.5);
         try expectEqual(a, b);
     }
 }
 
 test "zalgebra.Vectors.add" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.one();
-        const b = Vec2.one();
-        try expectEqual(a.add(b), Vec2.set(2));
+        const a = Vec2_f32.one();
+        const b = Vec2_f32.one();
+        try expectEqual(a.add(b), Vec2_f32.set_scalar(2));
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.one();
-        const b = Vec3.one();
-        try expectEqual(a.add(b), Vec3.set(2));
+        const a = Vec3_f32.one();
+        const b = Vec3_f32.one();
+        try expectEqual(a.add(b), Vec3_f32.set_scalar(2));
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.one();
-        const b = Vec4.one();
-        try expectEqual(a.add(b), Vec4.set(2));
+        const a = Vec4_f32.one();
+        const b = Vec4_f32.one();
+        try expectEqual(a.add(b), Vec4_f32.set_scalar(2));
     }
 }
 
 test "zalgebra.Vectors.negate" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.set(5);
-        const a_negated = Vec2.set(-5);
+        const a = Vec2_f32.set_scalar(5);
+        const a_negated = Vec2_f32.set_scalar(-5);
         try expectEqual(a.negate(), a_negated);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.set(5);
-        const a_negated = Vec3.set(-5);
+        const a = Vec3_f32.set_scalar(5);
+        const a_negated = Vec3_f32.set_scalar(-5);
         try expectEqual(a.negate(), a_negated);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.set(5);
-        const a_negated = Vec4.set(-5);
+        const a = Vec4_f32.set_scalar(5);
+        const a_negated = Vec4_f32.set_scalar(-5);
         try expectEqual(a.negate(), a_negated);
     }
 }
 
 test "zalgebra.Vectors.getAngle" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.right();
-        const b = Vec2.up();
-        const c = Vec2.left();
-        const d = Vec2.one();
+        const a = Vec2_f32.right();
+        const b = Vec2_f32.up();
+        const c = Vec2_f32.left();
+        const d = Vec2_f32.one();
 
         try expectEqual(a.getAngle(a), 0);
         try expectEqual(a.getAngle(b), 90);
@@ -491,12 +509,12 @@ test "zalgebra.Vectors.getAngle" {
         try expectEqual(a.getAngle(d), 45);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.right();
-        const b = Vec3.up();
-        const c = Vec3.left();
-        const d = Vec3.new(1, 1, 0);
+        const a = Vec3_f32.right();
+        const b = Vec3_f32.up();
+        const c = Vec3_f32.left();
+        const d = Vec3_f32.new(1, 1, 0);
 
         try expectEqual(a.getAngle(a), 0);
         try expectEqual(a.getAngle(b), 90);
@@ -504,12 +522,12 @@ test "zalgebra.Vectors.getAngle" {
         try expectEqual(a.getAngle(d), 45);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.right();
-        const b = Vec4.up();
-        const c = Vec4.left();
-        const d = Vec4.new(1, 1, 0, 0);
+        const a = Vec4_f32.right();
+        const b = Vec4_f32.up();
+        const c = Vec4_f32.left();
+        const d = Vec4_f32.new(1, 1, 0, 0);
 
         try expectEqual(a.getAngle(a), 0);
         try expectEqual(a.getAngle(b), 90);
@@ -519,25 +537,25 @@ test "zalgebra.Vectors.getAngle" {
 }
 
 test "zalgebra.Vectors.toArray" {
-    //Vec2
+    //Vec2_f32
     {
-        const a = Vec2.up().toArray();
+        const a = Vec2_f32.up().toArray();
         const b = [_]f32{ 0, 1 };
 
         try std.testing.expectEqualSlices(f32, &a, &b);
     }
 
-    //Vec3
+    //Vec3_f32
     {
-        const a = Vec3.up().toArray();
+        const a = Vec3_f32.up().toArray();
         const b = [_]f32{ 0, 1, 0 };
 
         try std.testing.expectEqualSlices(f32, &a, &b);
     }
 
-    //Vec4
+    //Vec4_f32
     {
-        const a = Vec4.up().toArray();
+        const a = Vec4_f32.up().toArray();
         const b = [_]f32{ 0, 1, 0, 0 };
 
         try std.testing.expectEqualSlices(f32, &a, &b);
@@ -545,51 +563,51 @@ test "zalgebra.Vectors.toArray" {
 }
 
 test "zalgebra.Vectors.length" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.new(1.5, 2.6);
+        const a = Vec2_f32.new(1.5, 2.6);
         try expectEqual(a.length(), 3.00166606);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.new(1.5, 2.6, 3.7);
+        const a = Vec3_f32.new(1.5, 2.6, 3.7);
         try expectEqual(a.length(), 4.7644519);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.new(1.5, 2.6, 3.7, 4.7);
+        const a = Vec4_f32.new(1.5, 2.6, 3.7, 4.7);
         try expectEqual(a.length(), 6.69253301);
     }
 }
 
 test "zalgebra.Vectors.distance" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.zero();
-        const b = Vec2.left();
-        const c = Vec2.new(0, 5);
+        const a = Vec2_f32.zero();
+        const b = Vec2_f32.left();
+        const c = Vec2_f32.new(0, 5);
 
         try expectEqual(a.distance(b), 1);
         try expectEqual(a.distance(c), 5);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.zero();
-        const b = Vec3.left();
-        const c = Vec3.new(0, 5, 0);
+        const a = Vec3_f32.zero();
+        const b = Vec3_f32.left();
+        const c = Vec3_f32.new(0, 5, 0);
 
         try expectEqual(a.distance(b), 1);
         try expectEqual(a.distance(c), 5);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.zero();
-        const b = Vec4.left();
-        const c = Vec4.new(0, 5, 0, 0);
+        const a = Vec4_f32.zero();
+        const b = Vec4_f32.left();
+        const c = Vec4_f32.new(0, 5, 0, 0);
 
         try expectEqual(a.distance(b), 1);
         try expectEqual(a.distance(c), 5);
@@ -597,339 +615,339 @@ test "zalgebra.Vectors.distance" {
 }
 
 test "zalgebra.Vectors.normalize" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.new(1.5, 2.6);
-        const a_normalized = Vec2.new(0.499722480, 0.866185605);
+        const a = Vec2_f32.new(1.5, 2.6);
+        const a_normalized = Vec2_f32.new(0.499722480, 0.866185605);
         try expectEqual(a.norm(), a_normalized);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.new(1.5, 2.6, 3.7);
-        const a_normalized = Vec3.new(0.314831584, 0.545708060, 0.776584625);
+        const a = Vec3_f32.new(1.5, 2.6, 3.7);
+        const a_normalized = Vec3_f32.new(0.314831584, 0.545708060, 0.776584625);
         try expectEqual(a.norm(), a_normalized);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.new(1.5, 2.6, 3.7, 4.0);
-        const a_normalized = Vec4.new(0.241121411, 0.417943745, 0.594766139, 0.642990410);
+        const a = Vec4_f32.new(1.5, 2.6, 3.7, 4.0);
+        const a_normalized = Vec4_f32.new(0.241121411, 0.417943745, 0.594766139, 0.642990410);
         try expectEqual(a.norm(), a_normalized);
     }
 }
 
 test "zalgebra.Vectors.scale" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.new(1, 2);
-        const a_scaled = Vec2.new(5, 10);
+        const a = Vec2_f32.new(1, 2);
+        const a_scaled = Vec2_f32.new(5, 10);
         try expectEqual(a.scale(5), a_scaled);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.new(1, 2, 3);
-        const a_scaled = Vec3.new(5, 10, 15);
+        const a = Vec3_f32.new(1, 2, 3);
+        const a_scaled = Vec3_f32.new(5, 10, 15);
         try expectEqual(a.scale(5), a_scaled);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.new(1, 2, 3, 4);
-        const a_scaled = Vec4.new(5, 10, 15, 20);
+        const a = Vec4_f32.new(1, 2, 3, 4);
+        const a_scaled = Vec4_f32.new(5, 10, 15, 20);
         try expectEqual(a.scale(5), a_scaled);
     }
 }
 
 test "zalgebra.Vectors.dot" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.new(1.5, 2.6);
-        const b = Vec2.new(2.5, 3.45);
+        const a = Vec2_f32.new(1.5, 2.6);
+        const b = Vec2_f32.new(2.5, 3.45);
         try expectEqual(a.dot(b), 12.7200002);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.new(1.5, 2.6, 3.7);
-        const b = Vec3.new(2.5, 3.45, 1.0);
+        const a = Vec3_f32.new(1.5, 2.6, 3.7);
+        const b = Vec3_f32.new(2.5, 3.45, 1.0);
         try expectEqual(a.dot(b), 16.42);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.new(1.5, 2.6, 3.7, 5);
-        const b = Vec4.new(2.5, 3.45, 1.0, 1);
+        const a = Vec4_f32.new(1.5, 2.6, 3.7, 5);
+        const b = Vec4_f32.new(2.5, 3.45, 1.0, 1);
         try expectEqual(a.dot(b), 21.4200000);
     }
 }
 
 test "zalgebra.Vectors.lerp" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.new(-10, 0);
-        const b = Vec2.set(10);
-        try expectEqual(Vec2.lerp(a, b, 0.5), Vec2.new(0, 5));
+        const a = Vec2_f32.new(-10, 0);
+        const b = Vec2_f32.set_scalar(10);
+        try expectEqual(Vec2_f32.lerp(a, b, 0.5), Vec2_f32.new(0, 5));
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.new(-10, 0, -10);
-        const b = Vec3.set(10);
-        try expectEqual(Vec3.lerp(a, b, 0.5), Vec3.new(0, 5, 0));
+        const a = Vec3_f32.new(-10, 0, -10);
+        const b = Vec3_f32.set_scalar(10);
+        try expectEqual(Vec3_f32.lerp(a, b, 0.5), Vec3_f32.new(0, 5, 0));
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.new(-10, 0, -10, -10);
-        const b = Vec4.set(10);
-        try expectEqual(Vec4.lerp(a, b, 0.5), Vec4.new(0, 5, 0, 0));
+        const a = Vec4_f32.new(-10, 0, -10, -10);
+        const b = Vec4_f32.set_scalar(10);
+        try expectEqual(Vec4_f32.lerp(a, b, 0.5), Vec4_f32.new(0, 5, 0, 0));
     }
 }
 
 test "zalgebra.Vectors.min" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.new(10, -2);
-        const b = Vec2.new(-10, 5);
-        const minimum = Vec2.new(-10, -2);
-        try expectEqual(Vec2.min(a, b), minimum);
+        const a = Vec2_f32.new(10, -2);
+        const b = Vec2_f32.new(-10, 5);
+        const minimum = Vec2_f32.new(-10, -2);
+        try expectEqual(Vec2_f32.min(a, b), minimum);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.new(10, -2, 0);
-        const b = Vec3.new(-10, 5, 0);
-        const minimum = Vec3.new(-10, -2, 0);
-        try expectEqual(Vec3.min(a, b), minimum);
+        const a = Vec3_f32.new(10, -2, 0);
+        const b = Vec3_f32.new(-10, 5, 0);
+        const minimum = Vec3_f32.new(-10, -2, 0);
+        try expectEqual(Vec3_f32.min(a, b), minimum);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.new(10, -2, 0, 1);
-        const b = Vec4.new(-10, 5, 0, 1.01);
-        const minimum = Vec4.new(-10, -2, 0, 1);
-        try expectEqual(Vec4.min(a, b), minimum);
+        const a = Vec4_f32.new(10, -2, 0, 1);
+        const b = Vec4_f32.new(-10, 5, 0, 1.01);
+        const minimum = Vec4_f32.new(-10, -2, 0, 1);
+        try expectEqual(Vec4_f32.min(a, b), minimum);
     }
 }
 
 test "zalgebra.Vectors.max" {
-    // Vec2
+    // Vec2_f32
     {
-        const a = Vec2.new(10, -2);
-        const b = Vec2.new(-10, 5);
-        const maximum = Vec2.new(10, 5);
-        try expectEqual(Vec2.max(a, b), maximum);
+        const a = Vec2_f32.new(10, -2);
+        const b = Vec2_f32.new(-10, 5);
+        const maximum = Vec2_f32.new(10, 5);
+        try expectEqual(Vec2_f32.max(a, b), maximum);
     }
 
-    // Vec3
+    // Vec3_f32
     {
-        const a = Vec3.new(10, -2, 0);
-        const b = Vec3.new(-10, 5, 0);
-        const maximum = Vec3.new(10, 5, 0);
-        try expectEqual(Vec3.max(a, b), maximum);
+        const a = Vec3_f32.new(10, -2, 0);
+        const b = Vec3_f32.new(-10, 5, 0);
+        const maximum = Vec3_f32.new(10, 5, 0);
+        try expectEqual(Vec3_f32.max(a, b), maximum);
     }
 
-    // Vec4
+    // Vec4_f32
     {
-        const a = Vec4.new(10, -2, 0, 1);
-        const b = Vec4.new(-10, 5, 0, 1.01);
-        const maximum = Vec4.new(10, 5, 0, 1.01);
-        try expectEqual(Vec4.max(a, b), maximum);
+        const a = Vec4_f32.new(10, -2, 0, 1);
+        const b = Vec4_f32.new(-10, 5, 0, 1.01);
+        const maximum = Vec4_f32.new(10, 5, 0, 1.01);
+        try expectEqual(Vec4_f32.max(a, b), maximum);
     }
 }
 
 test "zalgebra.Vectors.fromSlice" {
-    // Vec2
+    // Vec2_f32
     {
         const slice = [_]f32{ 2, 4 };
-        try expectEqual(Vec2.fromSlice(&slice), Vec2.new(2, 4));
+        try expectEqual(Vec2_f32.fromSlice(&slice), Vec2_f32.new(2, 4));
     }
 
-    // Vec3
+    // Vec3_f32
     {
         const slice = [_]f32{ 2, 4, 3 };
-        try expectEqual(Vec3.fromSlice(&slice), Vec3.new(2, 4, 3));
+        try expectEqual(Vec3_f32.fromSlice(&slice), Vec3_f32.new(2, 4, 3));
     }
 
-    // Vec4
+    // Vec4_f32
     {
         const slice = [_]f32{ 2, 4, 3, 6 };
-        try expectEqual(Vec4.fromSlice(&slice), Vec4.new(2, 4, 3, 6));
+        try expectEqual(Vec4_f32.fromSlice(&slice), Vec4_f32.new(2, 4, 3, 6));
     }
 }
 
 test "zalgebra.Vectors.cast" {
-    // Vec2
+    // Vec2_f32
     {
         const a = Vec2_i32.new(3, 6);
         const a_usize = Vec2_usize.new(3, 6);
         try expectEqual(a.cast(usize), a_usize);
 
-        const b = Vec2.new(3.5, 6.5);
+        const b = Vec2_f32.new(3.5, 6.5);
         const b_f64 = Vec2_f64.new(3.5, 6.5);
         try expectEqual(b.cast(f64), b_f64);
 
         const c = Vec2_i32.new(3, 6);
-        const c_f32 = Vec2.new(3, 6);
+        const c_f32 = Vec2_f32.new(3, 6);
         try expectEqual(c.cast(f32), c_f32);
 
-        const d = Vec2.new(3, 6);
+        const d = Vec2_f32.new(3, 6);
         const d_i32 = Vec2_i32.new(3, 6);
         try expectEqual(d.cast(i32), d_i32);
     }
 
-    // Vec3
+    // Vec3_f32
     {
         const a = Vec3_i32.new(3, 6, 2);
         const a_usize = Vec3_usize.new(3, 6, 2);
         try expectEqual(a.cast(usize), a_usize);
 
-        const b = Vec3.new(3.5, 6.5, 2);
+        const b = Vec3_f32.new(3.5, 6.5, 2);
         const b_f64 = Vec3_f64.new(3.5, 6.5, 2);
         try expectEqual(b.cast(f64), b_f64);
 
         const c = Vec3_i32.new(3, 6, 2);
-        const c_f32 = Vec3.new(3, 6, 2);
+        const c_f32 = Vec3_f32.new(3, 6, 2);
         try expectEqual(c.cast(f32), c_f32);
 
-        const d = Vec3.new(3, 6, 2);
+        const d = Vec3_f32.new(3, 6, 2);
         const d_i32 = Vec3_i32.new(3, 6, 2);
         try expectEqual(d.cast(i32), d_i32);
     }
 
-    // Vec4
+    // Vec4_f32
     {
         const a = Vec4_i32.new(3, 6, 2, 0);
         const a_usize = Vec4_usize.new(3, 6, 2, 0);
         try expectEqual(a.cast(usize), a_usize);
 
-        const b = Vec4.new(3.5, 6.5, 2, 0);
+        const b = Vec4_f32.new(3.5, 6.5, 2, 0);
         const b_f64 = Vec4_f64.new(3.5, 6.5, 2, 0);
         try expectEqual(b.cast(f64), b_f64);
 
         const c = Vec4_i32.new(3, 6, 2, 0);
-        const c_f32 = Vec4.new(3, 6, 2, 0);
+        const c_f32 = Vec4_f32.new(3, 6, 2, 0);
         try expectEqual(c.cast(f32), c_f32);
 
-        const d = Vec4.new(3, 6, 2, 0);
+        const d = Vec4_f32.new(3, 6, 2, 0);
         const d_i32 = Vec4_i32.new(3, 6, 2, 0);
         try expectEqual(d.cast(i32), d_i32);
     }
 }
 
 test "zalgebra.Vectors.cross" {
-    // Only for Vec3
-    const a = Vec3.new(1.5, 2.6, 3.7);
-    const b = Vec3.new(2.5, 3.45, 1.0);
-    const c = Vec3.new(1.5, 2.6, 3.7);
+    // Only for Vec3_f32
+    const a = Vec3_f32.new(1.5, 2.6, 3.7);
+    const b = Vec3_f32.new(2.5, 3.45, 1.0);
+    const c = Vec3_f32.new(1.5, 2.6, 3.7);
 
-    const result_1 = Vec3.cross(a, c);
-    const result_2 = Vec3.cross(a, b);
+    const result_1 = Vec3_f32.cross(a, c);
+    const result_2 = Vec3_f32.cross(a, b);
 
-    try expectEqual(result_1, Vec3.zero());
-    try expectEqual(result_2, Vec3.new(-10.1650009, 7.75, -1.32499980));
+    try expectEqual(result_1, Vec3_f32.zero());
+    try expectEqual(result_2, Vec3_f32.new(-10.1650009, 7.75, -1.32499980));
 }
 
 test "vector conversions 2 -> 3 -> 4" {
-    const v2 = Vec2.new(1, 2);
-    var v3 = Vec3.fromVec2(v2, 3);
-    var v4 = Vec4.fromVec3(v3, 4);
+    const v2 = Vec2_f32.new(1, 2);
+    var v3 = Vec3_f32.fromVec2(v2, 3);
+    var v4 = Vec4_f32.fromVec3(v3, 4);
 
-    try expectEqual(v3, Vec3.new(1, 2, 3));
-    try expectEqual(v4, Vec4.new(1, 2, 3, 4));
+    try expectEqual(v3, Vec3_f32.new(1, 2, 3));
+    try expectEqual(v4, Vec4_f32.new(1, 2, 3, 4));
 
     v3 = v2.toVec3(3);
     v4 = v2.toVec4(3, 4);
 
-    try expectEqual(v3, Vec3.new(1, 2, 3));
-    try expectEqual(v4, Vec4.new(1, 2, 3, 4));
+    try expectEqual(v3, Vec3_f32.new(1, 2, 3));
+    try expectEqual(v4, Vec4_f32.new(1, 2, 3, 4));
 }
 
 test "vector conversions 4 -> 3 -> 2" {
-    const v4 = Vec4.new(1, 2, 3, 4);
-    var v3 = Vec3.fromVec4(v4);
-    var v2 = Vec2.fromVec3(v3);
+    const v4 = Vec4_f32.new(1, 2, 3, 4);
+    var v3 = Vec3_f32.fromVec4(v4);
+    var v2 = Vec2_f32.fromVec3(v3);
 
-    try expectEqual(v3, Vec3.new(1, 2, 3));
-    try expectEqual(v2, Vec2.new(1, 2));
+    try expectEqual(v3, Vec3_f32.new(1, 2, 3));
+    try expectEqual(v2, Vec2_f32.new(1, 2));
 
     v3 = v4.toVec3();
     v2 = v4.toVec2();
 
-    try expectEqual(v3, Vec3.new(1, 2, 3));
-    try expectEqual(v2, Vec2.new(1, 2));
+    try expectEqual(v3, Vec3_f32.new(1, 2, 3));
+    try expectEqual(v2, Vec2_f32.new(1, 2));
 }
 
 test "vector conversions 2 -> 4" {
-    const v2 = Vec2.new(1, 2);
-    var v4 = Vec4.fromVec2(v2, 3, 4);
+    const v2 = Vec2_f32.new(1, 2);
+    var v4 = Vec4_f32.fromVec2(v2, 3, 4);
 
-    try expectEqual(v4, Vec4.new(1, 2, 3, 4));
+    try expectEqual(v4, Vec4_f32.new(1, 2, 3, 4));
 
     v4 = v2.toVec4(3, 4);
 
-    try expectEqual(v4, Vec4.new(1, 2, 3, 4));
+    try expectEqual(v4, Vec4_f32.new(1, 2, 3, 4));
 }
 
 test "vector conversions 4 -> 2" {
-    const v4 = Vec4.new(1, 2, 3, 4);
-    var v2 = Vec2.fromVec4(v4);
+    const v4 = Vec4_f32.new(1, 2, 3, 4);
+    var v2 = Vec2_f32.fromVec4(v4);
 
-    try expectEqual(v2, Vec2.new(1, 2));
+    try expectEqual(v2, Vec2_f32.new(1, 2));
 
     v2 = v4.toVec2();
 
-    try expectEqual(v2, Vec2.new(1, 2));
+    try expectEqual(v2, Vec2_f32.new(1, 2));
 }
 
 // Just touching every component
 // not testing every combination cause it's too many
 test "swizzle2" {
-    const v2 = Vec2.new(1, 2);
+    const v2 = Vec2_f32.new(1, 2);
     const yx = v2.swizzle2(.y, .x);
-    try expectEqual(Vec2.new(2, 1), yx);
+    try expectEqual(Vec2_f32.new(2, 1), yx);
 
-    const v3 = Vec3.new(1, 2, 3);
+    const v3 = Vec3_f32.new(1, 2, 3);
     const zy = v3.swizzle2(.z, .y);
     const xx = v3.swizzle2(.x, .x);
-    try expectEqual(Vec2.new(3, 2), zy);
-    try expectEqual(Vec2.new(1, 1), xx);
+    try expectEqual(Vec2_f32.new(3, 2), zy);
+    try expectEqual(Vec2_f32.new(1, 1), xx);
 
-    const v4 = Vec4.new(1, 2, 3, 4);
+    const v4 = Vec4_f32.new(1, 2, 3, 4);
     const wz = v4.swizzle2(.w, .z);
     const xy = v4.swizzle2(.x, .y);
-    try expectEqual(Vec2.new(4, 3), wz);
-    try expectEqual(Vec2.new(1, 2), xy);
+    try expectEqual(Vec2_f32.new(4, 3), wz);
+    try expectEqual(Vec2_f32.new(1, 2), xy);
 }
 
 test "swizzle3" {
-    const v2 = Vec2.new(1, 2);
+    const v2 = Vec2_f32.new(1, 2);
     const yxy = v2.swizzle3(.y, .x, .y);
-    try expectEqual(Vec3.new(2, 1, 2), yxy);
+    try expectEqual(Vec3_f32.new(2, 1, 2), yxy);
 
-    const v3 = Vec3.new(1, 2, 3);
+    const v3 = Vec3_f32.new(1, 2, 3);
     const zyx = v3.swizzle3(.z, .y, .x);
-    try expectEqual(Vec3.new(3, 2, 1), zyx);
+    try expectEqual(Vec3_f32.new(3, 2, 1), zyx);
 
-    const v4 = Vec4.new(1, 2, 3, 4);
+    const v4 = Vec4_f32.new(1, 2, 3, 4);
     const wzy = v4.swizzle3(.w, .z, .y);
     const xxx = v4.swizzle3(.x, .x, .x);
-    try expectEqual(Vec3.new(4, 3, 2), wzy);
-    try expectEqual(Vec3.new(1, 1, 1), xxx);
+    try expectEqual(Vec3_f32.new(4, 3, 2), wzy);
+    try expectEqual(Vec3_f32.new(1, 1, 1), xxx);
 }
 
 test "swizzle4" {
-    const v2 = Vec2.new(1, 2);
+    const v2 = Vec2_f32.new(1, 2);
     const yxyx = v2.swizzle4(.y, .x, .y, .x);
-    try expectEqual(Vec4.new(2, 1, 2, 1), yxyx);
+    try expectEqual(Vec4_f32.new(2, 1, 2, 1), yxyx);
 
-    const v3 = Vec3.new(1, 2, 3);
+    const v3 = Vec3_f32.new(1, 2, 3);
     const zyxz = v3.swizzle4(.z, .y, .x, .z);
-    try expectEqual(Vec4.new(3, 2, 1, 3), zyxz);
+    try expectEqual(Vec4_f32.new(3, 2, 1, 3), zyxz);
 
-    const v4 = Vec4.new(1, 2, 3, 4);
+    const v4 = Vec4_f32.new(1, 2, 3, 4);
     const wzyx = v4.swizzle4(.w, .z, .y, .x);
-    try expectEqual(Vec4.new(4, 3, 2, 1), wzyx);
+    try expectEqual(Vec4_f32.new(4, 3, 2, 1), wzyx);
 }

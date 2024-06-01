@@ -7,14 +7,14 @@ const util = @import("util.zig");
 const generic_vector = @import("generic_vector.zig");
 const quat = @import("quaternion.zig");
 
-const Vec3 = generic_vector.Vec3;
-const Vec3_f64 = generic_vector.Vec3_f64;
+const Vec3_f32 = generic_vector.Vec3_f32;
 const GenericVector = generic_vector.GenericVector;
 const Quaternion = quat.Quaternion;
 const Quat = quat.Quat;
 
-pub const Mat3 = Mat3x3(f32);
+pub const Mat3_f32 = Mat3x3(f32);
 pub const Mat3_f64 = Mat3x3(f64);
+pub const Mat4 = Mat3_f64;
 
 /// A column-major 3x3 matrix
 /// Note: Column-major means accessing data like m.data[COLUMN][ROW].
@@ -302,18 +302,18 @@ pub fn Mat3x3(comptime T: type) type {
     };
 }
 
-test "zalgebra.Mat3.eql" {
-    const a = Mat3.identity();
-    const b = Mat3.identity();
-    const c = Mat3.zero();
+test "zalgebra.Mat3_f32.eql" {
+    const a = Mat3_f32.identity();
+    const b = Mat3_f32.identity();
+    const c = Mat3_f32.zero();
 
-    try expectEqual(Mat3.eql(a, b), true);
-    try expectEqual(Mat3.eql(a, c), false);
+    try expectEqual(Mat3_f32.eql(a, b), true);
+    try expectEqual(Mat3_f32.eql(a, c), false);
 }
 
-test "zalgebra.Mat3.set" {
-    const a = Mat3.set(12);
-    const b = Mat3{
+test "zalgebra.Mat3_f32.set" {
+    const a = Mat3_f32.set(12);
+    const b = Mat3_f32{
         .data = .{
             .{ 12, 12, 12 },
             .{ 12, 12, 12 },
@@ -324,15 +324,15 @@ test "zalgebra.Mat3.set" {
     try expectEqual(a, b);
 }
 
-test "zalgebra.Mat3.negate" {
-    const a = Mat3{
+test "zalgebra.Mat3_f32.negate" {
+    const a = Mat3_f32{
         .data = .{
             .{ 1, 2, 3 },
             .{ 5, -6, 7 },
             .{ 9, 10, 11 },
         },
     };
-    const a_negated = Mat3{
+    const a_negated = Mat3_f32{
         .data = .{
             .{ -1, -2, -3 },
             .{ -5, 6, -7 },
@@ -343,15 +343,15 @@ test "zalgebra.Mat3.negate" {
     try expectEqual(a.negate(), a_negated);
 }
 
-test "zalgebra.Mat3.transpose" {
-    const a = Mat3{
+test "zalgebra.Mat3_f32.transpose" {
+    const a = Mat3_f32{
         .data = .{
             .{ 1, 2, 3 },
             .{ 5, 6, 7 },
             .{ 9, 10, 11 },
         },
     };
-    const b = Mat3{
+    const b = Mat3_f32{
         .data = .{
             .{ 1, 5, 9 },
             .{ 2, 6, 10 },
@@ -362,17 +362,17 @@ test "zalgebra.Mat3.transpose" {
     try expectEqual(a.transpose(), b);
 }
 
-test "zalgebra.Mat3.fromSlice" {
+test "zalgebra.Mat3_f32.fromSlice" {
     const data = [_]f32{ 1, 0, 0, 0, 1, 0, 0, 0, 1 };
-    const result = Mat3.fromSlice(&data);
+    const result = Mat3_f32.fromSlice(&data);
 
-    try expectEqual(result, Mat3.identity());
+    try expectEqual(result, Mat3_f32.identity());
 }
 
-test "zalgebra.Mat3.fromScale" {
-    const a = Mat3.fromScale(Vec3.new(2, 3, 4));
+test "zalgebra.Mat3_f32.fromScale" {
+    const a = Mat3_f32.fromScale(Vec3_f32.new(2, 3, 4));
 
-    try expectEqual(a, Mat3{
+    try expectEqual(a, Mat3_f32{
         .data = .{
             .{ 2, 0, 0 },
             .{ 0, 3, 0 },
@@ -381,11 +381,11 @@ test "zalgebra.Mat3.fromScale" {
     });
 }
 
-test "zalgebra.Mat3.scale" {
-    const a = Mat3.fromScale(Vec3.new(2, 3, 4));
-    const result = Mat3.scale(a, Vec3.set(2));
+test "zalgebra.Mat3_f32.scale" {
+    const a = Mat3_f32.fromScale(Vec3_f32.new(2, 3, 4));
+    const result = Mat3_f32.scale(a, Vec3_f32.set_scalar(2));
 
-    try expectEqual(result, Mat3{
+    try expectEqual(result, Mat3_f32{
         .data = .{
             .{ 4, 0, 0 },
             .{ 0, 6, 0 },
@@ -394,8 +394,8 @@ test "zalgebra.Mat3.scale" {
     });
 }
 
-test "zalgebra.Mat3.det" {
-    const a: Mat3 = .{
+test "zalgebra.Mat3_f32.det" {
+    const a: Mat3_f32 = .{
         .data = .{
             .{ 2, 0, 4 },
             .{ 0, 2, 0 },
@@ -406,8 +406,8 @@ test "zalgebra.Mat3.det" {
     try expectEqual(a.det(), -24);
 }
 
-test "zalgebra.Mat3.inv" {
-    const a: Mat3 = .{
+test "zalgebra.Mat3_f32.inv" {
+    const a: Mat3_f32 = .{
         .data = .{
             .{ 2, 0, 4 },
             .{ 0, 2, 0 },
@@ -415,7 +415,7 @@ test "zalgebra.Mat3.inv" {
         },
     };
 
-    try expectEqual(a.inv(), Mat3{
+    try expectEqual(a.inv(), Mat3_f32{
         .data = .{
             .{ -0.1666666716337204, 0, 0.3333333432674408 },
             .{ 0, 0.5, 0 },
@@ -424,20 +424,20 @@ test "zalgebra.Mat3.inv" {
     });
 }
 
-test "zalgebra.Mat3.extractEulerAngles" {
-    const a = Mat3.fromEulerAngles(Vec3.new(45, -5, 20));
-    try expectEqual(a.extractEulerAngles(), Vec3.new(45.000003814697266, -4.99052524, 19.999998092651367));
+test "zalgebra.Mat3_f32.extractEulerAngles" {
+    const a = Mat3_f32.fromEulerAngles(Vec3_f32.new(45, -5, 20));
+    try expectEqual(a.extractEulerAngles(), Vec3_f32.new(45.000003814697266, -4.99052524, 19.999998092651367));
 }
 
-test "zalgebra.Mat3.extractScale" {
-    var a = Mat3.fromScale(Vec3.new(2, 4, 8));
-    a = a.scale(Vec3.new(2, 4, 8));
+test "zalgebra.Mat3_f32.extractScale" {
+    var a = Mat3_f32.fromScale(Vec3_f32.new(2, 4, 8));
+    a = a.scale(Vec3_f32.new(2, 4, 8));
 
-    try expectEqual(a.extractScale(), Vec3.new(4, 16, 64));
+    try expectEqual(a.extractScale(), Vec3_f32.new(4, 16, 64));
 }
 
-test "zalgebra.Mat3.cast" {
-    const a = Mat3{ .data = .{
+test "zalgebra.Mat3_f32.cast" {
+    const a = Mat3_f32{ .data = .{
         .{ 0.9961947202682495, 0, -0.08715573698282242 },
         .{ 0.06162841245532036, 0.7071067690849304, 0.704416036605835 },
         .{ 0.06162841245532036, -0.7071067690849304, 0.704416036605835 },

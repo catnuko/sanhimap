@@ -3,14 +3,14 @@ const print = std.debug.print;
 const expectEqual = std.testing.expectEqual;
 const lib = @import("lib.zig");
 const Vec2 = lib.math.Vec2;
-const LngLatAlt = lib.geo.LngLatAlt;
+const GeoCoordinates = lib.coord.GeoCoordinates;
 pub fn main() !void {
     const a = Vec2.new(1, 2);
     const b = Vec2.new(1, 2);
     const v = Vec2.eql(a, b);
     print("res is {}\n", .{v});
 
-    const point = LngLatAlt.from_degrees(10.0, 10.0, 10.0);
+    const point = GeoCoordinates.from_degrees(10.0, 10.0, 10.0);
     print("point x is {}\n", .{point.longitude});
 
     const z = std.math.log(f64, std.math.e, 2.0);

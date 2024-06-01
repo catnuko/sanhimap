@@ -1,15 +1,15 @@
 const std = @import("std");
 const print = std.debug.print;
 const testing = std.testing;
-const coord = @import("lng_lat_alt.zig");
-const LngLatAlt = coord.LngLatAlt;
+const coord = @import("./geo_coordinates.zig");
+const GeoCoordinates = coord.GeoCoordinates;
 const MAX_LONGITUDE = coord.MAX_LONGITUDE;
 pub const GeoBox = struct {
-    southWest: LngLatAlt,
-    northEast: LngLatAlt,
+    southWest: GeoCoordinates,
+    northEast: GeoCoordinates,
     pub fn new(
-        southWest: LngLatAlt,
-        northEast: LngLatAlt,
+        southWest: GeoCoordinates,
+        northEast: GeoCoordinates,
     ) GeoBox {
         var news = GeoBox{
             .southWest = southWest,
@@ -20,13 +20,13 @@ pub const GeoBox = struct {
         }
         return news;
     }
-    pub fn from_center_and_extents(center_v: LngLatAlt, extents: GeoBox) GeoBox {
+    pub fn from_center_and_extents(center_v: GeoCoordinates, extents: GeoBox) GeoBox {
         return GeoBox.new(
-            LngLatAlt.from_degrees(
+            GeoCoordinates.from_degrees(
                 center_v.longitude - extents.longitude_span() / 2,
                 center_v.latitude - extents.latitude_span() / 2,
             ),
-            LngLatAlt.from_degrees(
+            GeoCoordinates.from_degrees(
                 center_v.longitude + extents.longitude_span() / 2,
                 center_v.latitude + extents.latitude_span() / 2,
             ),
@@ -67,7 +67,7 @@ pub const GeoBox = struct {
             return null;
         }
     }
-    pub fn center(self: GeoBox) LngLatAlt {
+    pub fn center(self: GeoBox) GeoCoordinates {
         const east_v = self.east();
         const west_v = self.west();
         const north_v = self.north();
@@ -75,14 +75,14 @@ pub const GeoBox = struct {
         const latitude_v = (south_v + north_v) * 0.5;
         const altitude_v = self.get_altitude_helper();
         if (west_v <= east_v) {
-            return LngLatAlt.from_degrees((west_v + east_v) * 0.5, latitude_v, altitude_v);
+            return GeoCoordinates.from_degrees((west_v + east_v) * 0.5, latitude_v, altitude_v);
         }
         var longitude_v = (360 + east_v + west_v) * 0.5;
 
         if (longitude_v > 360) {
             longitude_v -= 360;
         }
-        return LngLatAlt.from_degrees(longitude_v, latitude_v, altitude_v);
+        return GeoCoordinates.from_degrees(longitude_v, latitude_v, altitude_v);
     }
     pub inline fn latitude_span(self: GeoBox) f64 {
         return self.north() - self.south();
@@ -105,7 +105,7 @@ pub const GeoBox = struct {
     pub inline fn clone(self: GeoBox) GeoBox {
         return GeoBox.new(self.southWest, self.northEast);
     }
-    pub fn contains(self: GeoBox, point: LngLatAlt) bool {
+    pub fn contains(self: GeoBox, point: GeoCoordinates) bool {
         const min_altitude_v = self.min_altitude();
         const max_altitude_v = self.max_altitude();
         if (point.altitude == null or min_altitude_v == null or max_altitude_v == null) {
@@ -124,7 +124,7 @@ pub const GeoBox = struct {
         }
         return false;
     }
-    pub fn contains_helper(self: GeoBox, point: LngLatAlt) bool {
+    pub fn contains_helper(self: GeoBox, point: GeoCoordinates) bool {
         if (point.latitude < self.southWest.latitude or point.latitude >= self.northEast.latitude) {
             return false;
         }
@@ -146,7 +146,7 @@ pub const GeoBox = struct {
 
         return longitude >= west_v and longitude < east_v;
     }
-    pub fn grow_to_contain(self: *GeoBox, point: LngLatAlt) void {
+    pub fn grow_to_contain(self: *GeoBox, point: GeoCoordinates) void {
         self.southWest.latitude = @min(self.southWest.latitude, point.latitude);
         self.southWest.longitude = @min(self.southWest.longitude, point.longitude);
         self.southWest.altitude = {
@@ -178,7 +178,7 @@ pub const GeoBox = struct {
 
 const GEOCOORDS_EPSILON = 0.000001;
 test "geo.geo.geo_box.center" {
-    const g = GeoBox.new(LngLatAlt.from_degrees(170, -10, null), LngLatAlt.from_degrees(-160, 10, null));
+    const g = GeoBox.new(GeoCoordinates.from_degrees(170, -10, null), GeoCoordinates.from_degrees(-160, 10, null));
     try testing.expectEqual(g.west(), 170);
     try testing.expectEqual(g.east(), 200);
     try testing.expectEqual(g.north(), 10);
@@ -189,28 +189,28 @@ test "geo.geo.geo_box.center" {
     try testing.expectApproxEqAbs(g.longitude_span(), 30, GEOCOORDS_EPSILON);
     try testing.expectApproxEqAbs(g.latitude_span(), 20, GEOCOORDS_EPSILON);
 
-    try testing.expect(g.contains(LngLatAlt.from_degrees(180, 0, null)));
-    try testing.expect(g.contains(LngLatAlt.from_degrees(190, 0, null)));
-    try testing.expect(g.contains(LngLatAlt.from_degrees(-170, 0, null)));
-    try testing.expect(g.contains(LngLatAlt.from_degrees(-530, 0, null)));
-    try testing.expect(g.contains(LngLatAlt.from_degrees(540, 0, null)));
+    try testing.expect(g.contains(GeoCoordinates.from_degrees(180, 0, null)));
+    try testing.expect(g.contains(GeoCoordinates.from_degrees(190, 0, null)));
+    try testing.expect(g.contains(GeoCoordinates.from_degrees(-170, 0, null)));
+    try testing.expect(g.contains(GeoCoordinates.from_degrees(-530, 0, null)));
+    try testing.expect(g.contains(GeoCoordinates.from_degrees(540, 0, null)));
 
-    try testing.expect(!g.contains(LngLatAlt.from_degrees(
+    try testing.expect(!g.contains(GeoCoordinates.from_degrees(
         -159,
         0,
         null,
     )));
-    try testing.expect(!g.contains(LngLatAlt.from_degrees(
+    try testing.expect(!g.contains(GeoCoordinates.from_degrees(
         201,
         0,
         null,
     )));
-    try testing.expect(!g.contains(LngLatAlt.from_degrees(
+    try testing.expect(!g.contains(GeoCoordinates.from_degrees(
         561,
         0,
         null,
     )));
-    try testing.expect(!g.contains(LngLatAlt.from_degrees(
+    try testing.expect(!g.contains(GeoCoordinates.from_degrees(
         -510,
         0,
         null,
