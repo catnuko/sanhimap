@@ -1,5 +1,5 @@
-const math = @import("std").math;
 const std = @import("std");
+const stdmath = std.math;
 pub const TileKey = struct {
     row: u32,
     column: u32,
@@ -37,7 +37,7 @@ pub const TileKey = struct {
         }
         return self.m_mortonCode;
     }
-    pub fn from_mortoncode(quadKey64: u32) TileKey {
+    pub fn fromMortoncode(quadKey64: u32) TileKey {
         var level = 0;
         var row = 0;
         var column = 0;
@@ -59,17 +59,17 @@ pub const TileKey = struct {
         result.m_mortonCode = quadKey64;
         return result;
     }
-    pub fn rows_at_level(level: u32) u32 {
-        return math.pow(u32, 2, level);
+    pub fn rowsAtLevel(level: u32) u32 {
+        return stdmath.pow(u32, 2, level);
     }
-    pub fn columns_at_level(level: u32) u32 {
-        return math.pow(u32, 2, level);
+    pub fn columnsAtLevel(level: u32) u32 {
+        return stdmath.pow(u32, 2, level);
     }
-    pub fn row_count(self: TileKey) u32 {
-        return rows_at_level(self.level);
+    pub fn rowCount(self: TileKey) u32 {
+        return rowsAtLevel(self.level);
     }
-    pub fn column_count(self: TileKey) u32 {
-        return columns_at_level(self.level);
+    pub fn columnCount(self: TileKey) u32 {
+        return columnsAtLevel(self.level);
     }
 };
 

@@ -1,23 +1,24 @@
-const TileKey = @import("./tile_key.zig").TileKey;
-const GeoCoordinates = @import("./geo_coordinates.zig").GeoCoordinates;
-const GeoBox = @import("./geo_box.zig").GeoBox;
 const std = @import("std");
-const math = std.math;
+const stdmath = std.math;
+const lib = @import("./lib.zig");
+const TileKey = lib.TileKey;
+const GeoCoordinates = lib.GeoCoordinates;
+const GeoBox = lib.GeoBox;
 const allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 pub fn geocoordinates_to_tilekey(comptime TilingScheme: type, tilingscheme: TilingScheme, geopoint: GeoCoordinates, level: u32) ?TileKey {
     const projection = tilingscheme.projection;
-    const worldpoint = projection.project_point(geopoint);
+    const worldpoint = projection.projectPoint(geopoint);
     return worldcoordinates_to_tilekey(tilingscheme, worldpoint, level);
 }
 pub fn worldcoordinates_to_tilekey(comptime TilingScheme: type, tilingscheme: TilingScheme, worldpoint: GeoCoordinates, level: u32) ?TileKey {
     const projection = tilingscheme.projection;
     const subdivision_scheme = tilingscheme.subdivision_scheme;
 
-    const cx = subdivision_scheme.get_level_dimension_x(level);
-    const cy = subdivision_scheme.get_level_dimension_y(level);
+    const cx = subdivision_scheme.getLevelDimensionX(level);
+    const cy = subdivision_scheme.getLevelDimensionY(level);
 
-    const geobox = projection.world_extent(0, 0);
+    const geobox = projection.worldExtent(0, 0);
     const min = geobox.min;
     const max = geobox.max;
 
@@ -32,19 +33,19 @@ pub fn worldcoordinates_to_tilekey(comptime TilingScheme: type, tilingscheme: Ti
         return null;
     }
 
-    const column = math.min(cx - 1, math.floor((cx * (worldpoint.x - min.x)) / worldSizeX));
-    const row = math.min(cy - 1, math.floor((cy * (worldpoint.y - min.y)) / worldSizeY));
+    const column = stdmath.min(cx - 1, stdmath.floor((cx * (worldpoint.x - min.x)) / worldSizeX));
+    const row = stdmath.min(cy - 1, stdmath.floor((cy * (worldpoint.y - min.y)) / worldSizeY));
 
     return TileKey.fromRowColumnLevel(row, column, level);
 }
 pub fn georectangle_to_tilekeys(comptime TilingScheme: type, tilingscheme: TilingScheme, geobox: GeoBox, level: u32) ArrayList(TileKey) {
     // Clamp at the poles and wrap around the international date line.
-    const southWestLongitude = wrap(geobox.southWest.longitudeInRadians, -math.pi, math.pi);
-    const southWestLatitude = math.clamp(geobox.southWest.latitudeInRadians, -(math.pi * 0.5), math.pi * 0.5);
-    const northEastLongitude = wrap(geobox.northEast.longitudeInRadians, -math.pi, math.pi);
-    const northEastLatitude = math.clamp(geobox.northEast.latitudeInRadians, -(math.pi * 0.5), math.pi * 0.5);
-    const minTileKey = geocoordinates_to_tilekey(tilingscheme, GeoCoordinates.from_radians(southWestLatitude, southWestLongitude), level);
-    const maxTileKey = geocoordinates_to_tilekey(tilingscheme, GeoCoordinates.from_radians(northEastLatitude, northEastLongitude), level);
+    const southWestLongitude = wrap(geobox.southWest.longitudeInRadians, -stdmath.pi, stdmath.pi);
+    const southWestLatitude = stdmath.clamp(geobox.southWest.latitudeInRadians, -(stdmath.pi * 0.5), stdmath.pi * 0.5);
+    const northEastLongitude = wrap(geobox.northEast.longitudeInRadians, -stdmath.pi, stdmath.pi);
+    const northEastLatitude = stdmath.clamp(geobox.northEast.latitudeInRadians, -(stdmath.pi * 0.5), stdmath.pi * 0.5);
+    const minTileKey = geocoordinates_to_tilekey(tilingscheme, GeoCoordinates.fromRadians(southWestLatitude, southWestLongitude), level);
+    const maxTileKey = geocoordinates_to_tilekey(tilingscheme, GeoCoordinates.fromRadians(northEastLatitude, northEastLongitude), level);
     const columnCount = tilingscheme.subdivisionScheme.getLevelDimensionX(level);
 
     if (!minTileKey || !maxTileKey) {

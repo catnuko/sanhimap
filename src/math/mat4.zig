@@ -4,8 +4,8 @@ const meta = std.meta;
 const mem = std.mem;
 const expectEqual = std.testing.expectEqual;
 const util = @import("util.zig");
-const generic_vector = @import("generic_vector.zig");
-const quat = @import("quaternion.zig");
+const generic_vector = @import("GenericVector.zig");
+const quat = @import("Quaternion.zig");
 
 const Vec3_f32 = generic_vector.Vec3_f32;
 const GenericVector = generic_vector.GenericVector;
@@ -46,7 +46,23 @@ pub fn Mat4x4(comptime T: type) type {
                 },
             };
         }
-
+        pub fn getColumn(self: Self, index: usize) Vector4 {
+            return Vector4.new(
+                self.data[index][0],
+                self.data[index][1],
+                self.data[index][2],
+                self.data[index][3],
+            );
+        }
+        pub fn setColumn(self: *Self, index: usize, data: Vector3) void {
+            self.data[index][0] = data.x();
+            self.data[index][1] = data.y();
+            self.data[index][2] = data.z();
+            self.data[index][3] = data.w();
+        }
+        pub fn clone(self: Self) Self {
+            return .{ .data = self.data };
+        }
         /// Shorthand for matrix with all zeros.
         pub fn zero() Self {
             return Self.set(0);
@@ -607,7 +623,7 @@ test "zalgebra.Mat4_f32.fromScale" {
 
 test "zalgebra.Mat4_f32.scale" {
     const a = Mat4_f32.fromScale(Vec3_f32.new(2, 3, 4));
-    const result = Mat4_f32.scale(a, Vec3_f32.set_scalar(2));
+    const result = Mat4_f32.scale(a, Vec3_f32.setScalar(2));
 
     try expectEqual(result, Mat4_f32{
         .data = .{
@@ -673,7 +689,7 @@ test "zalgebra.Mat4_f32.extractScale" {
 
 test "zalgebra.Mat4_f32.recompose" {
     const result = Mat4_f32.recompose(
-        Vec3_f32.set_scalar(2),
+        Vec3_f32.setScalar(2),
         Vec3_f32.new(45, 5, 0),
         Vec3_f32.one(),
     );
@@ -690,13 +706,13 @@ test "zalgebra.Mat4_f32.decompose" {
     const a = Mat4_f32.recompose(
         Vec3_f32.new(10, 5, 5),
         Vec3_f32.new(45, 5, 0),
-        Vec3_f32.set_scalar(1),
+        Vec3_f32.setScalar(1),
     );
 
     const result = a.decompose();
 
     try expectEqual(result.t, Vec3_f32.new(10, 5, 5));
-    try expectEqual(result.s, Vec3_f32.set_scalar(1));
+    try expectEqual(result.s, Vec3_f32.setScalar(1));
     try expectEqual(result.r.extractEulerAngles(), Vec3_f32.new(45, 5, 0.00000010712935250012379));
 }
 

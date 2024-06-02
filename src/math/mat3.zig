@@ -4,8 +4,8 @@ const meta = std.meta;
 const mem = std.mem;
 const expectEqual = std.testing.expectEqual;
 const util = @import("util.zig");
-const generic_vector = @import("generic_vector.zig");
-const quat = @import("quaternion.zig");
+const generic_vector = @import("GenericVector.zig");
+const quat = @import("Quaternion.zig");
 
 const Vec3_f32 = generic_vector.Vec3_f32;
 const GenericVector = generic_vector.GenericVector;
@@ -14,7 +14,7 @@ const Quat = quat.Quat;
 
 pub const Mat3_f32 = Mat3x3(f32);
 pub const Mat3_f64 = Mat3x3(f64);
-pub const Mat4 = Mat3_f64;
+pub const Mat3 = Mat3_f64;
 
 /// A column-major 3x3 matrix
 /// Note: Column-major means accessing data like m.data[COLUMN][ROW].
@@ -40,7 +40,21 @@ pub fn Mat3x3(comptime T: type) type {
                 },
             };
         }
-
+        pub fn getColumn(self: Self, index: usize) Vector3 {
+            return Vector3.new(
+                self.data[index][0],
+                self.data[index][1],
+                self.data[index][2],
+            );
+        }
+        pub fn setColumn(self: *Self, index: usize, data: Vector3) void {
+            self.data[index][0] = data.x();
+            self.data[index][1] = data.y();
+            self.data[index][2] = data.z();
+        }
+        pub fn clone(self: Self) Self {
+            return .{ .data = self.data };
+        }
         /// Shorthand for matrix with all zeros.
         pub fn zero() Self {
             return Self.set(0);
@@ -99,7 +113,6 @@ pub fn Mat3x3(comptime T: type) type {
             const x = (self.data[0][0] * v.x()) + (self.data[1][0] * v.y()) + (self.data[2][0] * v.z());
             const y = (self.data[0][1] * v.x()) + (self.data[1][1] * v.y()) + (self.data[2][1] * v.z());
             const z = (self.data[0][2] * v.x()) + (self.data[1][2] * v.y()) + (self.data[2][2] * v.z());
-
             return Vector3.new(x, y, z);
         }
 
@@ -383,7 +396,7 @@ test "zalgebra.Mat3_f32.fromScale" {
 
 test "zalgebra.Mat3_f32.scale" {
     const a = Mat3_f32.fromScale(Vec3_f32.new(2, 3, 4));
-    const result = Mat3_f32.scale(a, Vec3_f32.set_scalar(2));
+    const result = Mat3_f32.scale(a, Vec3_f32.setScalar(2));
 
     try expectEqual(result, Mat3_f32{
         .data = .{

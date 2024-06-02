@@ -216,21 +216,23 @@ pub fn GenericVector(comptime dimensions: comptime_int, comptime T: type) type {
         pub inline fn yMut(self: *Self) *T {
             return &self.data[1];
         }
-
+        pub inline fn clone(self: Self) Self {
+            return .{ .data = self.data };
+        }
         /// Set all components to the same given value.
-        pub fn set_scalar(val: T) Self {
+        pub fn setScalar(val: T) Self {
             const result: Data = @splat(val);
             return .{ .data = result };
         }
 
         /// Shorthand for (0..).
         pub fn zero() Self {
-            return set_scalar(0);
+            return setScalar(0);
         }
 
         /// Shorthand for (1..).
         pub fn one() Self {
-            return set_scalar(1);
+            return setScalar(1);
         }
 
         /// Shorthand for (0, 1).
@@ -426,25 +428,25 @@ test "zalgebra.Vectors.eql" {
     }
 }
 
-test "zalgebra.Vectors.set_scalar" {
+test "zalgebra.Vectors.setScalar" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(2.5, 2.5);
-        const b = Vec2_f32.set_scalar(2.5);
+        const b = Vec2_f32.setScalar(2.5);
         try expectEqual(a, b);
     }
 
     // Vec3_f32
     {
         const a = Vec3_f32.new(2.5, 2.5, 2.5);
-        const b = Vec3_f32.set_scalar(2.5);
+        const b = Vec3_f32.setScalar(2.5);
         try expectEqual(a, b);
     }
 
     // Vec4_f32
     {
         const a = Vec4_f32.new(2.5, 2.5, 2.5, 2.5);
-        const b = Vec4_f32.set_scalar(2.5);
+        const b = Vec4_f32.setScalar(2.5);
         try expectEqual(a, b);
     }
 }
@@ -454,43 +456,43 @@ test "zalgebra.Vectors.add" {
     {
         const a = Vec2_f32.one();
         const b = Vec2_f32.one();
-        try expectEqual(a.add(b), Vec2_f32.set_scalar(2));
+        try expectEqual(a.add(b), Vec2_f32.setScalar(2));
     }
 
     // Vec3_f32
     {
         const a = Vec3_f32.one();
         const b = Vec3_f32.one();
-        try expectEqual(a.add(b), Vec3_f32.set_scalar(2));
+        try expectEqual(a.add(b), Vec3_f32.setScalar(2));
     }
 
     // Vec4_f32
     {
         const a = Vec4_f32.one();
         const b = Vec4_f32.one();
-        try expectEqual(a.add(b), Vec4_f32.set_scalar(2));
+        try expectEqual(a.add(b), Vec4_f32.setScalar(2));
     }
 }
 
 test "zalgebra.Vectors.negate" {
     // Vec2_f32
     {
-        const a = Vec2_f32.set_scalar(5);
-        const a_negated = Vec2_f32.set_scalar(-5);
+        const a = Vec2_f32.setScalar(5);
+        const a_negated = Vec2_f32.setScalar(-5);
         try expectEqual(a.negate(), a_negated);
     }
 
     // Vec3_f32
     {
-        const a = Vec3_f32.set_scalar(5);
-        const a_negated = Vec3_f32.set_scalar(-5);
+        const a = Vec3_f32.setScalar(5);
+        const a_negated = Vec3_f32.setScalar(-5);
         try expectEqual(a.negate(), a_negated);
     }
 
     // Vec4_f32
     {
-        const a = Vec4_f32.set_scalar(5);
-        const a_negated = Vec4_f32.set_scalar(-5);
+        const a = Vec4_f32.setScalar(5);
+        const a_negated = Vec4_f32.setScalar(-5);
         try expectEqual(a.negate(), a_negated);
     }
 }
@@ -687,21 +689,21 @@ test "zalgebra.Vectors.lerp" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(-10, 0);
-        const b = Vec2_f32.set_scalar(10);
+        const b = Vec2_f32.setScalar(10);
         try expectEqual(Vec2_f32.lerp(a, b, 0.5), Vec2_f32.new(0, 5));
     }
 
     // Vec3_f32
     {
         const a = Vec3_f32.new(-10, 0, -10);
-        const b = Vec3_f32.set_scalar(10);
+        const b = Vec3_f32.setScalar(10);
         try expectEqual(Vec3_f32.lerp(a, b, 0.5), Vec3_f32.new(0, 5, 0));
     }
 
     // Vec4_f32
     {
         const a = Vec4_f32.new(-10, 0, -10, -10);
-        const b = Vec4_f32.set_scalar(10);
+        const b = Vec4_f32.setScalar(10);
         try expectEqual(Vec4_f32.lerp(a, b, 0.5), Vec4_f32.new(0, 5, 0, 0));
     }
 }

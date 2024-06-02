@@ -1,9 +1,9 @@
 const std = @import("std");
 const util = @import("util.zig");
 const meta = std.meta;
-const generic_vector = @import("generic_vector.zig");
-const mat3 = @import("mat3.zig");
-const mat4 = @import("mat4.zig");
+const generic_vector = @import("GenericVector.zig");
+const mat3 = @import("Mat3.zig");
+const mat4 = @import("Mat4.zig");
 const math = std.math;
 const eps_value = math.floatEps(f32);
 const expectApproxEqAbs = std.testing.expectApproxEqAbs;
@@ -482,7 +482,7 @@ test "zalgebra.Quaternion.extractEulerAngles" {
 }
 
 test "zalgebra.Quaternion.rotateVec" {
-    const q = Quat.fromEulerAngles(Vec3.set_scalar(45));
+    const q = Quat.fromEulerAngles(Vec3.setScalar(45));
     const m = q.toMat4();
 
     const v = Vec3.up();
