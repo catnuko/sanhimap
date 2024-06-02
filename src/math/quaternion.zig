@@ -1,9 +1,9 @@
 const std = @import("std");
 const util = @import("util.zig");
 const meta = std.meta;
-const generic_vector = @import("generic_vector.zig");
-const mat3 = @import("mat3.zig");
-const mat4 = @import("mat4.zig");
+const generic_vector = @import("GenericVector.zig");
+const mat3 = @import("Mat3.zig");
+const mat4 = @import("Mat4.zig");
 const math = std.math;
 const eps_value = math.floatEps(f32);
 const expectApproxEqAbs = std.testing.expectApproxEqAbs;
@@ -391,7 +391,7 @@ pub fn Quaternion(comptime T: type) type {
     };
 }
 
-test "zalgebra.Quaternion.new" {
+test "Geo.Quaternion.new" {
     const q = Quat.new(1.5, 2.6, 3.7, 4.7);
 
     try expectEqual(q.w, 1.5);
@@ -400,14 +400,14 @@ test "zalgebra.Quaternion.new" {
     try expectEqual(q.z, 4.7);
 }
 
-test "zalgebra.Quaternion.set" {
+test "Geo.Quaternion.set" {
     const a = Quat.set(12);
     const b = Quat.new(12, 12, 12, 12);
 
     try expectEqual(a, b);
 }
 
-test "zalgebra.Quaternion.eql" {
+test "Geo.Quaternion.eql" {
     const a = Quat.new(1.5, 2.6, 3.7, 4.7);
     const b = Quat.new(1.5, 2.6, 3.7, 4.7);
     const c = Quat.new(2.6, 3.7, 4.8, 5.9);
@@ -416,12 +416,12 @@ test "zalgebra.Quaternion.eql" {
     try expectEqual(Quat.eql(a, c), false);
 }
 
-test "zalgebra.Quaternion.fromSlice" {
+test "Geo.Quaternion.fromSlice" {
     const array = [4]f32{ 2, 3, 4, 1 };
     try expectEqual(Quat.fromSlice(&array), Quat.new(1, 2, 3, 4));
 }
 
-test "zalgebra.Quaternion.fromVec3" {
+test "Geo.Quaternion.fromVec3" {
     const q = Quat.fromVec3(1.5, Vec3.new(2.6, 3.7, 4.7));
 
     try expectEqual(q.w, 1.5);
@@ -437,14 +437,14 @@ test "zalgebra.Quaternion.fromVec3" {
     try expectEqual(Quat.eql(a, c), false);
 }
 
-test "zalgebra.Quaternion.norm" {
+test "Geo.Quaternion.norm" {
     const a = Quat.fromVec3(1, Vec3.new(2, 2, 2));
     const b = Quat.fromVec3(0.2773500978946686, Vec3.new(0.5547001957893372, 0.5547001957893372, 0.5547001957893372));
 
     try expectEqual(a.norm(), b);
 }
 
-test "zalgebra.Quaternion.fromEulerAngles" {
+test "Geo.Quaternion.fromEulerAngles" {
     const a = Quat.fromEulerAngles(Vec3.new(10, 5, 45));
     const a_res = a.extractEulerAngles();
 
@@ -455,14 +455,14 @@ test "zalgebra.Quaternion.fromEulerAngles" {
     try expectEqual(b_res, Vec3.new(0, 47.2450294, 22));
 }
 
-test "zalgebra.Quaternion.fromAxis" {
+test "Geo.Quaternion.fromAxis" {
     const q = Quat.fromAxis(45, Vec3.up());
     const res_q = q.extractEulerAngles();
 
     try expectEqual(res_q, Vec3.new(0, 45.0000076, 0));
 }
 
-test "zalgebra.Quaternion.extractAxisAngle" {
+test "Geo.Quaternion.extractAxisAngle" {
     const axis = Vec3.new(44, 120, 8).norm();
     const q = Quat.fromAxis(45, axis);
     const res = q.extractAxisAngle();
@@ -474,15 +474,15 @@ test "zalgebra.Quaternion.extractAxisAngle" {
     try expectApproxEqRel(res.angle, 45.0000076, eps_value);
 }
 
-test "zalgebra.Quaternion.extractEulerAngles" {
+test "Geo.Quaternion.extractEulerAngles" {
     const q = Quat.fromVec3(0.5, Vec3.new(0.5, 1, 0.3));
     const res_q = q.extractEulerAngles();
 
     try expectEqual(res_q, Vec3.new(129.6000213623047, 44.427005767822266, 114.4107360839843));
 }
 
-test "zalgebra.Quaternion.rotateVec" {
-    const q = Quat.fromEulerAngles(Vec3.set_scalar(45));
+test "Geo.Quaternion.rotateVec" {
+    const q = Quat.fromEulerAngles(Vec3.setScalar(45));
     const m = q.toMat4();
 
     const v = Vec3.up();
@@ -498,7 +498,7 @@ test "zalgebra.Quaternion.rotateVec" {
     try expectApproxEqAbs(v1.z(), v2.data[2], eps_value);
 }
 
-test "zalgebra.Quaternion.lerp" {
+test "Geo.Quaternion.lerp" {
     const a = Quat.identity();
     const b = Quat.fromAxis(180, Vec3.up());
     try expectEqual(Quat.lerp(a, b, 1), b);
@@ -510,7 +510,7 @@ test "zalgebra.Quaternion.lerp" {
     try expectApproxEqAbs(c.z, d.z, eps_value);
 }
 
-test "zalgebra.Quaternion.slerp" {
+test "Geo.Quaternion.slerp" {
     const a = Quat.identity();
     const b = Quat.fromAxis(180, Vec3.up());
     try expectEqual(Quat.slerp(a, b, 1), Quat.new(7.54979012e-08, 0, -1, 0));
@@ -522,14 +522,14 @@ test "zalgebra.Quaternion.slerp" {
     try expectApproxEqAbs(c.z, d.z, eps_value);
 }
 
-test "zalgebra.Quaternion.cast" {
+test "Geo.Quaternion.cast" {
     const a = Quat.new(3.5, 4.5, 5.5, 6.5);
     const a_f64 = Quat_f64.new(3.5, 4.5, 5.5, 6.5);
     try expectEqual(a.cast(f64), a_f64);
     try expectEqual(a_f64.cast(f32), a);
 }
 
-test "zalgebra.Quaternion.inv" {
+test "Geo.Quaternion.inv" {
     const out = Quat.new(7, 4, 5, 9).inv();
     const answ = Quat.new(0.0409357, -0.0233918, -0.0292398, -0.0526316);
     try expectApproxEqAbs(out.w, answ.w, eps_value);

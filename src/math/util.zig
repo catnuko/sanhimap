@@ -34,7 +34,7 @@ pub fn lerp(comptime T: type, from: T, to: T, t: T) T {
     return (1 - t) * from + t * to;
 }
 
-test "zalgebra.toRadians" {
+test "Geo.toRadians" {
     try expectEqual(toRadians(@as(f32, 0)), 0);
     try expectEqual(toRadians(@as(f32, 30)), 0.523598790);
     try expectEqual(toRadians(@as(f32, 45)), 0.78539818);
@@ -45,7 +45,7 @@ test "zalgebra.toRadians" {
     try expectEqual(toRadians(@as(f32, 360)), 6.28318548); //math.pi * 2
 }
 
-test "zalgebra.toDegrees" {
+test "Geo.toDegrees" {
     try expectEqual(toDegrees(@as(f32, 0)), 0);
     try expectEqual(toDegrees(@as(f32, 0.5)), 28.6478900);
     try expectEqual(toDegrees(@as(f32, 1)), 57.2957801);
@@ -55,7 +55,7 @@ test "zalgebra.toDegrees" {
     try expectEqual(toDegrees(@as(f32, 6.28318548)), 360); //math.pi * 2
 }
 
-test "zalgebra.lerp" {
+test "Geo.lerp" {
     const from: f32 = 0;
     const to: f32 = 10;
 

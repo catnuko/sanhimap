@@ -4,8 +4,8 @@ const meta = std.meta;
 const mem = std.mem;
 const expectEqual = std.testing.expectEqual;
 const util = @import("util.zig");
-const generic_vector = @import("generic_vector.zig");
-const quat = @import("quaternion.zig");
+const generic_vector = @import("GenericVector.zig");
+const quat = @import("Quaternion.zig");
 
 const Vec3_f32 = generic_vector.Vec3_f32;
 const GenericVector = generic_vector.GenericVector;
@@ -46,7 +46,23 @@ pub fn Mat4x4(comptime T: type) type {
                 },
             };
         }
-
+        pub fn getColumn(self: Self, index: usize) Vector4 {
+            return Vector4.new(
+                self.data[index][0],
+                self.data[index][1],
+                self.data[index][2],
+                self.data[index][3],
+            );
+        }
+        pub fn setColumn(self: *Self, index: usize, data: Vector3) void {
+            self.data[index][0] = data.x();
+            self.data[index][1] = data.y();
+            self.data[index][2] = data.z();
+            self.data[index][3] = data.w();
+        }
+        pub fn clone(self: Self) Self {
+            return .{ .data = self.data };
+        }
         /// Shorthand for matrix with all zeros.
         pub fn zero() Self {
             return Self.set(0);
@@ -493,7 +509,7 @@ pub fn Mat4x4(comptime T: type) type {
     };
 }
 
-test "zalgebra.Mat4_f32.eql" {
+test "Geo.Mat4_f32.eql" {
     const a = Mat4_f32.identity();
     const b = Mat4_f32.identity();
     const c = Mat4_f32.zero();
@@ -502,7 +518,7 @@ test "zalgebra.Mat4_f32.eql" {
     try expectEqual(Mat4_f32.eql(a, c), false);
 }
 
-test "zalgebra.Mat4_f32.set" {
+test "Geo.Mat4_f32.set" {
     const a = Mat4_f32.set(12);
     const b = Mat4_f32{
         .data = .{
@@ -516,7 +532,7 @@ test "zalgebra.Mat4_f32.set" {
     try expectEqual(a, b);
 }
 
-test "zalgebra.Mat4_f32.negate" {
+test "Geo.Mat4_f32.negate" {
     const a = Mat4_f32{
         .data = .{
             .{ 1, 2, 3, 4 },
@@ -537,7 +553,7 @@ test "zalgebra.Mat4_f32.negate" {
     try expectEqual(a.negate(), a_negated);
 }
 
-test "zalgebra.Mat4_f32.transpose" {
+test "Geo.Mat4_f32.transpose" {
     const a = Mat4_f32{
         .data = .{
             .{ 1, 2, 3, 4 },
@@ -558,14 +574,14 @@ test "zalgebra.Mat4_f32.transpose" {
     try expectEqual(a.transpose(), b);
 }
 
-test "zalgebra.Mat4_f32.fromSlice" {
+test "Geo.Mat4_f32.fromSlice" {
     const data = [_]f32{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
     const result = Mat4_f32.fromSlice(&data);
 
     try expectEqual(result, Mat4_f32.identity());
 }
 
-test "zalgebra.Mat4_f32.fromTranslate" {
+test "Geo.Mat4_f32.fromTranslate" {
     const a = Mat4_f32.fromTranslate(Vec3_f32.new(2, 3, 4));
 
     try expectEqual(a, Mat4_f32{
@@ -578,7 +594,7 @@ test "zalgebra.Mat4_f32.fromTranslate" {
     });
 }
 
-test "zalgebra.Mat4_f32.translate" {
+test "Geo.Mat4_f32.translate" {
     const a = Mat4_f32.fromTranslate(Vec3_f32.new(2, 3, 2));
     const result = Mat4_f32.translate(a, Vec3_f32.new(2, 3, 4));
 
@@ -592,7 +608,7 @@ test "zalgebra.Mat4_f32.translate" {
     });
 }
 
-test "zalgebra.Mat4_f32.fromScale" {
+test "Geo.Mat4_f32.fromScale" {
     const a = Mat4_f32.fromScale(Vec3_f32.new(2, 3, 4));
 
     try expectEqual(a, Mat4_f32{
@@ -605,9 +621,9 @@ test "zalgebra.Mat4_f32.fromScale" {
     });
 }
 
-test "zalgebra.Mat4_f32.scale" {
+test "Geo.Mat4_f32.scale" {
     const a = Mat4_f32.fromScale(Vec3_f32.new(2, 3, 4));
-    const result = Mat4_f32.scale(a, Vec3_f32.set_scalar(2));
+    const result = Mat4_f32.scale(a, Vec3_f32.setScalar(2));
 
     try expectEqual(result, Mat4_f32{
         .data = .{
@@ -619,7 +635,7 @@ test "zalgebra.Mat4_f32.scale" {
     });
 }
 
-test "zalgebra.Mat4_f32.det" {
+test "Geo.Mat4_f32.det" {
     const a: Mat4_f32 = .{
         .data = .{
             .{ 2, 0, 0, 4 },
@@ -632,7 +648,7 @@ test "zalgebra.Mat4_f32.det" {
     try expectEqual(a.det(), -48);
 }
 
-test "zalgebra.Mat4_f32.inv" {
+test "Geo.Mat4_f32.inv" {
     const a: Mat4_f32 = .{
         .data = .{
             .{ 2, 0, 0, 4 },
@@ -652,28 +668,28 @@ test "zalgebra.Mat4_f32.inv" {
     });
 }
 
-test "zalgebra.Mat4_f32.extractTranslation" {
+test "Geo.Mat4_f32.extractTranslation" {
     var a = Mat4_f32.fromTranslate(Vec3_f32.new(2, 3, 2));
     a = a.translate(Vec3_f32.new(2, 3, 2));
 
     try expectEqual(a.extractTranslation(), Vec3_f32.new(4, 6, 4));
 }
 
-test "zalgebra.Mat4_f32.extractEulerAngles" {
+test "Geo.Mat4_f32.extractEulerAngles" {
     const a = Mat4_f32.fromEulerAngles(Vec3_f32.new(45, -5, 20));
     try expectEqual(a.extractEulerAngles(), Vec3_f32.new(45.000003814697266, -4.99052524, 19.999998092651367));
 }
 
-test "zalgebra.Mat4_f32.extractScale" {
+test "Geo.Mat4_f32.extractScale" {
     var a = Mat4_f32.fromScale(Vec3_f32.new(2, 4, 8));
     a = a.scale(Vec3_f32.new(2, 4, 8));
 
     try expectEqual(a.extractScale(), Vec3_f32.new(4, 16, 64));
 }
 
-test "zalgebra.Mat4_f32.recompose" {
+test "Geo.Mat4_f32.recompose" {
     const result = Mat4_f32.recompose(
-        Vec3_f32.set_scalar(2),
+        Vec3_f32.setScalar(2),
         Vec3_f32.new(45, 5, 0),
         Vec3_f32.one(),
     );
@@ -686,21 +702,21 @@ test "zalgebra.Mat4_f32.recompose" {
     } });
 }
 
-test "zalgebra.Mat4_f32.decompose" {
+test "Geo.Mat4_f32.decompose" {
     const a = Mat4_f32.recompose(
         Vec3_f32.new(10, 5, 5),
         Vec3_f32.new(45, 5, 0),
-        Vec3_f32.set_scalar(1),
+        Vec3_f32.setScalar(1),
     );
 
     const result = a.decompose();
 
     try expectEqual(result.t, Vec3_f32.new(10, 5, 5));
-    try expectEqual(result.s, Vec3_f32.set_scalar(1));
+    try expectEqual(result.s, Vec3_f32.setScalar(1));
     try expectEqual(result.r.extractEulerAngles(), Vec3_f32.new(45, 5, 0.00000010712935250012379));
 }
 
-test "zalgebra.Mat4_f32.cast" {
+test "Geo.Mat4_f32.cast" {
     const a = Mat4_f32{ .data = .{
         .{ 0.9961947202682495, 0, -0.08715573698282242, 0 },
         .{ 0.06162841245532036, 0.7071067690849304, 0.704416036605835, 0 },

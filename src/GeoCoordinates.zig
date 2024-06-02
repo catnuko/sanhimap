@@ -11,17 +11,17 @@ pub const GeoCoordinates = struct {
     longitude: f64,
     latitude: f64,
     altitude: ?f64,
-    pub const new = from_degrees;
-    pub inline fn from_degrees(longitude: f64, latitude: f64, altitude: ?f64) Self {
+    pub const new = fromDegrees;
+    pub inline fn fromDegrees(longitude: f64, latitude: f64, altitude: ?f64) Self {
         return .{ .longitude = longitude, .latitude = latitude, .altitude = altitude };
     }
-    pub inline fn from_radians(longitude: f64, latitude: f64, altitude: ?f64) Self {
-        return Self.from_degrees(math.radiansToDegrees(longitude), math.radiansToDegrees(latitude), altitude);
+    pub inline fn fromRadians(longitude: f64, latitude: f64, altitude: ?f64) Self {
+        return Self.fromDegrees(math.radiansToDegrees(longitude), math.radiansToDegrees(latitude), altitude);
     }
-    pub inline fn longitude_in_radians(self: Self) f64 {
+    pub inline fn longitudeInRadians(self: Self) f64 {
         return math.degreesToRadians(self.longitude);
     }
-    pub inline fn latitude_in_radians(self: Self) f64 {
+    pub inline fn latitudeInRadians(self: Self) f64 {
         return math.degreesToRadians(self.latitude);
     }
     pub inline fn eql(self: Self, other: Self) bool {
@@ -35,9 +35,9 @@ pub const GeoCoordinates = struct {
         self.altitude = other.altitude;
     }
     pub inline fn clone(self: Self) Self {
-        return Self.from_degrees(self.longitude, self.latitude, self.altitude);
+        return Self.fromDegrees(self.longitude, self.latitude, self.altitude);
     }
-    pub fn min_longitude_span_to(self: Self, other: Self) f64 {
+    pub fn minLongitudeSpanTo(self: Self, other: Self) f64 {
         const minLongitude = @min(self.longitude, other.longitude);
         const maxLongitude = @max(self.longitude, other.longitude);
         return @min(maxLongitude - minLongitude, 360 + minLongitude - maxLongitude);
@@ -49,16 +49,16 @@ pub const GeoCoordinates = struct {
             0.0,
         );
     }
-    pub inline fn from_vec3(vec3: Vec3) Self {
+    pub inline fn fromVec3(vec3: Vec3) Self {
         return Self.new(vec3.x, vec3.y, vec3.z);
     }
-    pub inline fn to_vec3(self: Self) Vec3 {
+    pub inline fn toVec3(self: Self) Vec3 {
         return Vec3.new(self.longitude, self.latitude, self.altitude);
     }
 };
 
-test "coord_geo_coordinates" {
-    const point = GeoCoordinates.from_degrees(120, 30, null);
+test "Geo..GeoCoordinates" {
+    const point = GeoCoordinates.fromDegrees(120, 30, null);
     try std.testing.expectEqual(point.longitude, 120);
     try std.testing.expectEqual(point.latitude, 30);
     try std.testing.expectEqual(point.altitude, null);

@@ -216,21 +216,26 @@ pub fn GenericVector(comptime dimensions: comptime_int, comptime T: type) type {
         pub inline fn yMut(self: *Self) *T {
             return &self.data[1];
         }
-
+        pub inline fn getComponent(self: Self, index: usize) T {
+            return self[index];
+        }
+        pub inline fn clone(self: Self) Self {
+            return .{ .data = self.data };
+        }
         /// Set all components to the same given value.
-        pub fn set_scalar(val: T) Self {
+        pub fn setScalar(val: T) Self {
             const result: Data = @splat(val);
             return .{ .data = result };
         }
 
         /// Shorthand for (0..).
         pub fn zero() Self {
-            return set_scalar(0);
+            return setScalar(0);
         }
 
         /// Shorthand for (1..).
         pub fn one() Self {
-            return set_scalar(1);
+            return setScalar(1);
         }
 
         /// Shorthand for (0, 1).
@@ -394,7 +399,7 @@ pub fn GenericVector(comptime dimensions: comptime_int, comptime T: type) type {
     };
 }
 
-test "zalgebra.Vectors.eql" {
+test "Geo.Vectors.eql" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(1, 2);
@@ -426,76 +431,76 @@ test "zalgebra.Vectors.eql" {
     }
 }
 
-test "zalgebra.Vectors.set_scalar" {
+test "Geo.Vectors.setScalar" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(2.5, 2.5);
-        const b = Vec2_f32.set_scalar(2.5);
+        const b = Vec2_f32.setScalar(2.5);
         try expectEqual(a, b);
     }
 
     // Vec3_f32
     {
         const a = Vec3_f32.new(2.5, 2.5, 2.5);
-        const b = Vec3_f32.set_scalar(2.5);
+        const b = Vec3_f32.setScalar(2.5);
         try expectEqual(a, b);
     }
 
     // Vec4_f32
     {
         const a = Vec4_f32.new(2.5, 2.5, 2.5, 2.5);
-        const b = Vec4_f32.set_scalar(2.5);
+        const b = Vec4_f32.setScalar(2.5);
         try expectEqual(a, b);
     }
 }
 
-test "zalgebra.Vectors.add" {
+test "Geo.Vectors.add" {
     // Vec2_f32
     {
         const a = Vec2_f32.one();
         const b = Vec2_f32.one();
-        try expectEqual(a.add(b), Vec2_f32.set_scalar(2));
+        try expectEqual(a.add(b), Vec2_f32.setScalar(2));
     }
 
     // Vec3_f32
     {
         const a = Vec3_f32.one();
         const b = Vec3_f32.one();
-        try expectEqual(a.add(b), Vec3_f32.set_scalar(2));
+        try expectEqual(a.add(b), Vec3_f32.setScalar(2));
     }
 
     // Vec4_f32
     {
         const a = Vec4_f32.one();
         const b = Vec4_f32.one();
-        try expectEqual(a.add(b), Vec4_f32.set_scalar(2));
+        try expectEqual(a.add(b), Vec4_f32.setScalar(2));
     }
 }
 
-test "zalgebra.Vectors.negate" {
+test "Geo.Vectors.negate" {
     // Vec2_f32
     {
-        const a = Vec2_f32.set_scalar(5);
-        const a_negated = Vec2_f32.set_scalar(-5);
+        const a = Vec2_f32.setScalar(5);
+        const a_negated = Vec2_f32.setScalar(-5);
         try expectEqual(a.negate(), a_negated);
     }
 
     // Vec3_f32
     {
-        const a = Vec3_f32.set_scalar(5);
-        const a_negated = Vec3_f32.set_scalar(-5);
+        const a = Vec3_f32.setScalar(5);
+        const a_negated = Vec3_f32.setScalar(-5);
         try expectEqual(a.negate(), a_negated);
     }
 
     // Vec4_f32
     {
-        const a = Vec4_f32.set_scalar(5);
-        const a_negated = Vec4_f32.set_scalar(-5);
+        const a = Vec4_f32.setScalar(5);
+        const a_negated = Vec4_f32.setScalar(-5);
         try expectEqual(a.negate(), a_negated);
     }
 }
 
-test "zalgebra.Vectors.getAngle" {
+test "Geo.Vectors.getAngle" {
     // Vec2_f32
     {
         const a = Vec2_f32.right();
@@ -536,7 +541,7 @@ test "zalgebra.Vectors.getAngle" {
     }
 }
 
-test "zalgebra.Vectors.toArray" {
+test "Geo.Vectors.toArray" {
     //Vec2_f32
     {
         const a = Vec2_f32.up().toArray();
@@ -562,7 +567,7 @@ test "zalgebra.Vectors.toArray" {
     }
 }
 
-test "zalgebra.Vectors.length" {
+test "Geo.Vectors.length" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(1.5, 2.6);
@@ -582,7 +587,7 @@ test "zalgebra.Vectors.length" {
     }
 }
 
-test "zalgebra.Vectors.distance" {
+test "Geo.Vectors.distance" {
     // Vec2_f32
     {
         const a = Vec2_f32.zero();
@@ -614,7 +619,7 @@ test "zalgebra.Vectors.distance" {
     }
 }
 
-test "zalgebra.Vectors.normalize" {
+test "Geo.Vectors.normalize" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(1.5, 2.6);
@@ -637,7 +642,7 @@ test "zalgebra.Vectors.normalize" {
     }
 }
 
-test "zalgebra.Vectors.scale" {
+test "Geo.Vectors.scale" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(1, 2);
@@ -660,7 +665,7 @@ test "zalgebra.Vectors.scale" {
     }
 }
 
-test "zalgebra.Vectors.dot" {
+test "Geo.Vectors.dot" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(1.5, 2.6);
@@ -683,30 +688,30 @@ test "zalgebra.Vectors.dot" {
     }
 }
 
-test "zalgebra.Vectors.lerp" {
+test "Geo.Vectors.lerp" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(-10, 0);
-        const b = Vec2_f32.set_scalar(10);
+        const b = Vec2_f32.setScalar(10);
         try expectEqual(Vec2_f32.lerp(a, b, 0.5), Vec2_f32.new(0, 5));
     }
 
     // Vec3_f32
     {
         const a = Vec3_f32.new(-10, 0, -10);
-        const b = Vec3_f32.set_scalar(10);
+        const b = Vec3_f32.setScalar(10);
         try expectEqual(Vec3_f32.lerp(a, b, 0.5), Vec3_f32.new(0, 5, 0));
     }
 
     // Vec4_f32
     {
         const a = Vec4_f32.new(-10, 0, -10, -10);
-        const b = Vec4_f32.set_scalar(10);
+        const b = Vec4_f32.setScalar(10);
         try expectEqual(Vec4_f32.lerp(a, b, 0.5), Vec4_f32.new(0, 5, 0, 0));
     }
 }
 
-test "zalgebra.Vectors.min" {
+test "Geo.Vectors.min" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(10, -2);
@@ -732,7 +737,7 @@ test "zalgebra.Vectors.min" {
     }
 }
 
-test "zalgebra.Vectors.max" {
+test "Geo.Vectors.max" {
     // Vec2_f32
     {
         const a = Vec2_f32.new(10, -2);
@@ -758,7 +763,7 @@ test "zalgebra.Vectors.max" {
     }
 }
 
-test "zalgebra.Vectors.fromSlice" {
+test "Geo.Vectors.fromSlice" {
     // Vec2_f32
     {
         const slice = [_]f32{ 2, 4 };
@@ -778,7 +783,7 @@ test "zalgebra.Vectors.fromSlice" {
     }
 }
 
-test "zalgebra.Vectors.cast" {
+test "Geo.Vectors.cast" {
     // Vec2_f32
     {
         const a = Vec2_i32.new(3, 6);
@@ -837,7 +842,7 @@ test "zalgebra.Vectors.cast" {
     }
 }
 
-test "zalgebra.Vectors.cross" {
+test "Geo.Vectors.cross" {
     // Only for Vec3_f32
     const a = Vec3_f32.new(1.5, 2.6, 3.7);
     const b = Vec3_f32.new(2.5, 3.45, 1.0);

@@ -4,8 +4,8 @@ const meta = std.meta;
 const mem = std.mem;
 const expectEqual = std.testing.expectEqual;
 const util = @import("util.zig");
-const generic_vector = @import("generic_vector.zig");
-const quat = @import("quaternion.zig");
+const generic_vector = @import("GenericVector.zig");
+const quat = @import("Quaternion.zig");
 
 const Vec3_f32 = generic_vector.Vec3_f32;
 const GenericVector = generic_vector.GenericVector;
@@ -14,7 +14,7 @@ const Quat = quat.Quat;
 
 pub const Mat3_f32 = Mat3x3(f32);
 pub const Mat3_f64 = Mat3x3(f64);
-pub const Mat4 = Mat3_f64;
+pub const Mat3 = Mat3_f64;
 
 /// A column-major 3x3 matrix
 /// Note: Column-major means accessing data like m.data[COLUMN][ROW].
@@ -40,7 +40,21 @@ pub fn Mat3x3(comptime T: type) type {
                 },
             };
         }
-
+        pub fn getColumn(self: Self, index: usize) Vector3 {
+            return Vector3.new(
+                self.data[index][0],
+                self.data[index][1],
+                self.data[index][2],
+            );
+        }
+        pub fn setColumn(self: *Self, index: usize, data: Vector3) void {
+            self.data[index][0] = data.x();
+            self.data[index][1] = data.y();
+            self.data[index][2] = data.z();
+        }
+        pub fn clone(self: Self) Self {
+            return .{ .data = self.data };
+        }
         /// Shorthand for matrix with all zeros.
         pub fn zero() Self {
             return Self.set(0);
@@ -99,7 +113,6 @@ pub fn Mat3x3(comptime T: type) type {
             const x = (self.data[0][0] * v.x()) + (self.data[1][0] * v.y()) + (self.data[2][0] * v.z());
             const y = (self.data[0][1] * v.x()) + (self.data[1][1] * v.y()) + (self.data[2][1] * v.z());
             const z = (self.data[0][2] * v.x()) + (self.data[1][2] * v.y()) + (self.data[2][2] * v.z());
-
             return Vector3.new(x, y, z);
         }
 
@@ -302,7 +315,7 @@ pub fn Mat3x3(comptime T: type) type {
     };
 }
 
-test "zalgebra.Mat3_f32.eql" {
+test "Geo.Mat3_f32.eql" {
     const a = Mat3_f32.identity();
     const b = Mat3_f32.identity();
     const c = Mat3_f32.zero();
@@ -311,7 +324,7 @@ test "zalgebra.Mat3_f32.eql" {
     try expectEqual(Mat3_f32.eql(a, c), false);
 }
 
-test "zalgebra.Mat3_f32.set" {
+test "Geo.Mat3_f32.set" {
     const a = Mat3_f32.set(12);
     const b = Mat3_f32{
         .data = .{
@@ -324,7 +337,7 @@ test "zalgebra.Mat3_f32.set" {
     try expectEqual(a, b);
 }
 
-test "zalgebra.Mat3_f32.negate" {
+test "Geo.Mat3_f32.negate" {
     const a = Mat3_f32{
         .data = .{
             .{ 1, 2, 3 },
@@ -343,7 +356,7 @@ test "zalgebra.Mat3_f32.negate" {
     try expectEqual(a.negate(), a_negated);
 }
 
-test "zalgebra.Mat3_f32.transpose" {
+test "Geo.Mat3_f32.transpose" {
     const a = Mat3_f32{
         .data = .{
             .{ 1, 2, 3 },
@@ -362,14 +375,14 @@ test "zalgebra.Mat3_f32.transpose" {
     try expectEqual(a.transpose(), b);
 }
 
-test "zalgebra.Mat3_f32.fromSlice" {
+test "Geo.Mat3_f32.fromSlice" {
     const data = [_]f32{ 1, 0, 0, 0, 1, 0, 0, 0, 1 };
     const result = Mat3_f32.fromSlice(&data);
 
     try expectEqual(result, Mat3_f32.identity());
 }
 
-test "zalgebra.Mat3_f32.fromScale" {
+test "Geo.Mat3_f32.fromScale" {
     const a = Mat3_f32.fromScale(Vec3_f32.new(2, 3, 4));
 
     try expectEqual(a, Mat3_f32{
@@ -381,9 +394,9 @@ test "zalgebra.Mat3_f32.fromScale" {
     });
 }
 
-test "zalgebra.Mat3_f32.scale" {
+test "Geo.Mat3_f32.scale" {
     const a = Mat3_f32.fromScale(Vec3_f32.new(2, 3, 4));
-    const result = Mat3_f32.scale(a, Vec3_f32.set_scalar(2));
+    const result = Mat3_f32.scale(a, Vec3_f32.setScalar(2));
 
     try expectEqual(result, Mat3_f32{
         .data = .{
@@ -394,7 +407,7 @@ test "zalgebra.Mat3_f32.scale" {
     });
 }
 
-test "zalgebra.Mat3_f32.det" {
+test "Geo.Mat3_f32.det" {
     const a: Mat3_f32 = .{
         .data = .{
             .{ 2, 0, 4 },
@@ -406,7 +419,7 @@ test "zalgebra.Mat3_f32.det" {
     try expectEqual(a.det(), -24);
 }
 
-test "zalgebra.Mat3_f32.inv" {
+test "Geo.Mat3_f32.inv" {
     const a: Mat3_f32 = .{
         .data = .{
             .{ 2, 0, 4 },
@@ -424,19 +437,19 @@ test "zalgebra.Mat3_f32.inv" {
     });
 }
 
-test "zalgebra.Mat3_f32.extractEulerAngles" {
+test "Geo.Mat3_f32.extractEulerAngles" {
     const a = Mat3_f32.fromEulerAngles(Vec3_f32.new(45, -5, 20));
     try expectEqual(a.extractEulerAngles(), Vec3_f32.new(45.000003814697266, -4.99052524, 19.999998092651367));
 }
 
-test "zalgebra.Mat3_f32.extractScale" {
+test "Geo.Mat3_f32.extractScale" {
     var a = Mat3_f32.fromScale(Vec3_f32.new(2, 4, 8));
     a = a.scale(Vec3_f32.new(2, 4, 8));
 
     try expectEqual(a.extractScale(), Vec3_f32.new(4, 16, 64));
 }
 
-test "zalgebra.Mat3_f32.cast" {
+test "Geo.Mat3_f32.cast" {
     const a = Mat3_f32{ .data = .{
         .{ 0.9961947202682495, 0, -0.08715573698282242 },
         .{ 0.06162841245532036, 0.7071067690849304, 0.704416036605835 },
