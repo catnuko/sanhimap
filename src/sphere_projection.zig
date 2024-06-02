@@ -66,7 +66,7 @@ pub const SphereProjection = struct {
     }
 };
 pub const sphereProjection = SphereProjection.new(earth.EQUATORIAL_RADIUS);
-test "projection.shpere_projection_0" {
+test "projection.shpere_projection.project_and_unproject" {
     const geoPoint = GeoCoordinates.from_degrees(-122.4410209359072, 37.8178183439856, 12.0);
     try testing.expectEqual(geoPoint.longitude, -122.4410209359072);
     const epsilon = 0.000000001;
@@ -75,4 +75,19 @@ test "projection.shpere_projection_0" {
     try testing.expectApproxEqAbs(geoPoint.latitude, geoPoint2.latitude, epsilon);
     try testing.expectApproxEqAbs(geoPoint.longitude, geoPoint2.longitude, epsilon);
     try testing.expectApproxEqAbs(geoPoint.altitude.?, geoPoint2.altitude.?, epsilon);
+}
+
+test "projection.shpere_projection.ground_distance" {
+    const geoPoint = GeoCoordinates.from_degrees(-122.4410209359072, 37.8178183439856, 12.0);
+    const epsilon = 0.000000001;
+    const worldPoint = sphereProjection.project_point(geoPoint);
+    try testing.expectApproxEqAbs(sphereProjection.ground_distance(worldPoint), 12, epsilon);
+}
+
+test "projection.shpere_projection.scale_point_to_surface" {
+    const geoPoint = GeoCoordinates.from_degrees(-122.4410209359072, 37.8178183439856, 12.0);
+    const epsilon = 0.000000001;
+    const worldPoint = sphereProjection.project_point(geoPoint);
+    const worldPoint2 = sphereProjection.scale_point_to_surface(worldPoint);
+    try testing.expectApproxEqAbs(sphereProjection.ground_distance(worldPoint2), 0, epsilon);
 }
