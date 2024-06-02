@@ -57,7 +57,7 @@ pub const GeoCoordinates = struct {
     }
 };
 
-test "Geo..GeoCoordinates" {
+test "Geo.GeoCoordinates" {
     const point = GeoCoordinates.fromDegrees(120, 30, null);
     try std.testing.expectEqual(point.longitude, 120);
     try std.testing.expectEqual(point.latitude, 30);
