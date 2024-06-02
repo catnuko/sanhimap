@@ -1,5 +1,5 @@
 const std = @import("std");
-const Vec3 = @import("../math/index.zig").Vec3;
+const Vec3 = @import("./math/index.zig").Vec3;
 const math = std.math;
 
 pub const MAX_LATITUDE: i16 = 90;
@@ -11,6 +11,7 @@ pub const GeoCoordinates = struct {
     longitude: f64,
     latitude: f64,
     altitude: ?f64,
+    pub const new = from_degrees;
     pub inline fn from_degrees(longitude: f64, latitude: f64, altitude: ?f64) Self {
         return .{ .longitude = longitude, .latitude = latitude, .altitude = altitude };
     }

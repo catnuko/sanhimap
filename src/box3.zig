@@ -1,7 +1,7 @@
 const std = @import("std");
 const print = std.debug.print;
 const testing = std.testing;
-const Vec3 = @import("./generic_vector.zig").Vec3;
+const Vec3 = @import("./math/generic_vector.zig").Vec3;
 pub const Box3 = struct {
     min: Vec3,
     max: Vec3,

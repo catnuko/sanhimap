@@ -1,9 +1,9 @@
-const GeoBox = @import("../coord/geo_box.zig").GeoBox;
-const Box3 = @import("../coord/box3.zig").Box3;
-const Vec3 = @import("../math/generic_vector.zig").Vec3;
+const GeoBox = @import("./geo_box.zig").GeoBox;
+const Box3 = @import("./box3.zig").Box3;
+const Vec3 = @import("./math/generic_vector.zig").Vec3;
 const TileKey = @import("./tile_key.zig").TileKey;
 pub fn FlatTileBoundingBoxGenerator(comptime TilingScheme: type) type {
-    return struct {
+    return extern struct {
         const This = @This();
         m_world_box: Box3,
         m_world_dimensions: Vec3,

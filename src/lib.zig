@@ -1,4 +1,14 @@
-pub const math = @import("math/index.zig");
-pub const coord = @import("coord/index.zig");
-pub const projection = @import("projection/index.zig");
-pub const tiling = @import("tiling/index.zig");
+pub const math = @import("./math/index.zig");
+pub usingnamespace @import("geo_coordinates.zig");
+pub usingnamespace @import("geo_box.zig");
+pub usingnamespace @import("geo_polygon.zig");
+pub usingnamespace @import("box3.zig");
+pub const earth = @import("earth.zig");
+pub usingnamespace @import("sphere_projection.zig");
+pub usingnamespace @import("mercator_projection.zig");
+pub usingnamespace @import("subdivision_scheme.zig");
+pub usingnamespace @import("web_mercator_projection.zig");
+pub usingnamespace @import("coord.zig");
+pub usingnamespace @import("tiling_scheme.zig");
+pub usingnamespace @import("tile_key.zig");
+pub const tile_key_utils = @import("tile_key_utils.zig");

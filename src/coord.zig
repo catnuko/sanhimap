@@ -1,4 +1,3 @@
-const geo = @import("../geo/index.zig");
 const std = @import("std");
 const expectEqual = std.testing.expectEqual;
 const math = std.math;

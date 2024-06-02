@@ -2,9 +2,9 @@ const std = @import("std");
 const stdmath = std.math;
 const print = std.debug.print;
 const testing = std.testing;
-const Box3 = @import("../math/box3.zig").Box3;
-const Vec3 = @import("../math/generic_vector.zig").Vec3;
-const GeoCoordinates = @import("../coord/geo_coordinates.zig").GeoCoordinates;
+const Box3 = @import("./box3.zig").Box3;
+const Vec3 = @import("./math/generic_vector.zig").Vec3;
+const GeoCoordinates = @import("./geo_coordinates.zig").GeoCoordinates;
 const earth = @import("./earth.zig");
 
 pub const ProjectionType = enum { Planar, Spherical };
@@ -45,10 +45,10 @@ pub const SphereProjection = struct {
         const v = worldpoint.z() / parallelRadius;
 
         if (stdmath.isNan(v)) {
-            return GeoCoordinates.fromRadians(0, 0, -self.unit_scale);
+            return GeoCoordinates.from_radians(0, 0, -self.unit_scale);
         }
-        const radius = stdmath.sqrt(parallelRadiusSq + worldpoint.z * worldpoint.z);
-        return GeoCoordinates.from_radians(stdmath.atan(v), stdmath.atan2(worldpoint.y(), worldpoint.x()), radius - self.unit_scale);
+        const radius = stdmath.sqrt(parallelRadiusSq + worldpoint.z() * worldpoint.z());
+        return GeoCoordinates.from_radians(stdmath.atan2(worldpoint.y(), worldpoint.x()), stdmath.atan(v), radius - self.unit_scale);
     }
     pub fn unproject_altitude(_: SphereProjection, worldpoint: Vec3) f64 {
         return worldpoint.length() - earth.EQUATORIAL_RADIUS;
@@ -67,12 +67,12 @@ pub const SphereProjection = struct {
 };
 pub const sphereProjection = SphereProjection.new(earth.EQUATORIAL_RADIUS);
 test "projection.shpere_projection_0" {
-    const geoPoint = GeoCoordinates.new(-122.4410209359072, 37.8178183439856, 12.0);
+    const geoPoint = GeoCoordinates.from_degrees(-122.4410209359072, 37.8178183439856, 12.0);
     try testing.expectEqual(geoPoint.longitude, -122.4410209359072);
-    const epsilon = 0.000001;
+    const epsilon = 0.000000001;
     const worldPoint = sphereProjection.project_point(geoPoint);
     const geoPoint2 = sphereProjection.unproject_point(worldPoint);
-    testing.expectApproxEqAbs(geoPoint.latitude, geoPoint2.latitude, epsilon);
-    testing.expectApproxEqAbs(geoPoint.longitude, geoPoint2.longitude, epsilon);
-    testing.expectApproxEqAbs(geoPoint.altitude.?, geoPoint2.altitude.?, epsilon);
+    try testing.expectApproxEqAbs(geoPoint.latitude, geoPoint2.latitude, epsilon);
+    try testing.expectApproxEqAbs(geoPoint.longitude, geoPoint2.longitude, epsilon);
+    try testing.expectApproxEqAbs(geoPoint.altitude.?, geoPoint2.altitude.?, epsilon);
 }

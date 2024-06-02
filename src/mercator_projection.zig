@@ -2,12 +2,12 @@ const std = @import("std");
 const stdmath = std.math;
 const print = std.debug.print;
 const testing = std.testing;
-const math = @import("../math/index.zig");
-const coord = @import("../coord/index.zig");
-const GeoCoordinates = coord.GeoCoordinates;
-const earth = @import("./earth.zig");
-const Box3 = math.Box3;
+const lib = @import("lib.zig");
+const math = lib.math;
+const GeoCoordinates = lib.GeoCoordinates;
+const earth = lib.earth;
 const Vec3 = math.Vec3;
+const Box3 = lib.Box3;
 pub const MAXIMUM_LATITUDE: f64 = 1.4844222297453323;
 pub const MercatorProjection = struct {
     unit_scale: f64,
@@ -19,7 +19,7 @@ pub const MercatorProjection = struct {
         min_elevation: f64,
         max_elevation: f64,
     ) Box3 {
-        Box3.new(Vec3.new(
+        return Box3.new(Vec3.new(
             0,
             0,
             min_elevation,

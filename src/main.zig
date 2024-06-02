@@ -3,7 +3,7 @@ const print = std.debug.print;
 const expectEqual = std.testing.expectEqual;
 const lib = @import("lib.zig");
 const Vec2 = lib.math.Vec2;
-const GeoCoordinates = lib.coord.GeoCoordinates;
+const GeoCoordinates = lib.GeoCoordinates;
 pub fn main() !void {
     const a = Vec2.new(1, 2);
     const b = Vec2.new(1, 2);
