@@ -1,11 +1,11 @@
 const std = @import("std");
-const stdmath = std.math;
 const print = std.debug.print;
 const testing = std.testing;
 const lib = @import("./lib.zig");
+const math = lib.math;
 const Box3 = lib.Box3;
-const Vec3 = lib.Vec3;
-const Mat4 = lib.Mat4;
+const Vec3 = math.Vec3;
+const Mat4 = math.Mat4;
 const GeoCoordinates = lib.GeoCoordinates;
 const earth = lib.earth;
 
@@ -13,10 +13,10 @@ pub const ProjectionType = enum { Planar, Spherical };
 /// convert geo coordinate to world point
 pub fn project(geopoint: GeoCoordinates, unit_scale: f64) Vec3 {
     const radius = unit_scale + (geopoint.altitude orelse 0);
-    const latitude = stdmath.degreesToRadians(geopoint.latitude);
-    const longitude = stdmath.degreesToRadians(geopoint.longitude);
-    const cosLatitude = stdmath.cos(latitude);
-    return Vec3.new(radius * cosLatitude * stdmath.cos(longitude), radius * cosLatitude * stdmath.sin(longitude), radius * stdmath.sin(latitude));
+    const latitude = geopoint.latitude;
+    const longitude = geopoint.longitude;
+    const cosLatitude = math.cos(latitude);
+    return Vec3.new(radius * cosLatitude * math.cos(longitude), radius * cosLatitude * math.sin(longitude), radius * math.sin(latitude));
 }
 pub const SphereProjection = struct {
     unit_scale: f64,
@@ -43,14 +43,14 @@ pub const SphereProjection = struct {
     }
     pub fn unprojectPoint(self: SphereProjection, worldpoint: Vec3) GeoCoordinates {
         const parallelRadiusSq = worldpoint.x() * worldpoint.x() + worldpoint.y() * worldpoint.y();
-        const parallelRadius = stdmath.sqrt(parallelRadiusSq);
+        const parallelRadius = math.sqrt(parallelRadiusSq);
         const v = worldpoint.z() / parallelRadius;
 
-        if (stdmath.isNan(v)) {
-            return GeoCoordinates.fromRadians(0, 0, -self.unit_scale);
+        if (math.isNan(v)) {
+            return GeoCoordinates.new(0, 0, -self.unit_scale);
         }
-        const radius = stdmath.sqrt(parallelRadiusSq + worldpoint.z() * worldpoint.z());
-        return GeoCoordinates.fromRadians(stdmath.atan2(worldpoint.y(), worldpoint.x()), stdmath.atan(v), radius - self.unit_scale);
+        const radius = math.sqrt(parallelRadiusSq + worldpoint.z() * worldpoint.z());
+        return GeoCoordinates.new(math.atan2(worldpoint.y(), worldpoint.x()), math.atan(v), radius - self.unit_scale);
     }
     pub fn unprojectAltitude(_: SphereProjection, worldpoint: Vec3) f64 {
         return worldpoint.length() - earth.EQUATORIAL_RADIUS;
@@ -68,12 +68,12 @@ pub const SphereProjection = struct {
     }
     pub fn localTagentSpace(self: SphereProjection, geo_point: GeoCoordinates) Mat4 {
         const world_point = self.projectPoint(geo_point);
-        const latitude = stdmath.degreesToRadians(geo_point.latitude);
-        const longitude = stdmath.degreesToRadians(geo_point.longitude);
-        const cosLongitude = stdmath.cos(longitude);
-        const sinLongitude = stdmath.sin(longitude);
-        const cosLatitude = stdmath.cos(latitude);
-        const sinLatitude = stdmath.sin(latitude);
+        const latitude = geo_point.latitude;
+        const longitude = geo_point.longitude;
+        const cosLongitude = math.cos(longitude);
+        const sinLongitude = math.sin(longitude);
+        const cosLatitude = math.cos(latitude);
+        const sinLatitude = math.sin(latitude);
         const slice = [16]f64{0};
         //x axis
         slice[0] = -sinLongitude;
@@ -125,7 +125,7 @@ test "Geo.SphereProjection.scalePointToSurface" {
     try testing.expectApproxEqAbs(sphereProjection.groundDistance(worldPoint2), 0, epsilon);
 }
 
-test "Geo.SphereProjection.vector_copy" {
+test "Geo.SphereProjection.vectorCopy" {
     const ele_4 = @Vector(4, i32);
 
     // 向量必须拥有编译期已知的长度和类型

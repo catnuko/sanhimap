@@ -1,8 +1,8 @@
 const std = @import("std");
-const stdmath = std.math;
 const lib = @import("lib.zig");
-const Mat3 = lib.Mat3;
-const Vec3 = lib.Vec3;
+const math = lib.math;
+const Mat3 = math.Mat3;
+const Vec3 = math.Vec3;
 pub const OrientedBox3 = struct {
     xAxis: Vec3,
     yAxis: Vec3,
@@ -33,16 +33,16 @@ pub const OrientedBox3 = struct {
     }
     pub fn contains(this: OrientedBox3, point: Vec3) bool {
         const diff = point.sub(this.position);
-        const x = stdmath.abs(diff.dot(this.xAxis));
-        const y = stdmath.abs(diff.dot(this.yAxis));
-        const z = stdmath.abs(diff.dot(this.zAxis));
+        const x = math.abs(diff.dot(this.xAxis));
+        const y = math.abs(diff.dot(this.yAxis));
+        const z = math.abs(diff.dot(this.zAxis));
         if (x > this.extents.x() or y > this.extents.y() or z > this.extents.z()) {
             return false;
         }
         return true;
     }
     pub fn distanceToPoint(this: OrientedBox3, point: Vec3) f64 {
-        return stdmath.sqrt(this.distanceToPointSquared(point));
+        return math.sqrt(this.distanceToPointSquared(point));
     }
     pub fn distanceToPointSquared(this: OrientedBox3, point: Vec3) f64 {
         const d = point.sub(this.position);

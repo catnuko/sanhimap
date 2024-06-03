@@ -1,4 +1,4 @@
-pub usingnamespace @import("./math/index.zig");
+pub const math = @import("./math/index.zig");
 pub usingnamespace @import("GeoCoordinates.zig");
 pub usingnamespace @import("GeoBOx.zig");
 pub usingnamespace @import("GeoPolygon.zig");

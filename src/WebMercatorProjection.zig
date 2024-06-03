@@ -1,13 +1,15 @@
 const std = @import("std");
-const stdmath = std.math;
+
 const print = std.debug.print;
 const testing = std.testing;
 const lib = @import("./lib.zig");
+const math = lib.math;
+const Mat3 = math.Mat3;
+const Vec3 = math.Vec3;
 const GeoCoordinates = lib.GeoCoordinates;
 const earth = lib;
 const MercatorProjection = lib.MercatorProjection;
 const Box3 = lib.Box3;
-const Vec3 = lib.Vec3;
 pub const MAXIMUM_LATITUDE: f64 = 1.4844222297453323;
 pub const WebMercatorProjection = struct {
     unit_scale: f64,
@@ -31,8 +33,8 @@ pub const WebMercatorProjection = struct {
     }
     pub fn projectPoint(self: WebMercatorProjection, geopoint: GeoCoordinates) Vec3 {
         const x = ((geopoint.longitude + 180) / 360) * self.unit_scale;
-        const sy = stdmath.sin(latitudeClamp(geopoint.latitudeInRadians()));
-        const y = (0.5 - stdmath.log((1 + sy) / (1 - sy)) / (4 * stdmath.pi)) * self.unit_scale;
+        const sy = math.sin(latitudeClamp(geopoint.latitudeInRadians()));
+        const y = (0.5 - math.log((1 + sy) / (1 - sy)) / (4 * math.pi)) * self.unit_scale;
         const z = geopoint.altitude orelse 0;
         return Vec3.new(x, y, z);
     }
@@ -40,7 +42,7 @@ pub const WebMercatorProjection = struct {
         const x = worldpoint.x / self.unit_scale - 0.5;
         const y = 0.5 - worldpoint.y / self.unit_scale;
         const longitude = 360 * x;
-        const latitude = 90 - (360 * stdmath.atan(stdmath.exp(-y * 2 * stdmath.pi))) / stdmath.pi;
+        const latitude = 90 - (360 * math.atan(math.exp(-y * 2 * math.pi))) / math.pi;
         return GeoCoordinates.fromDegrees(latitude, longitude, worldpoint.z);
     }
     pub fn surfaceNormal() Vec3 {

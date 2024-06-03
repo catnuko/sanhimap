@@ -1,5 +1,5 @@
 const std = @import("std");
-const stdmath = std.math;
+const math = @import("lib.zig").math;
 pub const TileKey = struct {
     row: u32,
     column: u32,
@@ -60,10 +60,10 @@ pub const TileKey = struct {
         return result;
     }
     pub fn rowsAtLevel(level: u32) u32 {
-        return stdmath.pow(u32, 2, level);
+        return math.pow(u32, 2, level);
     }
     pub fn columnsAtLevel(level: u32) u32 {
-        return stdmath.pow(u32, 2, level);
+        return math.pow(u32, 2, level);
     }
     pub fn rowCount(self: TileKey) u32 {
         return rowsAtLevel(self.level);

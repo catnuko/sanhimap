@@ -8,7 +8,7 @@ const QuadTreeSubdivisionScheme = lib.QuadTreeSubdivisionScheme;
 const GeoCoordinates = lib.GeoCoordinates;
 const MercatorProjection = lib.MercatorProjection;
 const WebMercatorProjection = lib.WebMercatorProjection;
-const Vec3 = lib.Vec3;
+const Vec3 = lib.math.Vec3;
 const TileKeyUtils = lib.TileKeyUtils;
 
 pub const MercatorTilingScheme = TilingScheme(

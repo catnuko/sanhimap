@@ -1,6 +1,6 @@
 const std = @import("std");
-const stdmath = std.math;
 const lib = @import("./lib.zig");
+const math = lib.math;
 const TileKey = lib.TileKey;
 const GeoCoordinates = lib.GeoCoordinates;
 const GeoBox = lib.GeoBox;
@@ -33,17 +33,17 @@ pub fn worldcoordinates_to_tilekey(comptime TilingScheme: type, tilingscheme: Ti
         return null;
     }
 
-    const column = stdmath.min(cx - 1, stdmath.floor((cx * (worldpoint.x - min.x)) / worldSizeX));
-    const row = stdmath.min(cy - 1, stdmath.floor((cy * (worldpoint.y - min.y)) / worldSizeY));
+    const column = math.min(cx - 1, math.floor((cx * (worldpoint.x - min.x)) / worldSizeX));
+    const row = math.min(cy - 1, math.floor((cy * (worldpoint.y - min.y)) / worldSizeY));
 
     return TileKey.fromRowColumnLevel(row, column, level);
 }
 pub fn georectangle_to_tilekeys(comptime TilingScheme: type, tilingscheme: TilingScheme, geobox: GeoBox, level: u32) ArrayList(TileKey) {
     // Clamp at the poles and wrap around the international date line.
-    const southWestLongitude = wrap(geobox.southWest.longitudeInRadians, -stdmath.pi, stdmath.pi);
-    const southWestLatitude = stdmath.clamp(geobox.southWest.latitudeInRadians, -(stdmath.pi * 0.5), stdmath.pi * 0.5);
-    const northEastLongitude = wrap(geobox.northEast.longitudeInRadians, -stdmath.pi, stdmath.pi);
-    const northEastLatitude = stdmath.clamp(geobox.northEast.latitudeInRadians, -(stdmath.pi * 0.5), stdmath.pi * 0.5);
+    const southWestLongitude = wrap(geobox.southWest.longitudeInRadians, -math.pi, math.pi);
+    const southWestLatitude = math.clamp(geobox.southWest.latitudeInRadians, -(math.pi * 0.5), math.pi * 0.5);
+    const northEastLongitude = wrap(geobox.northEast.longitudeInRadians, -math.pi, math.pi);
+    const northEastLatitude = math.clamp(geobox.northEast.latitudeInRadians, -(math.pi * 0.5), math.pi * 0.5);
     const minTileKey = geocoordinates_to_tilekey(tilingscheme, GeoCoordinates.fromRadians(southWestLatitude, southWestLongitude), level);
     const maxTileKey = geocoordinates_to_tilekey(tilingscheme, GeoCoordinates.fromRadians(northEastLatitude, northEastLongitude), level);
     const columnCount = tilingscheme.subdivisionScheme.getLevelDimensionX(level);

@@ -1,7 +1,6 @@
-const std = @import("std");
-const Vec3 = @import("./math/index.zig").Vec3;
-const math = std.math;
-
+const lib = @import("lib.zig");
+const Vec3 = lib.Vec3;
+const math = lib.math;
 pub const MAX_LATITUDE: i16 = 90;
 pub const MIN_LATITUDE: i16 = -90;
 pub const MAX_LONGITUDE: i16 = 180;
@@ -11,18 +10,18 @@ pub const GeoCoordinates = struct {
     longitude: f64,
     latitude: f64,
     altitude: ?f64,
-    pub const new = fromDegrees;
-    pub inline fn fromDegrees(longitude: f64, latitude: f64, altitude: ?f64) Self {
+    pub const new = fromRadians;
+    pub inline fn fromRadians(longitude: f64, latitude: f64, altitude: ?f64) Self {
         return .{ .longitude = longitude, .latitude = latitude, .altitude = altitude };
     }
-    pub inline fn fromRadians(longitude: f64, latitude: f64, altitude: ?f64) Self {
-        return Self.fromDegrees(math.radiansToDegrees(longitude), math.radiansToDegrees(latitude), altitude);
+    pub inline fn fromDegrees(longitude: f64, latitude: f64, altitude: ?f64) Self {
+        return Self.fromDegrees(math.degreesToRadians(longitude), math.degreesToRadians(latitude), altitude);
     }
-    pub inline fn longitudeInRadians(self: Self) f64 {
-        return math.degreesToRadians(self.longitude);
+    pub inline fn longitudeInDegrees(self: Self) f64 {
+        return math.radiansToDegrees(self.longitude);
     }
-    pub inline fn latitudeInRadians(self: Self) f64 {
-        return math.degreesToRadians(self.latitude);
+    pub inline fn latitudeInDegreees(self: Self) f64 {
+        return math.radiansToDegrees(self.latitude);
     }
     pub inline fn eql(self: Self, other: Self) bool {
         return (self.latitude == other.latitude and
@@ -35,12 +34,12 @@ pub const GeoCoordinates = struct {
         self.altitude = other.altitude;
     }
     pub inline fn clone(self: Self) Self {
-        return Self.fromDegrees(self.longitude, self.latitude, self.altitude);
+        return Self.new(self.longitude, self.latitude, self.altitude);
     }
     pub fn minLongitudeSpanTo(self: Self, other: Self) f64 {
         const minLongitude = @min(self.longitude, other.longitude);
         const maxLongitude = @max(self.longitude, other.longitude);
-        return @min(maxLongitude - minLongitude, 360 + minLongitude - maxLongitude);
+        return @min(maxLongitude - minLongitude, lib.pi + minLongitude - maxLongitude);
     }
     pub inline fn empty() Self {
         return Self.new(
@@ -58,8 +57,9 @@ pub const GeoCoordinates = struct {
 };
 
 test "Geo.GeoCoordinates" {
+    const testing = @import("std").testing;
     const point = GeoCoordinates.fromDegrees(120, 30, null);
-    try std.testing.expectEqual(point.longitude, 120);
-    try std.testing.expectEqual(point.latitude, 30);
-    try std.testing.expectEqual(point.altitude, null);
+    try testing.expectEqual(point.longitude, math.degreesToRadians(120));
+    try testing.expectEqual(point.latitude, math.degreesToRadians(30));
+    try testing.expectEqual(point.altitude, null);
 }
