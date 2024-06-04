@@ -56,5 +56,5 @@ pub const WebMercatorProjection = struct {
     pub const groundDistance = MercatorProjection.groundDistance;
     pub const scalePointToSurface = MercatorProjection.scalePointToSurface;
 };
-pub const web_mercator_projection = WebMercatorProjection.new(earth.EQUATORIAL_RADIUS);
+pub const webMercatorProjection = WebMercatorProjection.new(earth.EQUATORIAL_RADIUS);
 test "Geo.WebMercatorProjection" {}

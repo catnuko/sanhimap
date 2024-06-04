@@ -1,3 +1,4 @@
+pub usingnamespace @import("zimpl.zig");
 pub const math = @import("./math/index.zig");
 pub usingnamespace @import("GeoCoordinates.zig");
 pub usingnamespace @import("GeoBOx.zig");
@@ -10,4 +11,6 @@ pub usingnamespace @import("SubdivisionScheme.zig");
 pub usingnamespace @import("WebMercatorProjection.zig");
 pub usingnamespace @import("TilingScheme.zig");
 pub usingnamespace @import("TileKey.zig");
+pub usingnamespace @import("Projection.zig");
 pub const TileKeyUtils = @import("TileKeyUtils.zig");
+pub const Tile = @import("Tile.zig");
