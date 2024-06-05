@@ -16,7 +16,7 @@ pub const GeoBox = struct {
             .northEast = northEast,
         };
         if (news.west() > news.east()) {
-            news.northEast.longitude += 360;
+            news.northEast.longitude += std.math.tau;
         }
         return news;
     }
@@ -75,14 +75,14 @@ pub const GeoBox = struct {
         const latitude_v = (south_v + north_v) * 0.5;
         const altitude_v = self.getAltitudeHelper();
         if (west_v <= east_v) {
-            return GeoCoordinates.fromDegrees((west_v + east_v) * 0.5, latitude_v, altitude_v);
+            return GeoCoordinates.fromRadians((west_v + east_v) * 0.5, latitude_v, altitude_v);
         }
-        var longitude_v = (360 + east_v + west_v) * 0.5;
+        var longitude_v = (std.math.tau + east_v + west_v) * 0.5;
 
-        if (longitude_v > 360) {
-            longitude_v -= 360;
+        if (longitude_v > std.math.tau) {
+            longitude_v -= std.math.tau;
         }
-        return GeoCoordinates.fromDegrees(longitude_v, latitude_v, altitude_v);
+        return GeoCoordinates.fromRadians(longitude_v, latitude_v, altitude_v);
     }
     pub inline fn latitudeSpan(self: GeoBox) f64 {
         return self.north() - self.south();
@@ -98,7 +98,7 @@ pub const GeoBox = struct {
     pub inline fn longitudeSpan(self: GeoBox) f64 {
         var width = self.east() - self.west();
         if (width < 0.0) {
-            width += 360;
+            width += std.math.tau;
         }
         return width;
     }
@@ -134,13 +134,13 @@ pub const GeoBox = struct {
         var longitude = point.longitude;
         if (east_v > MAX_LONGITUDE) {
             while (longitude < west_v) {
-                longitude = longitude + 360;
+                longitude = longitude + std.math.tau;
             }
         }
 
         if (longitude > east_v) {
-            while (longitude > west_v + 360) {
-                longitude = longitude - 360;
+            while (longitude > west_v + std.math.tau) {
+                longitude = longitude - std.math.tau;
             }
         }
 
@@ -178,16 +178,17 @@ pub const GeoBox = struct {
 
 const GEOCOORDS_EPSILON = 0.000001;
 test "Geo.GeoBox.center" {
+    const t = std.math.degreesToRadians;
     const g = GeoBox.new(GeoCoordinates.fromDegrees(170, -10, null), GeoCoordinates.fromDegrees(-160, 10, null));
-    try testing.expectEqual(g.west(), 170);
-    try testing.expectEqual(g.east(), 200);
-    try testing.expectEqual(g.north(), 10);
-    try testing.expectEqual(g.south(), -10);
+    try testing.expectEqual(g.west(), t(170));
+    try testing.expectEqual(g.east(), t(200));
+    try testing.expectEqual(g.north(), t(10));
+    try testing.expectEqual(g.south(), t(-10));
     const center = g.center();
-    try testing.expectApproxEqAbs(center.longitude, 185, GEOCOORDS_EPSILON);
-    try testing.expectApproxEqAbs(center.latitude, 0, GEOCOORDS_EPSILON);
-    try testing.expectApproxEqAbs(g.longitudeSpan(), 30, GEOCOORDS_EPSILON);
-    try testing.expectApproxEqAbs(g.latitudeSpan(), 20, GEOCOORDS_EPSILON);
+    try testing.expectApproxEqAbs(center.longitude, t(185), GEOCOORDS_EPSILON);
+    try testing.expectApproxEqAbs(center.latitude, t(0), GEOCOORDS_EPSILON);
+    try testing.expectApproxEqAbs(g.longitudeSpan(), t(30), GEOCOORDS_EPSILON);
+    try testing.expectApproxEqAbs(g.latitudeSpan(), t(20), GEOCOORDS_EPSILON);
 
     try testing.expect(g.contains(GeoCoordinates.fromDegrees(180, 0, null)));
     try testing.expect(g.contains(GeoCoordinates.fromDegrees(190, 0, null)));

@@ -1,10 +1,10 @@
 const lib = @import("lib.zig");
-const Vec3 = lib.Vec3;
 const math = lib.math;
-pub const MAX_LATITUDE: i16 = 90;
-pub const MIN_LATITUDE: i16 = -90;
-pub const MAX_LONGITUDE: i16 = 180;
-pub const MIN_LONGITUDE: i16 = -180;
+const Vec3 = lib.Vec3;
+pub const MAX_LATITUDE = math.pi_over_two;
+pub const MIN_LATITUDE = -math.pi_over_two;
+pub const MAX_LONGITUDE = math.pi;
+pub const MIN_LONGITUDE = -math.pi;
 pub const GeoCoordinates = struct {
     const Self = @This();
     longitude: f64,
@@ -15,7 +15,7 @@ pub const GeoCoordinates = struct {
         return .{ .longitude = longitude, .latitude = latitude, .altitude = altitude };
     }
     pub inline fn fromDegrees(longitude: f64, latitude: f64, altitude: ?f64) Self {
-        return Self.fromDegrees(math.degreesToRadians(longitude), math.degreesToRadians(latitude), altitude);
+        return Self.fromRadians(math.degreesToRadians(longitude), math.degreesToRadians(latitude), altitude);
     }
     pub inline fn longitudeInDegrees(self: Self) f64 {
         return math.radiansToDegrees(self.longitude);
@@ -59,7 +59,7 @@ pub const GeoCoordinates = struct {
 test "Geo.GeoCoordinates" {
     const testing = @import("std").testing;
     const point = GeoCoordinates.fromDegrees(120, 30, null);
-    try testing.expectEqual(point.longitude, math.degreesToRadians(120));
-    try testing.expectEqual(point.latitude, math.degreesToRadians(30));
+    try testing.expectApproxEqAbs(point.longitude, math.degreesToRadians(120), 0.0000000001);
+    try testing.expectApproxEqAbs(point.latitude, math.degreesToRadians(30), 0.0000000001);
     try testing.expectEqual(point.altitude, null);
 }

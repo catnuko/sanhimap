@@ -13,14 +13,16 @@ const Box3 = lib.Box3;
 pub const MAXIMUM_LATITUDE: f64 = 1.4844222297453323;
 pub const WebMercatorProjection = struct {
     unit_scale: f64,
+    const Self = @This();
     pub fn new(unit_scale: f64) WebMercatorProjection {
         return .{ .unit_scale = unit_scale };
     }
     pub fn worldExtent(
-        self: WebMercatorProjection,
+        ctx: *anyopaque,
         min_elevation: f64,
         max_elevation: f64,
     ) Box3 {
+        const self: *Self = @ptrCast(@alignCast(ctx));
         Box3.new(Vec3.new(
             0,
             0,
@@ -31,18 +33,20 @@ pub const WebMercatorProjection = struct {
             max_elevation,
         ));
     }
-    pub fn projectPoint(self: WebMercatorProjection, geopoint: GeoCoordinates) Vec3 {
-        const x = ((geopoint.longitude + 180) / 360) * self.unit_scale;
+    pub fn projectPoint(ctx: *anyopaque, geopoint: GeoCoordinates) Vec3 {
+        const self: *Self = @ptrCast(@alignCast(ctx));
+        const x = geopoint.longitude * self.unit_scale;
         const sy = math.sin(latitudeClamp(geopoint.latitudeInRadians()));
         const y = (0.5 - math.log((1 + sy) / (1 - sy)) / (4 * math.pi)) * self.unit_scale;
         const z = geopoint.altitude orelse 0;
         return Vec3.new(x, y, z);
     }
-    pub fn unprojectPoint(self: WebMercatorProjection, worldpoint: Vec3) GeoCoordinates {
+    pub fn unprojectPoint(ctx: *anyopaque, worldpoint: Vec3) GeoCoordinates {
+        const self: *Self = @ptrCast(@alignCast(ctx));
         const x = worldpoint.x / self.unit_scale - 0.5;
         const y = 0.5 - worldpoint.y / self.unit_scale;
-        const longitude = 360 * x;
-        const latitude = 90 - (360 * math.atan(math.exp(-y * 2 * math.pi))) / math.pi;
+        const longitude = math.tow_pi * x;
+        const latitude = math.pi_over_two - (std.math.tau * math.atan(math.exp(-y * 2 * math.pi))) / math.pi;
         return GeoCoordinates.fromDegrees(latitude, longitude, worldpoint.z);
     }
     pub fn surfaceNormal() Vec3 {
@@ -55,6 +59,18 @@ pub const WebMercatorProjection = struct {
     pub const unprojectAltitude = MercatorProjection.unprojectAltitude;
     pub const groundDistance = MercatorProjection.groundDistance;
     pub const scalePointToSurface = MercatorProjection.scalePointToSurface;
+    pub const localTagentSpace = MercatorProjection.localTagentSpace;
+    pub fn projectionI(self: *Self) lib.Projection {
+        return .{ .ptr = self, .vtable = &.{
+            .worldExtent = worldExtent,
+            .projectPoint = projectPoint,
+            .unprojectPoint = unprojectPoint,
+            .unprojectAltitude = unprojectAltitude,
+            .groundDistance = groundDistance,
+            .scalePointToSurface = scalePointToSurface,
+            .localTagentSpace = localTagentSpace,
+        } };
+    }
 };
-pub const webMercatorProjection = WebMercatorProjection.new(earth.EQUATORIAL_RADIUS);
+pub const webMercatorProjection = WebMercatorProjection.new(earth.EQUATORIAL_RADIUS).projectionI();
 test "Geo.WebMercatorProjection" {}

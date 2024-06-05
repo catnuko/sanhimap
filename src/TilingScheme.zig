@@ -9,13 +9,12 @@ const Vec3 = lib.math.Vec3;
 const TileKeyUtils = lib.TileKeyUtils;
 const SubdivisionScheme = lib.SubdivisionScheme;
 const Projection = lib.Projection;
-
 pub const mercatorTilingScheme = TilingScheme.new(
-    lib.QuadTreeSubdivisionScheme{},
+    lib.quadTreeSubdivisionScheme,
     lib.mercatorProjection,
 );
 pub const webMercatorTilingScheme = TilingScheme.new(
-    lib.QuadTreeSubdivisionScheme{},
+    lib.quadTreeSubdivisionScheme,
     lib.webMercatorProjection,
 );
 pub const TilingScheme = struct {
@@ -98,9 +97,16 @@ test "Geo.TilingScheme.subTileKeys" {
         pub fn getLevelDimensionY(_: u32) u32 {
             return 1;
         }
+        pub fn subdivisionSchemeI() SubdivisionScheme {
+            return .{ .vtable = &.{
+                .getSubdivisionX = getSubdivisionX,
+                .getSubdivisionY = getSubdivisionY,
+                .getLevelDimensionX = getLevelDimensionX,
+                .getLevelDimensionY = getLevelDimensionY,
+            } };
+        }
     };
-    const TestTilingScheme = TilingScheme(TestSubdivisionScheme, lib.mercatorProjection);
-    const test_tiline_scheme = TestTilingScheme.new(.{}, lib.mercatorProjection);
-    const tile_keys = test_tiline_scheme.getSubTileKeys(TileKey.new(0, 0, 0));
+    const testTilingScheme = TilingScheme.new(TestSubdivisionScheme.subdivisionSchemeI(), lib.mercatorProjection);
+    const tile_keys = testTilingScheme.getSubTileKeys(TileKey.new(0, 0, 0));
     try std.testing.expectEqual(tile_keys.len, 1);
 }

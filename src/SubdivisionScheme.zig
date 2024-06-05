@@ -34,7 +34,7 @@ const QuadTreeSubdivisionScheme = struct {
     pub fn getLevelDimensionY(level: u32) u32 {
         return std.math.pow(u32, 2, level);
     }
-    pub fn interface() SubdivisionScheme {
+    pub fn subdivisionSchemeI() SubdivisionScheme {
         return .{ .vtable = &.{
             .getSubdivisionX = getSubdivisionX,
             .getSubdivisionY = getSubdivisionY,
@@ -56,7 +56,7 @@ const HalfQuadTreeSubdivisionScheme = struct {
     pub fn getLevelDimensionY(level: u32) u32 {
         return if (level != 0) std.math.pow(u32, 2, level - 1) else 1;
     }
-    pub fn interface() SubdivisionScheme {
+    pub fn subdivisionSchemeI() SubdivisionScheme {
         return .{ .vtable = &.{
             .getSubdivisionX = getSubdivisionX,
             .getSubdivisionY = getSubdivisionY,
@@ -65,12 +65,12 @@ const HalfQuadTreeSubdivisionScheme = struct {
         } };
     }
 };
+pub const quadTreeSubdivisionScheme = QuadTreeSubdivisionScheme.subdivisionSchemeI();
+pub const halfQuadTreeSubdivisionScheme = HalfQuadTreeSubdivisionScheme.subdivisionSchemeI();
 fn testfn(ss: SubdivisionScheme) u32 {
     return ss.getSubdivisionY(0);
 }
 test "geo.SubdivisionScheme" {
-    const quad = QuadTreeSubdivisionScheme.interface();
-    try std.testing.expectEqual(testfn(quad), 2);
-    const half = HalfQuadTreeSubdivisionScheme.interface();
-    try std.testing.expectEqual(testfn(half), 1);
+    try std.testing.expectEqual(quadTreeSubdivisionScheme.getSubdivisionY(0), 2);
+    try std.testing.expectEqual(halfQuadTreeSubdivisionScheme.getSubdivisionY(0), 1);
 }

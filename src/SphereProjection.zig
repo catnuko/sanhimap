@@ -19,16 +19,19 @@ pub fn project(geopoint: GeoCoordinates, unit_scale: f64) Vec3 {
     return Vec3.new(radius * cosLatitude * math.cos(longitude), radius * cosLatitude * math.sin(longitude), radius * math.sin(latitude));
 }
 pub const SphereProjection = struct {
+    const Self = @This();
     unit_scale: f64,
     pub fn new(unit_scale: f64) SphereProjection {
         return .{ .unit_scale = unit_scale };
     }
     pub fn worldExtent(
-        self: SphereProjection,
+        ctx: *anyopaque,
+        _: f64,
         max_elevation: f64,
     ) Box3 {
+        const self: *Self = @ptrCast(@alignCast(ctx));
         const radius = self.unit_scale + max_elevation;
-        Box3.new(Vec3.new(
+        return Box3.new(Vec3.new(
             -radius,
             -radius,
             -radius,
@@ -38,10 +41,12 @@ pub const SphereProjection = struct {
             radius,
         ));
     }
-    pub fn projectPoint(self: SphereProjection, geopoint: GeoCoordinates) Vec3 {
+    pub fn projectPoint(ctx: *anyopaque, geopoint: GeoCoordinates) Vec3 {
+        const self: *Self = @ptrCast(@alignCast(ctx));
         return project(geopoint, self.unit_scale);
     }
-    pub fn unprojectPoint(self: SphereProjection, worldpoint: Vec3) GeoCoordinates {
+    pub fn unprojectPoint(ctx: *anyopaque, worldpoint: Vec3) GeoCoordinates {
+        const self: *Self = @ptrCast(@alignCast(ctx));
         const parallelRadiusSq = worldpoint.x() * worldpoint.x() + worldpoint.y() * worldpoint.y();
         const parallelRadius = math.sqrt(parallelRadiusSq);
         const v = worldpoint.z() / parallelRadius;
@@ -52,13 +57,17 @@ pub const SphereProjection = struct {
         const radius = math.sqrt(parallelRadiusSq + worldpoint.z() * worldpoint.z());
         return GeoCoordinates.new(math.atan2(worldpoint.y(), worldpoint.x()), math.atan(v), radius - self.unit_scale);
     }
-    pub fn unprojectAltitude(_: SphereProjection, worldpoint: Vec3) f64 {
+    pub fn unprojectAltitude(ctx: *anyopaque, worldpoint: Vec3) f64 {
+        const self: *Self = @ptrCast(@alignCast(ctx));
+        _ = self;
         return worldpoint.length() - earth.EQUATORIAL_RADIUS;
     }
-    pub fn groundDistance(self: SphereProjection, worldpoint: Vec3) f64 {
+    pub fn groundDistance(ctx: *anyopaque, worldpoint: Vec3) f64 {
+        const self: *Self = @ptrCast(@alignCast(ctx));
         return worldpoint.length() - self.unit_scale;
     }
-    pub fn scalePointToSurface(self: SphereProjection, worldpoint: Vec3) Vec3 {
+    pub fn scalePointToSurface(ctx: *anyopaque, worldpoint: Vec3) Vec3 {
+        const self: *Self = @ptrCast(@alignCast(ctx));
         var length = worldpoint.length();
         if (length == 0) {
             length = 1.0;
@@ -66,15 +75,15 @@ pub const SphereProjection = struct {
         const scale = self.unit_scale / length;
         return worldpoint.scale(scale);
     }
-    pub fn localTagentSpace(self: SphereProjection, geo_point: GeoCoordinates) Mat4 {
-        const world_point = self.projectPoint(geo_point);
+    pub fn localTagentSpace(ctx: *anyopaque, geo_point: GeoCoordinates) Mat4 {
+        const world_point = projectPoint(ctx, geo_point);
         const latitude = geo_point.latitude;
         const longitude = geo_point.longitude;
         const cosLongitude = math.cos(longitude);
         const sinLongitude = math.sin(longitude);
         const cosLatitude = math.cos(latitude);
         const sinLatitude = math.sin(latitude);
-        const slice = [16]f64{0};
+        var slice = [1]f64{0} ** 16;
         //x axis
         slice[0] = -sinLongitude;
         slice[1] = cosLongitude;
@@ -97,11 +106,23 @@ pub const SphereProjection = struct {
         slice[11] = 1;
         return Mat4.fromSlice(&slice);
     }
+    pub fn projectionI(self: *Self) lib.Projection {
+        return .{ .ptr = self, .vtable = &.{
+            .worldExtent = worldExtent,
+            .projectPoint = projectPoint,
+            .unprojectPoint = unprojectPoint,
+            .unprojectAltitude = unprojectAltitude,
+            .groundDistance = groundDistance,
+            .scalePointToSurface = scalePointToSurface,
+            .localTagentSpace = localTagentSpace,
+        } };
+    }
 };
-pub const sphereProjection = SphereProjection.new(earth.EQUATORIAL_RADIUS);
+var innerSphereProjection = SphereProjection.new(earth.EQUATORIAL_RADIUS);
+pub const sphereProjection = innerSphereProjection.projectionI();
 test "Geo.SphereProjection.projectAndunproject" {
     const geoPoint = GeoCoordinates.fromDegrees(-122.4410209359072, 37.8178183439856, 12.0);
-    try testing.expectEqual(geoPoint.longitude, -122.4410209359072);
+    try testing.expectEqual(geoPoint.longitude, std.math.degreesToRadians(-122.4410209359072));
     const epsilon = 0.000000001;
     const worldPoint = sphereProjection.projectPoint(geoPoint);
     const geoPoint2 = sphereProjection.unprojectPoint(worldPoint);
