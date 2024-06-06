@@ -15,13 +15,20 @@ pub fn build(b: *std.Build) void {
 
     const zglfw = b.dependency("zglfw", .{});
     const zgpu = b.dependency("zgpu", .{});
+    const zgui = b.dependency("zgui", .{
+        .target = target,
+        .optimize = optimize,
+        .backend = .glfw_wgpu,
+    });
     //导入模块
     const lib_root_module_imports = [_]ModuleImport{
         .{ .module = zglfw.module("root"), .name = "zglfw" },
         .{ .module = zgpu.module("root"), .name = "zgpu" },
+        .{ .module = zgui.module("root"), .name = "zgui" },
     };
     //静态链接库
     const link_libraries = [_]*Build.Step.Compile{
+        zgui.artifact("imgui"),
         zglfw.artifact("glfw"),
         zgpu.artifact("zdawn"),
     };

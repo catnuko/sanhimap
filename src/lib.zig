@@ -19,8 +19,3 @@ pub const String = @import("string.zig").String;
 pub usingnamespace @import("GlobalVariable.zig");
 pub usingnamespace @import("utils.zig");
 pub usingnamespace @import("MapView.zig");
-// const testing = @import("std").testing;
-// test "lib" {
-//     const time = zglfw.getTime();
-//     testing.debug.print("time is {}", time);
-// }
