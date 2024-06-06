@@ -9,14 +9,6 @@ const Vec3 = lib.math.Vec3;
 const TileKeyUtils = lib.TileKeyUtils;
 const SubdivisionScheme = lib.SubdivisionScheme;
 const Projection = lib.Projection;
-pub const mercatorTilingScheme = TilingScheme.new(
-    lib.quadTreeSubdivisionScheme,
-    lib.mercatorProjection,
-);
-pub const webMercatorTilingScheme = TilingScheme.new(
-    lib.quadTreeSubdivisionScheme,
-    lib.webMercatorProjection,
-);
 pub const TilingScheme = struct {
     const This = @This();
     subdivisionScheme: SubdivisionScheme,
@@ -24,7 +16,7 @@ pub const TilingScheme = struct {
     m_world_box: Box3,
     m_world_dimensions: Vec3,
     pub fn new(subdivisionScheme: SubdivisionScheme, projection: Projection) This {
-        const m_world_box = projection.worldExtent(0, 0);
+        const m_world_box = projection.worldExtent(0.0, 0.0);
         const min = m_world_box.min;
         const max = m_world_box.max;
         return .{
@@ -83,7 +75,10 @@ fn subTiles(parent_tile_key: TileKey, size_x: u32, size_y: u32) []TileKey {
     }
     return tile_keys.toOwnedSlice() catch unreachable;
 }
-test "Geo.TilingScheme.subTileKeys" {
+test "TilingScheme" {
+    // try std.testing.expectEqual(webMercatorTilingScheme.getSubTileKeys(TileKey.new(0, 0, 0)).len, 4);
+    // const v = lib.webMercatorProjection.worldExtent(0, 0);
+    // try std.testing.expectEqual(v.min.x(), 0);
     const TestSubdivisionScheme = struct {
         pub fn getSubdivisionX(_: u32) u32 {
             return 1;

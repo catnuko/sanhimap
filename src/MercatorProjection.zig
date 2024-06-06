@@ -106,6 +106,6 @@ pub const MercatorProjection = struct {
         } };
     }
 };
-var innerMercatorProjection = MercatorProjection.new(earth.EQUATORIAL_RADIUS);
-pub var mercatorProjection = innerMercatorProjection.projectionI();
+var t = MercatorProjection.new(earth.EQUATORIAL_RADIUS);
+pub var mercatorProjection = t.projectionI();
 test "Geo.MercatorProjection" {}

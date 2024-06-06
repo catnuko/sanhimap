@@ -120,7 +120,7 @@ pub const SphereProjection = struct {
 };
 var innerSphereProjection = SphereProjection.new(earth.EQUATORIAL_RADIUS);
 pub const sphereProjection = innerSphereProjection.projectionI();
-test "Geo.SphereProjection.projectAndunproject" {
+test "SphereProjection.projectAndunproject" {
     const geoPoint = GeoCoordinates.fromDegrees(-122.4410209359072, 37.8178183439856, 12.0);
     try testing.expectEqual(geoPoint.longitude, std.math.degreesToRadians(-122.4410209359072));
     const epsilon = 0.000000001;
@@ -131,14 +131,14 @@ test "Geo.SphereProjection.projectAndunproject" {
     try testing.expectApproxEqAbs(geoPoint.altitude.?, geoPoint2.altitude.?, epsilon);
 }
 
-test "Geo.SphereProjection.groundDistance" {
+test "SphereProjection.groundDistance" {
     const geoPoint = GeoCoordinates.fromDegrees(-122.4410209359072, 37.8178183439856, 12.0);
     const epsilon = 0.000000001;
     const worldPoint = sphereProjection.projectPoint(geoPoint);
     try testing.expectApproxEqAbs(sphereProjection.groundDistance(worldPoint), 12, epsilon);
 }
 
-test "Geo.SphereProjection.scalePointToSurface" {
+test "SphereProjection.scalePointToSurface" {
     const geoPoint = GeoCoordinates.fromDegrees(-122.4410209359072, 37.8178183439856, 12.0);
     const epsilon = 0.000000001;
     const worldPoint = sphereProjection.projectPoint(geoPoint);
@@ -146,7 +146,7 @@ test "Geo.SphereProjection.scalePointToSurface" {
     try testing.expectApproxEqAbs(sphereProjection.groundDistance(worldPoint2), 0, epsilon);
 }
 
-test "Geo.SphereProjection.vectorCopy" {
+test "SphereProjection.vectorCopy" {
     const ele_4 = @Vector(4, i32);
 
     // 向量必须拥有编译期已知的长度和类型
@@ -155,4 +155,9 @@ test "Geo.SphereProjection.vectorCopy" {
     d[0] = 10;
     try testing.expectEqual(d[0], 10);
     try testing.expectEqual(a[0], 1);
+}
+
+test "SphereProjection.worldExtent" {
+    const v = sphereProjection.worldExtent(0, 0);
+    try testing.expectEqual(v.min.x(), -earth.EQUATORIAL_RADIUS);
 }

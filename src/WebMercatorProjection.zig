@@ -23,7 +23,7 @@ pub const WebMercatorProjection = struct {
         max_elevation: f64,
     ) Box3 {
         const self: *Self = @ptrCast(@alignCast(ctx));
-        Box3.new(Vec3.new(
+        return Box3.new(Vec3.new(
             0,
             0,
             min_elevation,
@@ -36,18 +36,18 @@ pub const WebMercatorProjection = struct {
     pub fn projectPoint(ctx: *anyopaque, geopoint: GeoCoordinates) Vec3 {
         const self: *Self = @ptrCast(@alignCast(ctx));
         const x = geopoint.longitude * self.unit_scale;
-        const sy = math.sin(latitudeClamp(geopoint.latitudeInRadians()));
-        const y = (0.5 - math.log((1 + sy) / (1 - sy)) / (4 * math.pi)) * self.unit_scale;
+        const sy = math.sin(latitudeClamp(ctx, geopoint.latitude));
+        const y = (0.5 - math.log(f64, math.e, (1 + sy) / (1 - sy)) / (4 * math.pi)) * self.unit_scale;
         const z = geopoint.altitude orelse 0;
         return Vec3.new(x, y, z);
     }
     pub fn unprojectPoint(ctx: *anyopaque, worldpoint: Vec3) GeoCoordinates {
         const self: *Self = @ptrCast(@alignCast(ctx));
-        const x = worldpoint.x / self.unit_scale - 0.5;
-        const y = 0.5 - worldpoint.y / self.unit_scale;
+        const x = worldpoint.x() / self.unit_scale - 0.5;
+        const y = 0.5 - worldpoint.y() / self.unit_scale;
         const longitude = math.tow_pi * x;
         const latitude = math.pi_over_two - (std.math.tau * math.atan(math.exp(-y * 2 * math.pi))) / math.pi;
-        return GeoCoordinates.fromDegrees(latitude, longitude, worldpoint.z);
+        return GeoCoordinates.fromRadians(latitude, longitude, worldpoint.z());
     }
     pub fn surfaceNormal() Vec3 {
         return Vec3.new(0.0, 0.0, 1.0);
@@ -72,5 +72,6 @@ pub const WebMercatorProjection = struct {
         } };
     }
 };
-pub const webMercatorProjection = WebMercatorProjection.new(earth.EQUATORIAL_RADIUS).projectionI();
-test "Geo.WebMercatorProjection" {}
+var t = WebMercatorProjection.new(lib.earth.EQUATORIAL_RADIUS);
+pub const webMercatorProjection = t.projectionI();
+test "WebMercatorProjection" {}

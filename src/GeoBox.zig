@@ -8,12 +8,12 @@ pub const GeoBox = struct {
     southWest: GeoCoordinates,
     northEast: GeoCoordinates,
     pub fn new(
-        southWest: GeoCoordinates,
-        northEast: GeoCoordinates,
+        southWestP: GeoCoordinates,
+        northEastP: GeoCoordinates,
     ) GeoBox {
         var news = GeoBox{
-            .southWest = southWest,
-            .northEast = northEast,
+            .southWest = southWestP,
+            .northEast = northEastP,
         };
         if (news.west() > news.east()) {
             news.northEast.longitude += std.math.tau;
@@ -22,11 +22,11 @@ pub const GeoBox = struct {
     }
     pub fn fromCenterAndExtents(center_v: GeoCoordinates, extents: GeoBox) GeoBox {
         return GeoBox.new(
-            GeoCoordinates.fromDegrees(
+            GeoCoordinates.fromRadians(
                 center_v.longitude - extents.longitudeSpan() / 2,
                 center_v.latitude - extents.latitudeSpan() / 2,
             ),
-            GeoCoordinates.fromDegrees(
+            GeoCoordinates.fromRadians(
                 center_v.longitude + extents.longitudeSpan() / 2,
                 center_v.latitude + extents.latitudeSpan() / 2,
             ),
@@ -55,6 +55,24 @@ pub const GeoBox = struct {
     }
     pub inline fn east(self: GeoBox) f64 {
         return self.northEast.longitude;
+    }
+    pub inline fn southWest(self: GeoBox) GeoCoordinates {
+        return self.southWest;
+    }
+    pub inline fn southEast(self: GeoBox) GeoCoordinates {
+        return GeoCoordinates.new(
+            self.east(),
+            self.south(),
+        );
+    }
+    pub inline fn northWest(self: GeoBox) GeoCoordinates {
+        return GeoCoordinates.new(
+            self.west(),
+            self.north(),
+        );
+    }
+    pub inline fn northEast(self: GeoBox) GeoCoordinates {
+        return self.northEast;
     }
     fn getAltitudeHelper(self: GeoBox) ?f64 {
         const min_altitude_v = self.minAltitude();
@@ -175,7 +193,6 @@ pub const GeoBox = struct {
         };
     }
 };
-
 const GEOCOORDS_EPSILON = 0.000001;
 test "Geo.GeoBox.center" {
     const t = std.math.degreesToRadians;

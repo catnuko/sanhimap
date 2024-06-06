@@ -1,13 +1,17 @@
 const lib = @import("lib.zig");
-const Tile = @This();
 const TileKey = lib.TileKey;
 const GeoBox = lib.GeoBox;
 
-geoBox: GeoBox,
-tileKey: TileKey,
-
-pub fn new(tileKey: TileKey) Tile {
-    return .{
-        .tileKey = tileKey,
-    };
-}
+pub const Tile = struct {
+    const Self = @This();
+    geoBox: GeoBox,
+    tileKey: TileKey,
+    dataSource: *lib.DataSource,
+    forceHasGeometry: bool = false,
+    pub fn new(dataSource: *lib.DataSource, tileKey: TileKey) Tile {
+        return .{
+            .tileKey = tileKey,
+            .dataSource = dataSource,
+        };
+    }
+};
