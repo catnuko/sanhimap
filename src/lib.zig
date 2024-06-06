@@ -18,3 +18,4 @@ pub const BackgroundDataSource = @import("BackgroundDataSource.zig");
 pub const String = @import("string.zig").String;
 pub usingnamespace @import("GlobalVariable.zig");
 pub usingnamespace @import("utils.zig");
+pub const aglfw = @import("zglfw");

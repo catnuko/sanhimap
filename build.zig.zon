@@ -1,7 +1,12 @@
 .{
     .name = "geo",
     .version = "0.0.0",
-    .dependencies = .{},
+    .dependencies = .{
+        .system_sdk = .{
+            .path = "3rdparty/system-sdk",
+        },
+        .zglfw = .{ .path = "third/zglfw" },
+    },
     .paths = .{
         "",
     },
