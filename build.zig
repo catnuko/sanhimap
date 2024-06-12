@@ -20,11 +20,13 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .backend = .glfw_wgpu,
     });
+    const uuid = b.dependency("uuid", .{});
     //导入模块
     const lib_root_module_imports = [_]ModuleImport{
         .{ .module = zglfw.module("root"), .name = "zglfw" },
         .{ .module = zgpu.module("root"), .name = "zgpu" },
         .{ .module = zgui.module("root"), .name = "zgui" },
+        .{ .module = uuid.module("uuid"), .name = "uuid" },
     };
     //静态链接库
     const link_libraries = [_]*Build.Step.Compile{

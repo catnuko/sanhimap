@@ -4,15 +4,14 @@ const zglfw = @import("zglfw");
 const zgpu = @import("zgpu");
 const wgpu = zgpu.wgpu;
 const zgui = @import("zgui");
+const lib = @import("lib.zig");
 pub const MapView = struct {
     const Self = @This();
     window: *zglfw.Window,
     allocator: std.mem.Allocator,
     gctx: *zgpu.GraphicsContext,
     pub fn init(allocator: std.mem.Allocator) !Self {
-        //init window
         try zglfw.init();
-
         zglfw.windowHintTyped(.client_api, .no_api);
         const window = try zglfw.Window.create(1600, 1000, "MapView", null);
         window.setSizeLimits(400, 400, -1, -1);
@@ -68,13 +67,7 @@ pub const MapView = struct {
             gctx.swapchain_descriptor.width,
             gctx.swapchain_descriptor.height,
         );
-        const draw_list = zgui.getBackgroundDrawList();
-        draw_list.addText(
-            .{ 10, 10 },
-            0xff_ff_ff_ff,
-            "{d:.3} ms/frame ({d:.1} fps)",
-            .{ gctx.stats.average_cpu_time, gctx.stats.fps },
-        );
+        lib.ui.drawFPS(self.gctx);
 
         const swapchain_texv = gctx.swapchain.getCurrentTextureView();
         defer swapchain_texv.release();
@@ -87,7 +80,6 @@ pub const MapView = struct {
                 defer zgpu.endReleasePass(pass);
                 zgui.backend.draw(pass);
             }
-
             break :commands encoder.finish(null);
         };
         defer commands.release();
