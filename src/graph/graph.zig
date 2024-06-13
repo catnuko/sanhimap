@@ -64,9 +64,6 @@ pub const RenderGraph = struct {
     pub fn setInput(self: *Self, inputs: SlotInfoArrayList) void {
         self.addNode(GraphInputNode{ .inputs = inputs });
     }
-    pub fn getInput(self: Self) ?Node {
-        return self.inputNode;
-    }
     pub fn addNode(self: *Self, node: Node) void {
         // var nodeMut = node;
         // nodeMut.name = name;
@@ -94,7 +91,7 @@ pub const RenderGraph = struct {
         for (0..edges.len - 1) |i| {
             const input = edges[i];
             const output = edges[i + 1];
-            self.addNodeEdge(input, output);
+            self.addNodeEdge(input, output) catch unreachable;
         }
     }
     pub fn removeNodeEdge(self: *Self, inputId: StaticStr, outputId: StaticStr) void {
@@ -192,6 +189,7 @@ pub const RenderGraph = struct {
         edgePtr: *Edge,
         nodePtr: *Node,
     };
+    // find all output nodes of a node
     pub fn iterNodeOutputs(self: *Self, name: StaticStr) RenderGraphError!std.ArrayList(Entry) {
         const node = try self.getNode(name);
         const outputEdges = node.edges.outputEdges.arrayList;
@@ -205,6 +203,7 @@ pub const RenderGraph = struct {
         }
         return resultList;
     }
+    // find all input nodes of a node
     pub fn iterNodeInputs(self: *Self, name: StaticStr) RenderGraphError!std.ArrayList(Entry) {
         const node = try self.getNode(name);
         const inputEdges = node.edges.inputEdges.arrayList;
@@ -422,6 +421,48 @@ test "graph.slotAlreadyOccupied" {
     try std.testing.expect(RenderGraphError.NodeInputSlotAlreadyOccupied == result);
 }
 
+test "graph.edgeAlreadyExists" {
+    const allocator = std.testing.allocator;
+    var graphv = RenderGraph.init(allocator);
+    defer graphv.deinit();
+    var n0 = TestNode.init(allocator);
+    const A = n0.nodeI("A");
+    graphv.addNode(A);
+
+    var n1 = TestNode.init(allocator);
+    const B = n1.nodeI("B");
+    graphv.addNode(B);
+
+    var n2 = TestNode.init(allocator);
+    const C = n2.nodeI("C");
+    graphv.addNode(C);
+
+    var edges = [_][]const u8{ "A", "B", "C" };
+    try graphv.addNodeEdges(&edges);
+
+    {
+        const list = try output_nodes(std.testing.allocator, &graphv, "A");
+        defer list.deinit();
+        try std.testing.expect(std.mem.eql(u8, list.items[0].name, "B"));
+    }
+    {
+        const list = try input_nodes(std.testing.allocator, &graphv, "B");
+        defer list.deinit();
+        try std.testing.expect(std.mem.eql(u8, list.items[0].name, "A"));
+    }
+    {
+        const list = try output_nodes(std.testing.allocator, &graphv, "B");
+        defer list.deinit();
+        try std.testing.expect(std.mem.eql(u8, list.items[0].name, "C"));
+    }
+    {
+        const list = try input_nodes(std.testing.allocator, &graphv, "C");
+        defer list.deinit();
+        try std.testing.expect(std.mem.eql(u8, list.items[0].name, "B"));
+    }
+}
+
+test "graph.addNodeEdge" {}
 const T = struct { name: []const u8 };
 test "std.mem.eql" {
     var t = T{ .name = "hello" };

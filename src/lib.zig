@@ -22,4 +22,4 @@ pub usingnamespace @import("MapView.zig");
 pub const ui = @import("ui/index.zig");
 pub usingnamespace @import("Camera.zig");
 pub const graph = @import("graph/index.zig");
-pub const render = @import("render/index.zig");
+// pub const render = @import("render/index.zig");

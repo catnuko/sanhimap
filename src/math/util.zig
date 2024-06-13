@@ -1,27 +1,65 @@
 const std = @import("std");
+const expectEqual = std.testing.expectEqual;
 const math = std.math;
-const expect = @import("std").testing.expect;
-pub const F64x2 = @Vector(2, f64);
-pub const F64x3 = @Vector(3, f64);
-pub const F64x4 = @Vector(4, f64);
-pub const F32x2 = @Vector(2, f32);
-pub const F32x3 = @Vector(3, f32);
-pub const F32x4 = @Vector(4, f32);
-pub fn approxEqAbs(v0: anytype, v1: anytype, eps: f32) bool {
-    const T = @TypeOf(v0, v1);
-    comptime var i: comptime_int = 0;
-    inline while (i < veclen(T)) : (i += 1) {
-        if (!math.approxEqAbs(f32, v0[i], v1[i], eps)) {
-            return false;
-        }
+
+/// Convert degrees to radians.
+pub fn toRadians(degrees: anytype) @TypeOf(degrees) {
+    const T = @TypeOf(degrees);
+
+    if (@typeInfo(T) != .Float) {
+        @compileError("Radians not implemented for " ++ @typeName(T));
     }
-    return true;
+
+    return degrees * (math.pi / 180.0);
 }
 
-pub inline fn splat(comptime T: type, value: f32) T {
-    return @splat(value);
+/// Convert radians to degrees.
+pub fn toDegrees(radians: anytype) @TypeOf(radians) {
+    const T = @TypeOf(radians);
+
+    if (@typeInfo(T) != .Float) {
+        @compileError("Radians not implemented for " ++ @typeName(T));
+    }
+
+    return radians * (180.0 / math.pi);
 }
 
-pub inline fn veclen(comptime T: type) comptime_int {
-    return @typeInfo(T).Vector.len;
+/// Linear interpolation between two floats.
+/// `t` is used to interpolate between `from` and `to`.
+pub fn lerp(comptime T: type, from: T, to: T, t: T) T {
+    if (@typeInfo(T) != .Float) {
+        @compileError("Lerp not implemented for " ++ @typeName(T));
+    }
+
+    return (1 - t) * from + t * to;
+}
+
+test "zalgebra.toRadians" {
+    try expectEqual(toRadians(@as(f32, 0)), 0);
+    try expectEqual(toRadians(@as(f32, 30)), 0.523598790);
+    try expectEqual(toRadians(@as(f32, 45)), 0.78539818);
+    try expectEqual(toRadians(@as(f32, 60)), 1.04719758);
+    try expectEqual(toRadians(@as(f32, 90)), 1.57079637); //math.pi / 2
+    try expectEqual(toRadians(@as(f32, 180)), 3.14159274); //math.pi
+    try expectEqual(toRadians(@as(f32, 270)), 4.71238899);
+    try expectEqual(toRadians(@as(f32, 360)), 6.28318548); //math.pi * 2
+}
+
+test "zalgebra.toDegrees" {
+    try expectEqual(toDegrees(@as(f32, 0)), 0);
+    try expectEqual(toDegrees(@as(f32, 0.5)), 28.6478900);
+    try expectEqual(toDegrees(@as(f32, 1)), 57.2957801);
+    try expectEqual(toDegrees(@as(f32, 1.57079637)), 90); //math.pi / 2
+    try expectEqual(toDegrees(@as(f32, 3.14159274)), 180); //math.pi
+    try expectEqual(toDegrees(@as(f32, 4.71238899)), 270);
+    try expectEqual(toDegrees(@as(f32, 6.28318548)), 360); //math.pi * 2
+}
+
+test "zalgebra.lerp" {
+    const from: f32 = 0;
+    const to: f32 = 10;
+
+    try expectEqual(lerp(f32, from, to, 0), 0);
+    try expectEqual(lerp(f32, from, to, 0.5), 5);
+    try expectEqual(lerp(f32, from, to, 1), 10);
 }

@@ -13,16 +13,19 @@ const Box3 = lib.Box3;
 pub const MAXIMUM_LATITUDE: f64 = 1.4844222297453323;
 pub const WebMercatorProjection = struct {
     unit_scale: f64,
+    mercatorProjection: MercatorProjection,
     const Self = @This();
     pub fn new(unit_scale: f64) WebMercatorProjection {
-        return .{ .unit_scale = unit_scale };
+        return .{
+            .unit_scale = unit_scale,
+            .mercatorProjection = MercatorProjection.new(unit_scale),
+        };
     }
     pub fn worldExtent(
-        ctx: *anyopaque,
+        self: *Self,
         min_elevation: f64,
         max_elevation: f64,
     ) Box3 {
-        const self: *Self = @ptrCast(@alignCast(ctx));
         return Box3.new(Vec3.new(
             0,
             0,
@@ -33,16 +36,14 @@ pub const WebMercatorProjection = struct {
             max_elevation,
         ));
     }
-    pub fn projectPoint(ctx: *anyopaque, geopoint: GeoCoordinates) Vec3 {
-        const self: *Self = @ptrCast(@alignCast(ctx));
+    pub fn projectPoint(self: *Self, geopoint: GeoCoordinates) Vec3 {
         const x = geopoint.longitude * self.unit_scale;
-        const sy = math.sin(latitudeClamp(ctx, geopoint.latitude));
+        const sy = math.sin(self.latitudeClamp(geopoint.latitude));
         const y = (0.5 - math.log(f64, math.e, (1 + sy) / (1 - sy)) / (4 * math.pi)) * self.unit_scale;
         const z = geopoint.altitude orelse 0;
         return Vec3.new(x, y, z);
     }
-    pub fn unprojectPoint(ctx: *anyopaque, worldpoint: Vec3) GeoCoordinates {
-        const self: *Self = @ptrCast(@alignCast(ctx));
+    pub fn unprojectPoint(self: *Self, worldpoint: Vec3) GeoCoordinates {
         const x = worldpoint.x() / self.unit_scale - 0.5;
         const y = 0.5 - worldpoint.y() / self.unit_scale;
         const longitude = math.tow_pi * x;
@@ -52,24 +53,32 @@ pub const WebMercatorProjection = struct {
     pub fn surfaceNormal() Vec3 {
         return Vec3.new(0.0, 0.0, 1.0);
     }
-    pub const latitudeClamp = MercatorProjection.latitudeClamp;
-    pub const latitudeProject = MercatorProjection.latitudeProject;
-    pub const unprojectLatitude = MercatorProjection.unprojectLatitude;
-    pub const latitudeClampProject = MercatorProjection.latitudeClampProject;
-    pub const unprojectAltitude = MercatorProjection.unprojectAltitude;
-    pub const groundDistance = MercatorProjection.groundDistance;
-    pub const scalePointToSurface = MercatorProjection.scalePointToSurface;
-    pub const localTagentSpace = MercatorProjection.localTagentSpace;
+    pub inline fn latitudeClamp(self: *Self, latitude: f64) f64 {
+        return self.mercatorProjection.latitudeClamp(latitude);
+    }
+    pub inline fn latitudeProject(self: *Self, latitude: f64) f64 {
+        return self.mercatorProjection.latitudeProject(latitude);
+    }
+    pub inline fn unprojectLatitude(self: *Self, y: f64) f64 {
+        return self.mercatorProjection.unprojectLatitude(y);
+    }
+    pub inline fn latitudeClampProject(self: *Self, latitude: f64) f64 {
+        return self.mercatorProjection.latitudeClampProject(latitude);
+    }
+    pub inline fn unprojectAltitude(self: *Self, worldpoint: Vec3) f64 {
+        return self.mercatorProjection.unprojectAltitude(worldpoint);
+    }
+    pub inline fn groundDistance(self: *Self, worldpoint: Vec3) f64 {
+        return self.mercatorProjection.groundDistance(worldpoint);
+    }
+    pub inline fn scalePointToSurface(self: *Self, worldpoint: Vec3) Vec3 {
+        return self.mercatorProjection.scalePointToSurface(worldpoint);
+    }
+    pub fn localTagentSpace(self: *Self, geoPoint: GeoCoordinates) lib.math.Mat4 {
+        return self.mercatorProjection.localTagentSpace(geoPoint);
+    }
     pub fn projectionI(self: *Self) lib.Projection {
-        return .{ .ptr = self, .vtable = &.{
-            .worldExtent = worldExtent,
-            .projectPoint = projectPoint,
-            .unprojectPoint = unprojectPoint,
-            .unprojectAltitude = unprojectAltitude,
-            .groundDistance = groundDistance,
-            .scalePointToSurface = scalePointToSurface,
-            .localTagentSpace = localTagentSpace,
-        } };
+        return lib.Projection.init(self);
     }
 };
 var t = WebMercatorProjection.new(lib.earth.EQUATORIAL_RADIUS);

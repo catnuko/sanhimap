@@ -2,6 +2,20 @@ const std = @import("std");
 const ArrayList = std.ArrayList;
 const graph = @import("index.zig");
 const StaticStr = graph.StaticStr;
+pub const SlotValue = union(enum) {
+    Buffer,
+    TextureView,
+    Sampler,
+    Entity,
+    pub fn slotType(self: SlotValue) SlotType {
+        switch (self) {
+            SlotValue.Buffer => SlotType.Buffer,
+            SlotValue.TextureView => SlotType.TextureView,
+            SlotValue.Sampler => SlotType.Sampler,
+            SlotValue.Entity => SlotType.Entity,
+        }
+    }
+};
 pub const SlotType = enum {
     /// A GPU-accessible [`Buffer`].
     Buffer,

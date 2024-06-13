@@ -56,29 +56,28 @@ pub const TilingScheme = struct {
 fn subTiles(parent_tile_key: TileKey, size_x: u32, size_y: u32) []TileKey {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    var tile_keys = ArrayList(TileKey).init(allocator);
     if (size_x == 2 and size_y == 2) {
+        var tile_keys = ArrayList(TileKey).initCapacity(allocator, 4) catch unreachable;
         for (0..4) |ii| {
             const i: u32 = @intCast(ii);
             const tile_key = TileKey.new((parent_tile_key.row << 1) | (i >> 1), (parent_tile_key.column << 1) | (i & 1), parent_tile_key.level + 1);
-            tile_keys.append(tile_key) catch unreachable;
+            tile_keys.appendAssumeCapacity(tile_key) catch unreachable;
         }
+        return tile_keys.toOwnedSlice() catch unreachable;
     } else {
+        var tile_keys = ArrayList(TileKey).initCapacity(allocator, size_y) catch unreachable;
         for (0..size_y) |yy| {
             for (0..size_x) |xx| {
                 const y: u32 = @intCast(yy);
                 const x: u32 = @intCast(xx);
                 const tile_key = TileKey.new(parent_tile_key.row * size_x + y, parent_tile_key.column * size_y + x, parent_tile_key.level + 1);
-                tile_keys.append(tile_key) catch unreachable;
+                tile_keys.appendAssumeCapacity(tile_key) catch unreachable;
             }
         }
+        return tile_keys.toOwnedSlice() catch unreachable;
     }
-    return tile_keys.toOwnedSlice() catch unreachable;
 }
 test "TilingScheme" {
-    // try std.testing.expectEqual(webMercatorTilingScheme.getSubTileKeys(TileKey.new(0, 0, 0)).len, 4);
-    // const v = lib.webMercatorProjection.worldExtent(0, 0);
-    // try std.testing.expectEqual(v.min.x(), 0);
     const TestSubdivisionScheme = struct {
         pub fn getSubdivisionX(_: u32) u32 {
             return 1;

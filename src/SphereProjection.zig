@@ -25,28 +25,27 @@ pub const SphereProjection = struct {
         return .{ .unit_scale = unit_scale };
     }
     pub fn worldExtent(
-        ctx: *anyopaque,
+        self: *SphereProjection,
         _: f64,
         max_elevation: f64,
     ) Box3 {
-        const self: *Self = @ptrCast(@alignCast(ctx));
         const radius = self.unit_scale + max_elevation;
-        return Box3.new(Vec3.new(
+        const min = Vec3.new(
             -radius,
             -radius,
             -radius,
-        ), Vec3.new(
+        );
+        const max = Vec3.new(
             radius,
             radius,
             radius,
-        ));
+        );
+        return Box3.new(min, max);
     }
-    pub fn projectPoint(ctx: *anyopaque, geopoint: GeoCoordinates) Vec3 {
-        const self: *Self = @ptrCast(@alignCast(ctx));
+    pub fn projectPoint(self: *SphereProjection, geopoint: GeoCoordinates) Vec3 {
         return project(geopoint, self.unit_scale);
     }
-    pub fn unprojectPoint(ctx: *anyopaque, worldpoint: Vec3) GeoCoordinates {
-        const self: *Self = @ptrCast(@alignCast(ctx));
+    pub fn unprojectPoint(self: *SphereProjection, worldpoint: Vec3) GeoCoordinates {
         const parallelRadiusSq = worldpoint.x() * worldpoint.x() + worldpoint.y() * worldpoint.y();
         const parallelRadius = math.sqrt(parallelRadiusSq);
         const v = worldpoint.z() / parallelRadius;
@@ -57,17 +56,14 @@ pub const SphereProjection = struct {
         const radius = math.sqrt(parallelRadiusSq + worldpoint.z() * worldpoint.z());
         return GeoCoordinates.new(math.atan2(worldpoint.y(), worldpoint.x()), math.atan(v), radius - self.unit_scale);
     }
-    pub fn unprojectAltitude(ctx: *anyopaque, worldpoint: Vec3) f64 {
-        const self: *Self = @ptrCast(@alignCast(ctx));
+    pub fn unprojectAltitude(self: *SphereProjection, worldpoint: Vec3) f64 {
         _ = self;
         return worldpoint.length() - earth.EQUATORIAL_RADIUS;
     }
-    pub fn groundDistance(ctx: *anyopaque, worldpoint: Vec3) f64 {
-        const self: *Self = @ptrCast(@alignCast(ctx));
+    pub fn groundDistance(self: *SphereProjection, worldpoint: Vec3) f64 {
         return worldpoint.length() - self.unit_scale;
     }
-    pub fn scalePointToSurface(ctx: *anyopaque, worldpoint: Vec3) Vec3 {
-        const self: *Self = @ptrCast(@alignCast(ctx));
+    pub fn scalePointToSurface(self: *SphereProjection, worldpoint: Vec3) Vec3 {
         var length = worldpoint.length();
         if (length == 0) {
             length = 1.0;
@@ -75,8 +71,8 @@ pub const SphereProjection = struct {
         const scale = self.unit_scale / length;
         return worldpoint.scale(scale);
     }
-    pub fn localTagentSpace(ctx: *anyopaque, geo_point: GeoCoordinates) Mat4 {
-        const world_point = projectPoint(ctx, geo_point);
+    pub fn localTagentSpace(self: *SphereProjection, geo_point: GeoCoordinates) Mat4 {
+        const world_point = self.projectPoint(geo_point);
         const latitude = geo_point.latitude;
         const longitude = geo_point.longitude;
         const cosLongitude = math.cos(longitude);
@@ -107,15 +103,7 @@ pub const SphereProjection = struct {
         return Mat4.fromSlice(&slice);
     }
     pub fn projectionI(self: *Self) lib.Projection {
-        return .{ .ptr = self, .vtable = &.{
-            .worldExtent = worldExtent,
-            .projectPoint = projectPoint,
-            .unprojectPoint = unprojectPoint,
-            .unprojectAltitude = unprojectAltitude,
-            .groundDistance = groundDistance,
-            .scalePointToSurface = scalePointToSurface,
-            .localTagentSpace = localTagentSpace,
-        } };
+        return lib.Projection.init(self);
     }
 };
 var innerSphereProjection = SphereProjection.new(earth.EQUATORIAL_RADIUS);
