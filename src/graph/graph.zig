@@ -9,6 +9,7 @@ const NodeEdge = graph.NodeEdge;
 const SlotInfo = graph.SlotInfo;
 const SlotType = graph.SlotType;
 const StaticStr = graph.StaticStr;
+const EdgeExistence = graph.EdgeExistence;
 const StringArrayHashMap = std.StringArrayHashMap;
 pub const Context = struct {};
 pub const RenderGraphError = error{
@@ -78,13 +79,14 @@ pub const RenderGraph = struct {
             return RenderGraphError.InvalidNode;
         }
     }
-    pub fn addNodeEdge(self: *Self, inputId: StaticStr, outputId: StaticStr) RenderGraphError!void {
+    pub fn addNodeEdge(self: *Self, outputId: StaticStr, inputId: StaticStr) RenderGraphError!void {
         const inputNode = try self.getNode(inputId);
         const outputNode = try self.getNode(outputId);
-        const edge = Edge{ .NodeEdge = NodeEdge{
+        var edge = Edge{ .NodeEdge = NodeEdge{
             .inputNode = inputNode,
             .outputNode = outputNode,
         } };
+        try self.validateEdge(&edge, EdgeExistence.DoesNotExist);
         try outputNode.edges.addOutputEdge(edge);
         try inputNode.edges.addInputEdge(edge);
     }
@@ -95,52 +97,83 @@ pub const RenderGraph = struct {
             self.addNodeEdge(input, output);
         }
     }
-    pub fn removeNde(self: *Self, name: StaticStr) bool {
-        return self.nodes.remove(name);
-    }
-    pub fn addSlotEdge(self: *Self, outputNodeId: StaticStr, outputSlot: StaticStr, inputNodeId: StaticStr, inputSlot: StaticStr) RenderGraphError!void {
-        var inputNode = try self.getNode(inputNodeId);
-        var outputNode = try self.getNode(outputNodeId);
-        const outputSlotIndex = try inputNode.findInputSlotIndex(outputSlot);
-        const inputSlotIndex = try outputNode.findOutputSlotIndex(inputSlot);
-        const edge = Edge{ .SlotEdge = SlotEdge{
-            .inputNode = inputNode,
-            .outputNode = outputNode,
-            .inputIndex = inputSlotIndex,
-            .outputIndex = outputSlotIndex,
-        } };
-        try outputNode.edges.addOutputEdge(edge);
-        try inputNode.edges.addInputEdge(edge);
-    }
-    pub fn removeSlotEdge(self: *Self, outputNodeId: StaticStr, outputSlot: StaticStr, inputNodeId: StaticStr, inputSlot: StaticStr) void {
-        var inputNode = try self.getNode(inputNodeId);
-        var outputNode = try self.getNode(outputNodeId);
-        const outputSlotIndex = try inputNode.findInputSlotIndex(outputSlot);
-        const inputSlotIndex = try outputNode.findOutputSlotIndex(inputSlot);
-        var edge = Edge{ .SlotEdge = SlotEdge{
-            .inputNode = inputNode,
-            .outputNode = outputNode,
-            .inputIndex = inputSlotIndex,
-            .outputIndex = outputSlotIndex,
-        } };
-        try outputNode.edges.removeOutputEdge(&edge);
-        try inputNode.edges.removeInputEdge(&edge);
-    }
     pub fn removeNodeEdge(self: *Self, inputId: StaticStr, outputId: StaticStr) void {
         const inputNode = self.getNode(inputId).?;
         const outputNode = self.getNode(outputId).?;
-        const edge = Edge{ .NodeEdge = NodeEdge{
+        var edge = Edge{ .NodeEdge = NodeEdge{
             .inputNode = inputNode,
             .outputNode = outputNode,
         } };
+        try self.validateEdge(&edge, EdgeExistence.Exists);
         outputNode.edges.removeOutputEdge(&edge);
         inputNode.edges.removeInputEdge(&edge);
     }
+    pub fn removeNde(self: *Self, name: StaticStr) bool {
+        return self.nodes.remove(name);
+    }
+    pub fn addSlotEdge(self: *Self, outputNodeId: StaticStr, outputSlotName: StaticStr, inputNodeId: StaticStr, inputSlotName: StaticStr) RenderGraphError!void {
+        var inputNode = try self.getNode(inputNodeId);
+        var outputNode = try self.getNode(outputNodeId);
+        const outputSlot = try outputNode.findOutputSlotByName(outputSlotName);
+        const inputSlot = try inputNode.findInputSlotByName(inputSlotName);
+        var edge = Edge{ .SlotEdge = SlotEdge{
+            .inputNode = inputNode,
+            .outputNode = outputNode,
+            .inputSlot = inputSlot,
+            .outputSlot = outputSlot,
+        } };
+        try self.validateEdge(&edge, EdgeExistence.DoesNotExist);
+        try outputNode.edges.addOutputEdge(edge);
+        try inputNode.edges.addInputEdge(edge);
+    }
+    pub fn removeSlotEdge(self: *Self, outputNodeId: StaticStr, outputSlotName: StaticStr, inputNodeId: StaticStr, inputSlotName: StaticStr) void {
+        var inputNode = try self.getNode(inputNodeId);
+        var outputNode = try self.getNode(outputNodeId);
+        const outputSlot = try outputNode.findOutputSlotByName(outputSlotName);
+        const inputSlot = try inputNode.findInputSlotByName(inputSlotName);
+        var edge = Edge{ .SlotEdge = SlotEdge{
+            .inputNode = inputNode,
+            .outputNode = outputNode,
+            .inputSlot = inputSlot,
+            .outputSlot = outputSlot,
+        } };
+        try self.validateEdge(&edge, EdgeExistence.Exists);
+        try outputNode.edges.removeOutputEdge(&edge);
+        try inputNode.edges.removeInputEdge(&edge);
+    }
+    pub fn validateEdge(self: *Self, edge: *Edge, shouldEixst: EdgeExistence) RenderGraphError!void {
+        if (shouldEixst == EdgeExistence.Exists and !self.hasEdge(edge)) {
+            return RenderGraphError.EdgeDoesNotExist;
+        } else if (shouldEixst == EdgeExistence.DoesNotExist and self.hasEdge(edge)) {
+            return RenderGraphError.EdgeAlreadyExists;
+        }
+        switch (edge.*) {
+            Edge.SlotEdge => |*edgeV| {
+                const inputNode = edgeV.inputNode;
+                for (inputNode.edges.inputEdges.arrayList.items) |v| {
+                    switch (v) {
+                        Edge.SlotEdge => |vv| {
+                            if (edgeV.inputSlot == vv.inputSlot and shouldEixst == EdgeExistence.DoesNotExist) {
+                                return RenderGraphError.NodeInputSlotAlreadyOccupied;
+                            }
+                        },
+                        else => {},
+                    }
+                }
+                if (edgeV.outputSlot.slotType != edgeV.inputSlot.slotType) {
+                    return RenderGraphError.MismatchedNodeSlots;
+                }
+            },
+            Edge.NodeEdge => {},
+        }
+    }
+
     pub fn hasEdge(self: Self, edge: *Edge) bool {
         _ = self;
         const outputNode = edge.getOutputNode();
         const inputNode = edge.getInputNode();
-        return outputNode.edges.outputEdges.has(edge) and inputNode.edges.inputEdges.has(edge);
+        const res = outputNode.edges.outputEdges.has(edge) and inputNode.edges.inputEdges.has(edge);
+        return res;
     }
     pub fn addSubGraph(self: *Self, name: StaticStr, subGraph: RenderGraph) !void {
         return self.subGraphs.put(name, subGraph);
@@ -154,6 +187,36 @@ pub const RenderGraph = struct {
 
     pub fn getSubGraphPtr(self: *Self, name: StaticStr) ?*RenderGraph {
         return self.subGraphs.getPtr(name);
+    }
+    pub const Entry = struct {
+        edgePtr: *Edge,
+        nodePtr: *Node,
+    };
+    pub fn iterNodeOutputs(self: *Self, name: StaticStr) RenderGraphError!std.ArrayList(Entry) {
+        const node = try self.getNode(name);
+        const outputEdges = node.edges.outputEdges.arrayList;
+        var resultList = std.ArrayList(Entry).initCapacity(self.allocator, outputEdges.items.len) catch unreachable;
+        for (outputEdges.items) |*edge| {
+            const inputNode = edge.getInputNode();
+            resultList.appendAssumeCapacity(Entry{
+                .edgePtr = edge,
+                .nodePtr = inputNode,
+            });
+        }
+        return resultList;
+    }
+    pub fn iterNodeInputs(self: *Self, name: StaticStr) RenderGraphError!std.ArrayList(Entry) {
+        const node = try self.getNode(name);
+        const inputEdges = node.edges.inputEdges.arrayList;
+        var resultList = std.ArrayList(Entry).initCapacity(self.allocator, inputEdges.items.len) catch unreachable;
+        for (inputEdges.items) |*edge| {
+            const outputNode = edge.getOutputNode();
+            resultList.appendAssumeCapacity(Entry{
+                .edgePtr = edge,
+                .nodePtr = outputNode,
+            });
+        }
+        return resultList;
     }
 };
 
@@ -254,6 +317,24 @@ const TestNode = struct {
         );
     }
 };
+fn output_nodes(allocator: std.mem.Allocator, graphv: *RenderGraph, name: []const u8) !std.ArrayList(*Node) {
+    const outputs = try graphv.iterNodeOutputs(name);
+    defer outputs.deinit();
+    var array = std.ArrayList(*Node).initCapacity(allocator, outputs.items.len) catch unreachable;
+    for (outputs.items) |item| {
+        array.appendAssumeCapacity(item.nodePtr);
+    }
+    return array;
+}
+fn input_nodes(allocator: std.mem.Allocator, graphv: *RenderGraph, name: []const u8) !std.ArrayList(*Node) {
+    const inputs = try graphv.iterNodeInputs(name);
+    defer inputs.deinit();
+    var array = std.ArrayList(*Node).initCapacity(allocator, inputs.items.len) catch unreachable;
+    for (inputs.items) |item| {
+        array.appendAssumeCapacity(item.nodePtr);
+    }
+    return array;
+}
 test "render.graph.graph" {
     const allocator = std.testing.allocator;
     var graphv = RenderGraph.init(allocator);
@@ -285,8 +366,68 @@ test "render.graph.graph" {
     try graphv.addNodeEdge("B", "C");
     try graphv.addSlotEdge("C", "out_0", "D", "in_0");
 
-    try testing.expectEqual(A.inputs().items.len, 0);
-    try testing.expectEqual(B.inputs().items.len, 0);
-    try testing.expectEqual(C.outputs().items.len, 1);
-    try testing.expectEqual(D.outputs().items.len, 0);
+    {
+        try testing.expectEqual(A.inputs().items.len, 0);
+        const outputs = try output_nodes(std.testing.allocator, &graphv, "A");
+        defer outputs.deinit();
+        try std.testing.expect(std.mem.eql(u8, outputs.items[0].name, "C"));
+    }
+    {
+        try testing.expectEqual(B.inputs().items.len, 0);
+        const outputs = try output_nodes(std.testing.allocator, &graphv, "B");
+        defer outputs.deinit();
+        try std.testing.expect(std.mem.eql(u8, outputs.items[0].name, "C"));
+    }
+    {
+        try testing.expectEqual(C.outputs().items.len, 1);
+        const inputs = try input_nodes(std.testing.allocator, &graphv, "C");
+        defer inputs.deinit();
+        try std.testing.expect(std.mem.eql(u8, inputs.items[0].name, "A"));
+        try std.testing.expect(std.mem.eql(u8, inputs.items[1].name, "B"));
+
+        const outputs = try output_nodes(std.testing.allocator, &graphv, "C");
+        defer outputs.deinit();
+        try std.testing.expect(std.mem.eql(u8, outputs.items[0].name, "D"));
+    }
+    {
+        try testing.expectEqual(D.outputs().items.len, 0);
+        const inputs = try input_nodes(std.testing.allocator, &graphv, "D");
+        defer inputs.deinit();
+        try std.testing.expect(std.mem.eql(u8, inputs.items[0].name, "C"));
+    }
+}
+
+test "graph.slotAlreadyOccupied" {
+    const allocator = std.testing.allocator;
+    var graphv = RenderGraph.init(allocator);
+    defer graphv.deinit();
+    var n0 = TestNode.init(allocator);
+    _ = try n0.outputSlots.append(SlotInfo{ .name = "out_0", .slotType = SlotType.TextureView });
+    const A = n0.nodeI("A");
+    graphv.addNode(A);
+
+    var n1 = TestNode.init(allocator);
+    _ = try n1.outputSlots.append(SlotInfo{ .name = "out_0", .slotType = SlotType.TextureView });
+    const B = n1.nodeI("B");
+    graphv.addNode(B);
+
+    var n2 = TestNode.init(allocator);
+    _ = try n2.outputSlots.append(SlotInfo{ .name = "out_0", .slotType = SlotType.TextureView });
+    _ = try n2.inputSlots.append(SlotInfo{ .name = "in_0", .slotType = SlotType.TextureView });
+    const C = n2.nodeI("C");
+    graphv.addNode(C);
+
+    try graphv.addSlotEdge("A", "out_0", "C", "in_0");
+    const result = graphv.addSlotEdge("B", "out_0", "C", "in_0");
+    try std.testing.expect(RenderGraphError.NodeInputSlotAlreadyOccupied == result);
+}
+
+const T = struct { name: []const u8 };
+test "std.mem.eql" {
+    var t = T{ .name = "hello" };
+    const a = [_]*T{&t};
+    const b = [_]*T{&t};
+    try std.testing.expect(std.mem.eql(*T, &a, &b));
+    const c = a[0..a.len];
+    try std.testing.expect(std.mem.eql(*T, c, &b));
 }

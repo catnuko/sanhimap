@@ -24,17 +24,11 @@ pub const SlotInfo = struct {
     }
 };
 pub const SlotInfoArrayList = ArrayList(SlotInfo);
-pub fn findSlotIndex(slotInfoArrayList: *const SlotInfoArrayList, slotInfoName: StaticStr, err: graph.RenderGraphError) graph.RenderGraphError!usize {
-    var i: i16 = -1;
-    for (slotInfoArrayList.items) |item| {
-        i = i + 1;
+pub fn findSlotByName(slotInfoArrayList: *const SlotInfoArrayList, slotInfoName: StaticStr, err: graph.RenderGraphError) graph.RenderGraphError!*SlotInfo {
+    for (slotInfoArrayList.items) |*item| {
         if (std.mem.eql(u8, item.name, slotInfoName)) {
-            break;
+            return item;
         }
     }
-    if (i == -1) {
-        return err;
-    } else {
-        return @intCast(i);
-    }
+    return err;
 }

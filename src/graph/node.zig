@@ -41,13 +41,13 @@ pub const Node = struct {
             return func(self.ptr);
         }
     }
-    pub fn findInputSlotIndex(self: *Self, slotName: StaticStr) RenderGraphError!usize {
+    pub fn findInputSlotByName(self: *Self, slotName: StaticStr) RenderGraphError!*SlotInfo {
         const slots = self.inputs();
-        return graph.findSlotIndex(slots, slotName, graph.RenderGraphError.InvalidInputNodeSlot);
+        return graph.findSlotByName(slots, slotName, graph.RenderGraphError.InvalidInputNodeSlot);
     }
-    pub fn findOutputSlotIndex(self: *Self, slotName: StaticStr) RenderGraphError!usize {
+    pub fn findOutputSlotByName(self: *Self, slotName: StaticStr) RenderGraphError!*SlotInfo {
         const slots = self.outputs();
-        return graph.findSlotIndex(slots, slotName, graph.RenderGraphError.InvalidOutputNodeSlot);
+        return graph.findSlotByName(slots, slotName, graph.RenderGraphError.InvalidOutputNodeSlot);
     }
     pub fn inputs(self: *Self) *SlotInfoArrayList {
         return self.vtable.inputs(self.ptr);
@@ -64,17 +64,17 @@ pub const Node = struct {
     }
 };
 pub const SlotEdge = struct {
-    inputNode: *const Node,
-    inputIndex: usize,
-    outputNode: *const Node,
-    outputIndex: usize,
+    inputNode: *Node,
+    inputSlot: *SlotInfo,
+    outputNode: *Node,
+    outputSlot: *SlotInfo,
     pub fn eq(self: SlotEdge, other: SlotEdge) bool {
-        return self.inputNode == other.inputNode and self.outputNode == other.outputNode and self.inputIndex == other.inputIndex and self.outputIndex == other.outputIndex;
+        return self.inputNode == other.inputNode and self.outputNode == other.outputNode and self.inputSlot == other.inputSlot and self.outputSlot == other.outputSlot;
     }
 };
 pub const NodeEdge = struct {
-    inputNode: *const Node,
-    outputNode: *const Node,
+    inputNode: *Node,
+    outputNode: *Node,
     pub fn eq(self: NodeEdge, other: NodeEdge) bool {
         return self.inputNode == other.inputNode and self.outputNode == other.outputNode;
     }
@@ -86,15 +86,27 @@ pub const EdgeEnum = enum {
 pub const Edge = union(EdgeEnum) {
     SlotEdge: SlotEdge,
     NodeEdge: NodeEdge,
-    pub fn getInputNode(self: Edge) *const Node {
+    pub fn debug(self: Edge) void {
+        switch (self) {
+            Edge.NodeEdge => |edge| {
+                std.debug.print("Edge.NodeEdge,output(.name={s}),input(.name={s})\n", .{ edge.outputNode.name, edge.inputNode.name });
+            },
+            Edge.SlotEdge => |edge| {
+                std.debug.print("Edge.SlotEdge,output(.name={s}.slot={s}),input(.name={s}.slot={s})\n", .{ edge.outputNode.name, edge.outputSlot.name, edge.inputNode.name, edge.inputSlot.name });
+            },
+        }
+    }
+    pub fn getInputNode(self: Edge) *Node {
         const node = switch (self) {
-            Edge.NodeEdge, Edge.SlotEdge => |edge| edge.inputNode,
+            Edge.NodeEdge => |edge| edge.inputNode,
+            Edge.SlotEdge => |edge| edge.inputNode,
         };
         return node;
     }
-    pub fn getOutputNode(self: Edge) *const Node {
+    pub fn getOutputNode(self: Edge) *Node {
         const node = switch (self) {
-            Edge.NodeEdge, Edge.SlotEdge => |edge| edge.outputNode,
+            Edge.NodeEdge => |edge| edge.outputNode,
+            Edge.SlotEdge => |edge| edge.outputNode,
         };
         return node;
     }
@@ -144,6 +156,10 @@ pub const EdgeArrayList = struct {
     pub fn deinit(self: *Self) void {
         self.arrayList.deinit();
     }
+};
+pub const EdgeExistence = union(enum) {
+    Exists,
+    DoesNotExist,
 };
 pub const Edges = struct {
     inputEdges: EdgeArrayList,
