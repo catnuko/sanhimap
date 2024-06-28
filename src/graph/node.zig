@@ -4,6 +4,7 @@ const graph = @import("./index.zig");
 const SlotInfo = graph.SlotInfo;
 const SlotInfoArrayList = graph.SlotInfoArrayList;
 const RenderGraphError = graph.RenderGraphError;
+const RenderGraphContext = graph.RenderGraphContext;
 pub const NodeRunError = error{
     InputSlotError,
     OutputSlotError,
@@ -14,7 +15,7 @@ pub const Node = struct {
     const Self = @This();
     pub const VTable = struct {
         update: ?*const fn (ctx: *anyopaque) void,
-        run: *const fn (ctx: *anyopaque) NodeRunError!void,
+        run: *const fn (ctx: *anyopaque, ctx: *RenderGraphContext) NodeRunError!void,
         deinit: *const fn (ctx: *anyopaque) void,
         inputs: *const fn (ctx: *anyopaque) *SlotInfoArrayList,
         outputs: *const fn (ctx: *anyopaque) *SlotInfoArrayList,
@@ -41,13 +42,13 @@ pub const Node = struct {
             return func(self.ptr);
         }
     }
-    pub fn findInputSlotByName(self: *Self, slotName: StaticStr) RenderGraphError!*SlotInfo {
+    pub fn findInputSlotIndex(self: *Self, slotName: StaticStr) RenderGraphError!usize {
         const slots = self.inputs();
-        return graph.findSlotByName(slots, slotName, graph.RenderGraphError.InvalidInputNodeSlot);
+        return graph.findSlotIndex(slots, slotName, graph.RenderGraphError.InvalidInputNodeSlot);
     }
-    pub fn findOutputSlotByName(self: *Self, slotName: StaticStr) RenderGraphError!*SlotInfo {
+    pub fn findOutputSlotIndex(self: *Self, slotName: StaticStr) RenderGraphError!usize {
         const slots = self.outputs();
-        return graph.findSlotByName(slots, slotName, graph.RenderGraphError.InvalidOutputNodeSlot);
+        return graph.findSlotIndex(slots, slotName, graph.RenderGraphError.InvalidOutputNodeSlot);
     }
     pub fn inputs(self: *Self) *SlotInfoArrayList {
         return self.vtable.inputs(self.ptr);
@@ -55,8 +56,8 @@ pub const Node = struct {
     pub fn outputs(self: *Self) *SlotInfoArrayList {
         return self.vtable.outputs(self.ptr);
     }
-    pub fn run(self: *Self) NodeRunError!void {
-        return self.vtable.run(self.ptr);
+    pub fn run(self: *Self, ctx: *RenderGraphContext) NodeRunError!void {
+        return self.vtable.run(self.ptr, ctx);
     }
     pub fn deinit(self: *Self) void {
         self.vtable.deinit(self.ptr);
@@ -65,11 +66,11 @@ pub const Node = struct {
 };
 pub const SlotEdge = struct {
     inputNode: *Node,
-    inputSlot: *SlotInfo,
+    inputSlotIndex: usize,
     outputNode: *Node,
-    outputSlot: *SlotInfo,
+    outputSlotIndex: usize,
     pub fn eq(self: SlotEdge, other: SlotEdge) bool {
-        return self.inputNode == other.inputNode and self.outputNode == other.outputNode and self.inputSlot == other.inputSlot and self.outputSlot == other.outputSlot;
+        return self.inputNode == other.inputNode and self.outputNode == other.outputNode and self.inputSlotIndex == other.inputSlotIndex and self.outputSlotIndex == other.outputSlotIndex;
     }
 };
 pub const NodeEdge = struct {
@@ -207,8 +208,9 @@ pub const EmptyNode = struct {
         const self: *EmptyNode = @ptrCast(@alignCast(ctx));
         self.slots.deinit();
     }
-    pub fn run(ctx: *anyopaque) ?NodeRunError {
+    pub fn run(ctx: *anyopaque, context: *RenderGraphContext) ?NodeRunError {
         _ = ctx;
+        _ = context;
     }
     pub fn nodeI(self: *EmptyNode, allocator: std.mem.Allocator) Node {
         return Node.init(

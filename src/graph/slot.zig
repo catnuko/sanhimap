@@ -38,10 +38,10 @@ pub const SlotInfo = struct {
     }
 };
 pub const SlotInfoArrayList = ArrayList(SlotInfo);
-pub fn findSlotByName(slotInfoArrayList: *const SlotInfoArrayList, slotInfoName: StaticStr, err: graph.RenderGraphError) graph.RenderGraphError!*SlotInfo {
-    for (slotInfoArrayList.items) |*item| {
+pub fn findSlotIndex(slotInfoArrayList: *const SlotInfoArrayList, slotInfoName: StaticStr, err: graph.RenderGraphError) graph.RenderGraphError!usize {
+    for (slotInfoArrayList.items, 0..) |*item, i| {
         if (std.mem.eql(u8, item.name, slotInfoName)) {
-            return item;
+            return i;
         }
     }
     return err;

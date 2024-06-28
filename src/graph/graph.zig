@@ -10,6 +10,7 @@ const SlotInfo = graph.SlotInfo;
 const SlotType = graph.SlotType;
 const StaticStr = graph.StaticStr;
 const EdgeExistence = graph.EdgeExistence;
+const RenderGraphContext = graph.RenderGraphContext;
 const StringArrayHashMap = std.StringArrayHashMap;
 pub const Context = struct {};
 pub const RenderGraphError = error{
@@ -111,13 +112,13 @@ pub const RenderGraph = struct {
     pub fn addSlotEdge(self: *Self, outputNodeId: StaticStr, outputSlotName: StaticStr, inputNodeId: StaticStr, inputSlotName: StaticStr) RenderGraphError!void {
         var inputNode = try self.getNode(inputNodeId);
         var outputNode = try self.getNode(outputNodeId);
-        const outputSlot = try outputNode.findOutputSlotByName(outputSlotName);
-        const inputSlot = try inputNode.findInputSlotByName(inputSlotName);
+        const outputSlotIndex = try outputNode.findOutputSlotIndex(outputSlotName);
+        const inputSlotIndex = try inputNode.findInputSlotIndex(inputSlotName);
         var edge = Edge{ .SlotEdge = SlotEdge{
             .inputNode = inputNode,
             .outputNode = outputNode,
-            .inputSlot = inputSlot,
-            .outputSlot = outputSlot,
+            .inputSlotIndex = inputSlotIndex,
+            .outputSlotIndex = outputSlotIndex,
         } };
         try self.validateEdge(&edge, EdgeExistence.DoesNotExist);
         try outputNode.edges.addOutputEdge(edge);
@@ -126,13 +127,13 @@ pub const RenderGraph = struct {
     pub fn removeSlotEdge(self: *Self, outputNodeId: StaticStr, outputSlotName: StaticStr, inputNodeId: StaticStr, inputSlotName: StaticStr) void {
         var inputNode = try self.getNode(inputNodeId);
         var outputNode = try self.getNode(outputNodeId);
-        const outputSlot = try outputNode.findOutputSlotByName(outputSlotName);
-        const inputSlot = try inputNode.findInputSlotByName(inputSlotName);
+        const outputSlotIndex = try outputNode.findOutputSlotIndex(outputSlotName);
+        const inputSlotIndex = try inputNode.findInputSlotIndex(inputSlotName);
         var edge = Edge{ .SlotEdge = SlotEdge{
             .inputNode = inputNode,
             .outputNode = outputNode,
-            .inputSlot = inputSlot,
-            .outputSlot = outputSlot,
+            .inputSlotIndex = inputSlotIndex,
+            .outputSlotIndex = outputSlotIndex,
         } };
         try self.validateEdge(&edge, EdgeExistence.Exists);
         try outputNode.edges.removeOutputEdge(&edge);
@@ -146,18 +147,20 @@ pub const RenderGraph = struct {
         }
         switch (edge.*) {
             Edge.SlotEdge => |*edgeV| {
+                const outputSlot = edgeV.outputNode.outputs().items[edgeV.outputSlotIndex];
+                const inputSlot = edgeV.outputNode.outputs().items[edgeV.inputSlotIndex];
                 const inputNode = edgeV.inputNode;
                 for (inputNode.edges.inputEdges.arrayList.items) |v| {
                     switch (v) {
                         Edge.SlotEdge => |vv| {
-                            if (edgeV.inputSlot == vv.inputSlot and shouldEixst == EdgeExistence.DoesNotExist) {
+                            if (edgeV.inputSlotIndex == vv.inputSlotIndex and shouldEixst == EdgeExistence.DoesNotExist) {
                                 return RenderGraphError.NodeInputSlotAlreadyOccupied;
                             }
                         },
                         else => {},
                     }
                 }
-                if (edgeV.outputSlot.slotType != edgeV.inputSlot.slotType) {
+                if (outputSlot.slotType != inputSlot.slotType) {
                     return RenderGraphError.MismatchedNodeSlots;
                 }
             },
@@ -190,6 +193,11 @@ pub const RenderGraph = struct {
         nodePtr: *Node,
     };
     // find all output nodes of a node
+    // A------L------>B
+    // A is output node,B is input node.
+    // L is in a A.outputEdges
+    // A is output node of L
+    // B is input node of L
     pub fn iterNodeOutputs(self: *Self, name: StaticStr) RenderGraphError!std.ArrayList(Entry) {
         const node = try self.getNode(name);
         const outputEdges = node.edges.outputEdges.arrayList;
@@ -262,7 +270,7 @@ const indexStrList = [_]*const [1:0]u8{
     "4",
     "5",
 };
-const TestNode = struct {
+pub const TestNode = struct {
     const Self = @This();
     inputSlots: SlotInfoArrayList,
     outputSlots: SlotInfoArrayList,
@@ -288,9 +296,10 @@ const TestNode = struct {
         self.inputSlots.deinit();
         self.outputSlots.deinit();
     }
-    pub fn run(ctx: *anyopaque) NodeRunError!void {
+    pub fn run(ctx: *anyopaque, context: *RenderGraphContext) NodeRunError!void {
         const self: *Self = @ptrCast(@alignCast(ctx));
         _ = self;
+        _ = context;
     }
     pub fn inputs(ctx: *anyopaque) *SlotInfoArrayList {
         const self: *Self = @ptrCast(@alignCast(ctx));
@@ -334,7 +343,7 @@ fn input_nodes(allocator: std.mem.Allocator, graphv: *RenderGraph, name: []const
     }
     return array;
 }
-test "render.graph.graph" {
+test "graph.graph.default" {
     const allocator = std.testing.allocator;
     var graphv = RenderGraph.init(allocator);
     defer graphv.deinit();
@@ -396,7 +405,7 @@ test "render.graph.graph" {
     }
 }
 
-test "graph.slotAlreadyOccupied" {
+test "graph.graph.slotAlreadyOccupied" {
     const allocator = std.testing.allocator;
     var graphv = RenderGraph.init(allocator);
     defer graphv.deinit();
@@ -421,7 +430,7 @@ test "graph.slotAlreadyOccupied" {
     try std.testing.expect(RenderGraphError.NodeInputSlotAlreadyOccupied == result);
 }
 
-test "graph.edgeAlreadyExists" {
+test "graph.graph.edgeAlreadyExists" {
     const allocator = std.testing.allocator;
     var graphv = RenderGraph.init(allocator);
     defer graphv.deinit();
@@ -462,7 +471,7 @@ test "graph.edgeAlreadyExists" {
     }
 }
 
-test "graph.addNodeEdge" {}
+test "graph.graph.addNodeEdge" {}
 const T = struct { name: []const u8 };
 test "std.mem.eql" {
     var t = T{ .name = "hello" };
