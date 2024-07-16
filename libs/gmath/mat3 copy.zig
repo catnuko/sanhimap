@@ -29,17 +29,14 @@ pub fn Mat3x3(comptime T: type) type {
         data: [3][3]T,
 
         const Self = @This();
+        pub const IDENTITY = Self{
+            .data = .{
+                .{ 1, 0, 0 },
+                .{ 0, 1, 0 },
+                .{ 0, 0, 1 },
+            },
+        };
 
-        /// Shorthand for identity matrix.
-        pub fn identity() Self {
-            return .{
-                .data = .{
-                    .{ 1, 0, 0 },
-                    .{ 0, 1, 0 },
-                    .{ 0, 0, 1 },
-                },
-            };
-        }
         pub fn getColumn(self: Self, index: usize) Vector3 {
             return Vector3.new(
                 self.data[index][0],

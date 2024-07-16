@@ -48,9 +48,9 @@ pub const RenderGraph = struct {
         }
         self.nodes.deinit();
         self.subGraphs.deinit();
-        // if (self.inputNode) |node| {
-        //     node.deinit();
-        // }
+        if (self.inputNode) |node| {
+            node.deinit();
+        }
     }
     pub fn update(self: *Self, context: Context) void {
         var it = self.nodes.valueIterator();
@@ -470,8 +470,20 @@ test "graph.graph.edgeAlreadyExists" {
         try std.testing.expect(std.mem.eql(u8, list.items[0].name, "B"));
     }
 }
-
-test "graph.graph.addNodeEdge" {}
+const SimpleNode = struct {
+    pub fn deinit(ctx: *anyopaque) void {
+        const self: *SimpleNode = @ptrCast(@alignCast(ctx));
+        _ = self;
+    }
+    fn nodeI(self: *SimpleNode, name: []const u8, allocator: std.mem.Allocator) Node {
+        return Node.init(allocator, name, @typeName(SimpleNode), self, &.{ .deinit = deinit });
+    }
+};
+test "graph.graph.addNodeEdge" {
+    const allocator = std.testing.allocator;
+    var graphv = RenderGraph.init(allocator);
+    defer graphv.deinit();
+}
 const T = struct { name: []const u8 };
 test "std.mem.eql" {
     var t = T{ .name = "hello" };

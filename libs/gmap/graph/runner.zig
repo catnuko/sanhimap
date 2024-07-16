@@ -111,6 +111,6 @@ fn cmpByEntry(a: Entry, b: Entry) bool {
 }
 test "graph.runner.default" {
     const allocator = std.testing.allocator;
-    const graphV = graph.RenderGraph.init(allocator);
+    var graphV = graph.RenderGraph.init(allocator);
     defer graphV.deinit();
 }
