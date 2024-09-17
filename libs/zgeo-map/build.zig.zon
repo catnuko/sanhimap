@@ -1,13 +1,13 @@
 .{
-    .name = "zgeo",
+    .name = "zgeo-map",
     .version = "0.0.0",
     .dependencies = .{
-        .uuid = .{ .path = "third/uuid-zig-0.2.1" },
-        .system_sdk = .{ .path = "third/system-sdk" },
-        .zglfw = .{ .path = "third/zglfw" },
-        .zgpu = .{ .path = "third/zgpu" },
-        .zpool = .{ .path = "third/zpool" },
-        .zgui = .{ .path = "third/zgui" },
+        .uuid = .{ .path = "../third/uuid-zig-0.2.1" },
+        .system_sdk = .{ .path = "../third/system-sdk" },
+        .zglfw = .{ .path = "../third/zglfw" },
+        .zgpu = .{ .path = "../third/zgpu" },
+        .zpool = .{ .path = "../third/zpool" },
+        .zgui = .{ .path = "../third/zgui" },
         .dawn_x86_64_windows_gnu = .{
             .url = "https://github.com/michal-z/webgpu_dawn-x86_64-windows-gnu/archive/d3a68014e6b6b53fd330a0ccba99e4dcfffddae5.tar.gz",
             .hash = "1220f9448cde02ef3cd51bde2e0850d4489daa0541571d748154e89c6eb46c76a267",
