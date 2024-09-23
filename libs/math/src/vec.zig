@@ -21,12 +21,14 @@ pub fn Vec2(comptime Scalar: type) type {
 
         const VecN = @This();
 
+        pub const ZERO = new(0, 0);
+
         const Shared = VecShared(Scalar, VecN);
 
-        pub inline fn init(xs: Scalar, ys: Scalar) VecN {
+        pub fn new(xs: Scalar, ys: Scalar) VecN {
             return .{ .v = .{ xs, ys } };
         }
-        pub inline fn fromInt(xs: anytype, ys: anytype) VecN {
+        pub fn fromInt(xs: anytype, ys: anytype) VecN {
             return .{ .v = .{ @floatFromInt(xs), @floatFromInt(ys) } };
         }
         pub inline fn x(v: *const VecN) Scalar {
@@ -51,6 +53,7 @@ pub fn Vec2(comptime Scalar: type) type {
         pub const splat = Shared.splat;
         pub const len2 = Shared.len2;
         pub const len = Shared.len;
+        pub const normalizeEps = Shared.normalizeEps;
         pub const normalize = Shared.normalize;
         pub const dir = Shared.dir;
         pub const dist2 = Shared.dist2;
@@ -65,6 +68,7 @@ pub fn Vec2(comptime Scalar: type) type {
         pub const minScalar = Shared.minScalar;
         pub const eqlApprox = Shared.eqlApprox;
         pub const eql = Shared.eql;
+        pub const clone = Shared.clone;
     };
 }
 
@@ -83,12 +87,14 @@ pub fn Vec3(comptime Scalar: type) type {
 
         const VecN = @This();
 
+        pub const ZERO = new(0, 0, 0);
+
         const Shared = VecShared(Scalar, VecN);
 
-        pub inline fn init(xs: Scalar, ys: Scalar, zs: Scalar) VecN {
+        pub fn new(xs: Scalar, ys: Scalar, zs: Scalar) VecN {
             return .{ .v = .{ xs, ys, zs } };
         }
-        pub inline fn fromInt(xs: anytype, ys: anytype, zs: anytype) VecN {
+        pub fn fromInt(xs: anytype, ys: anytype, zs: anytype) VecN {
             return .{ .v = .{ @floatFromInt(xs), @floatFromInt(ys), @floatFromInt(zs) } };
         }
         pub inline fn x(v: *const VecN) Scalar {
@@ -116,7 +122,7 @@ pub fn Vec3(comptime Scalar: type) type {
 
         /// Calculates the cross product between vector a and b.
         /// This can be done only in 3D and required inputs are Vec3.
-        pub inline fn cross(a: *const VecN, b: *const VecN) VecN {
+        pub fn cross(a: *const VecN, b: *const VecN) VecN {
             // https://gamemath.com/book/vectors.html#cross_product
             const s1 = a.swizzle(.y, .z, .x)
                 .mul(&b.swizzle(.z, .x, .y));
@@ -126,7 +132,7 @@ pub fn Vec3(comptime Scalar: type) type {
         }
 
         /// Vector * Matrix multiplication
-        pub inline fn mulMat(vector: *const VecN, matrix: *const mat.Mat3x3(T)) VecN {
+        pub fn mulMat(vector: *const VecN, matrix: *const mat.Mat3x3(T)) VecN {
             var result = [_]VecN.T{0} ** 3;
             inline for (0..3) |i| {
                 inline for (0..3) |j| {
@@ -138,7 +144,7 @@ pub fn Vec3(comptime Scalar: type) type {
 
         /// Vector * Quat multiplication
         /// https://github.com/greggman/wgpu-matrix/blob/main/src/vec3-impl.ts#L718
-        pub inline fn mulQuat(v: *const VecN, q: *const quat.Quat(Scalar)) VecN {
+        pub fn mulQuat(v: *const VecN, q: *const quat.Quat(Scalar)) VecN {
             const qx = q.v.x();
             const qy = q.v.y();
             const qz = q.v.z();
@@ -152,7 +158,7 @@ pub fn Vec3(comptime Scalar: type) type {
             const uv_y = qz * vx - qx * vz;
             const uv_z = qx * vy - qy * vx;
 
-            return math.vec3(
+            return VecN.new(
                 vx + uv_x * w2 + (qy * uv_z - qz * uv_y) * 2,
                 vy + uv_y * w2 + (qz * uv_x - qx * uv_z) * 2,
                 vz + uv_z * w2 + (qz * uv_y - qy * uv_x) * 2,
@@ -174,6 +180,7 @@ pub fn Vec3(comptime Scalar: type) type {
         pub const splat = Shared.splat;
         pub const len2 = Shared.len2;
         pub const len = Shared.len;
+        pub const normalizeEps = Shared.normalizeEps;
         pub const normalize = Shared.normalize;
         pub const dir = Shared.dir;
         pub const dist2 = Shared.dist2;
@@ -188,6 +195,7 @@ pub fn Vec3(comptime Scalar: type) type {
         pub const minScalar = Shared.minScalar;
         pub const eqlApprox = Shared.eqlApprox;
         pub const eql = Shared.eql;
+        pub const clone = Shared.clone;
     };
 }
 
@@ -206,12 +214,14 @@ pub fn Vec4(comptime Scalar: type) type {
 
         const VecN = @This();
 
+        pub const ZERO = new(0, 0, 0, 0);
+
         const Shared = VecShared(Scalar, VecN);
 
-        pub inline fn init(xs: Scalar, ys: Scalar, zs: Scalar, ws: Scalar) VecN {
+        pub fn new(xs: Scalar, ys: Scalar, zs: Scalar, ws: Scalar) VecN {
             return .{ .v = .{ xs, ys, zs, ws } };
         }
-        pub inline fn fromInt(xs: anytype, ys: anytype, zs: anytype, ws: anytype) VecN {
+        pub fn fromInt(xs: anytype, ys: anytype, zs: anytype, ws: anytype) VecN {
             return .{ .v = .{ @floatFromInt(xs), @floatFromInt(ys), @floatFromInt(zs), @floatFromInt(ws) } };
         }
         pub inline fn x(v: *const VecN) Scalar {
@@ -228,7 +238,7 @@ pub fn Vec4(comptime Scalar: type) type {
         }
 
         /// Vector * Matrix multiplication
-        pub inline fn mulMat(vector: *const VecN, matrix: *const mat.Mat4x4(T)) VecN {
+        pub fn mulMat(vector: *const VecN, matrix: *const mat.Mat4x4(T)) VecN {
             var result = [_]VecN.T{0} ** 4;
             inline for (0..4) |i| {
                 inline for (0..4) |j| {
@@ -253,6 +263,7 @@ pub fn Vec4(comptime Scalar: type) type {
         pub const splat = Shared.splat;
         pub const len2 = Shared.len2;
         pub const len = Shared.len;
+        pub const normalizeEps = Shared.normalizeEps;
         pub const normalize = Shared.normalize;
         pub const dir = Shared.dir;
         pub const dist2 = Shared.dist2;
@@ -267,52 +278,53 @@ pub fn Vec4(comptime Scalar: type) type {
         pub const minScalar = Shared.minScalar;
         pub const eqlApprox = Shared.eqlApprox;
         pub const eql = Shared.eql;
+        pub const clone = Shared.clone;
     };
 }
 
 pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
     return struct {
         /// Element-wise addition
-        pub inline fn add(a: *const VecN, b: *const VecN) VecN {
+        pub fn add(a: *const VecN, b: *const VecN) VecN {
             return .{ .v = a.v + b.v };
         }
 
         /// Element-wise subtraction
-        pub inline fn sub(a: *const VecN, b: *const VecN) VecN {
+        pub fn sub(a: *const VecN, b: *const VecN) VecN {
             return .{ .v = a.v - b.v };
         }
 
         /// Element-wise division
-        pub inline fn div(a: *const VecN, b: *const VecN) VecN {
+        pub fn div(a: *const VecN, b: *const VecN) VecN {
             return .{ .v = a.v / b.v };
         }
 
         /// Element-wise multiplication.
         ///
         /// See also .cross()
-        pub inline fn mul(a: *const VecN, b: *const VecN) VecN {
+        pub fn mul(a: *const VecN, b: *const VecN) VecN {
             return .{ .v = a.v * b.v };
         }
 
         /// Scalar addition
-        pub inline fn addScalar(a: *const VecN, s: Scalar) VecN {
+        pub fn addScalar(a: *const VecN, s: Scalar) VecN {
             return .{ .v = a.v + VecN.splat(s).v };
         }
 
         /// Scalar subtraction
-        pub inline fn subScalar(a: *const VecN, s: Scalar) VecN {
+        pub fn subScalar(a: *const VecN, s: Scalar) VecN {
             return .{ .v = a.v - VecN.splat(s).v };
         }
 
         /// Scalar division
-        pub inline fn divScalar(a: *const VecN, s: Scalar) VecN {
+        pub fn divScalar(a: *const VecN, s: Scalar) VecN {
             return .{ .v = a.v / VecN.splat(s).v };
         }
 
         /// Scalar multiplication.
         ///
         /// See .dot() for the dot product
-        pub inline fn mulScalar(a: *const VecN, s: Scalar) VecN {
+        pub fn mulScalar(a: *const VecN, s: Scalar) VecN {
             return .{ .v = a.v * VecN.splat(s).v };
         }
 
@@ -342,12 +354,12 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
         /// var v = Vec3.splat(1337.0).v;
         /// // v.x == 1337, v.y == 1337, v.z == 1337
         /// ```
-        pub inline fn splat(scalar: Scalar) VecN {
+        pub fn splat(scalar: Scalar) VecN {
             return .{ .v = @splat(scalar) };
         }
 
         /// Computes the squared length of the vector. Faster than `len()`
-        pub inline fn len2(v: *const VecN) Scalar {
+        pub fn len2(v: *const VecN) Scalar {
             return switch (VecN.n) {
                 inline 2 => (v.x() * v.x()) + (v.y() * v.y()),
                 inline 3 => (v.x() * v.x()) + (v.y() * v.y()) + (v.z() * v.z()),
@@ -357,7 +369,7 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
         }
 
         /// Computes the length of the vector.
-        pub inline fn len(v: *const VecN) Scalar {
+        pub fn len(v: *const VecN) Scalar {
             return math.sqrt(len2(v));
         }
 
@@ -367,10 +379,14 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
         /// situations where you would otherwise get NaN back you will instead get a near-zero vector.
         ///
         /// ```
-        /// math.vec3(1.0, 2.0, 3.0).normalize(v, 0.00000001);
+        /// math.vec3(1.0, 2.0, 3.0).normalizeEps(v, 0.00000001);
         /// ```
-        pub inline fn normalize(v: *const VecN, d0: Scalar) VecN {
+        pub fn normalizeEps(v: *const VecN, d0: Scalar) VecN {
             return v.div(&VecN.splat(v.len() + d0));
+        }
+
+        pub fn normalize(v: *const VecN) VecN {
+            return v.div(&VecN.splat(v.len()));
         }
 
         /// Returns the normalized direction vector from points a and b.
@@ -381,17 +397,17 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
         /// ```
         /// var v = a_point.dir(b_point, 0.0000001);
         /// ```
-        pub inline fn dir(a: *const VecN, b: *const VecN, d0: Scalar) VecN {
-            return b.sub(a).normalize(d0);
+        pub fn dir(a: *const VecN, b: *const VecN, d0: Scalar) VecN {
+            return b.sub(a).normalizeEps(d0);
         }
 
         /// Calculates the squared distance between points a and b. Faster than `dist()`.
-        pub inline fn dist2(a: *const VecN, b: *const VecN) Scalar {
+        pub fn dist2(a: *const VecN, b: *const VecN) Scalar {
             return b.sub(a).len2();
         }
 
         /// Calculates the distance between points a and b.
-        pub inline fn dist(a: *const VecN, b: *const VecN) Scalar {
+        pub fn dist(a: *const VecN, b: *const VecN) Scalar {
             return math.sqrt(a.dist2(b));
         }
 
@@ -401,28 +417,28 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
         /// a.lerp(b, 0.0) == a
         /// a.lerp(b, 1.0) == b
         /// ```
-        pub inline fn lerp(a: *const VecN, b: *const VecN, amount: Scalar) VecN {
+        pub fn lerp(a: *const VecN, b: *const VecN, amount: Scalar) VecN {
             return a.mulScalar(1.0 - amount).add(&b.mulScalar(amount));
         }
 
         /// Calculates the dot product between vector a and b and returns scalar.
-        pub inline fn dot(a: *const VecN, b: *const VecN) Scalar {
+        pub fn dot(a: *const VecN, b: *const VecN) Scalar {
             return @reduce(.Add, a.v * b.v);
         }
 
         // Returns a new vector with the max values of two vectors
-        pub inline fn max(a: *const VecN, b: *const VecN) VecN {
+        pub fn max(a: *const VecN, b: *const VecN) VecN {
             return switch (VecN.n) {
-                inline 2 => VecN.init(
+                inline 2 => VecN.new(
                     @max(a.x(), b.x()),
                     @max(a.y(), b.y()),
                 ),
-                inline 3 => VecN.init(
+                inline 3 => VecN.new(
                     @max(a.x(), b.x()),
                     @max(a.y(), b.y()),
                     @max(a.z(), b.z()),
                 ),
-                inline 4 => VecN.init(
+                inline 4 => VecN.new(
                     @max(a.x(), b.x()),
                     @max(a.y(), b.y()),
                     @max(a.z(), b.z()),
@@ -433,18 +449,18 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
         }
 
         // Returns a new vector with the min values of two vectors
-        pub inline fn min(a: *const VecN, b: *const VecN) VecN {
+        pub fn min(a: *const VecN, b: *const VecN) VecN {
             return switch (VecN.n) {
-                inline 2 => VecN.init(
+                inline 2 => VecN.new(
                     @min(a.x(), b.x()),
                     @min(a.y(), b.y()),
                 ),
-                inline 3 => VecN.init(
+                inline 3 => VecN.new(
                     @min(a.x(), b.x()),
                     @min(a.y(), b.y()),
                     @min(a.z(), b.z()),
                 ),
-                inline 4 => VecN.init(
+                inline 4 => VecN.new(
                     @min(a.x(), b.x()),
                     @min(a.y(), b.y()),
                     @min(a.z(), b.z()),
@@ -475,7 +491,7 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
         }
 
         // Returns the largest scalar of two vectors
-        pub inline fn maxScalar(a: *const VecN, b: *const VecN) Scalar {
+        pub fn maxScalar(a: *const VecN, b: *const VecN) Scalar {
             var max_scalar: Scalar = a.v[0];
             inline for (0..VecN.n) |i| {
                 if (a.v[i] > max_scalar)
@@ -488,7 +504,7 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
         }
 
         // Returns the smallest scalar of two vectors
-        pub inline fn minScalar(a: *const VecN, b: *const VecN) Scalar {
+        pub fn minScalar(a: *const VecN, b: *const VecN) Scalar {
             var min_scalar: Scalar = a.v[0];
             inline for (0..VecN.n) |i| {
                 if (a.v[i] < min_scalar)
@@ -502,7 +518,7 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
 
         /// Checks for approximate (absolute tolerance) equality between two vectors
         /// of the same type and dimensions
-        pub inline fn eqlApprox(a: *const VecN, b: *const VecN, tolerance: Scalar) bool {
+        pub fn eqlApprox(a: *const VecN, b: *const VecN, tolerance: Scalar) bool {
             var i: usize = 0;
             while (i < VecN.n) : (i += 1) {
                 if (!math.eql(Scalar, a.v[i], b.v[i], tolerance)) {
@@ -514,8 +530,12 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
 
         /// Checks for approximate (absolute epsilon tolerance) equality
         /// between two vectors of the same type and dimensions
-        pub inline fn eql(a: *const VecN, b: *const VecN) bool {
+        pub fn eql(a: *const VecN, b: *const VecN) bool {
             return a.eqlApprox(b, math.eps(Scalar));
+        }
+
+        pub fn clone(a: *const VecN) VecN {
+            return VecN{ .v = a.v };
         }
     };
 }
@@ -583,7 +603,7 @@ test "type" {
     try testing.expect(type, f16).eql(math.Vec3h.T);
 }
 
-test "init" {
+test "new" {
     try testing.expect(math.Vec3h, math.vec3h(1, 2, 3)).eql(math.vec3h(1, 2, 3));
 }
 
@@ -612,25 +632,25 @@ test "len" {
 }
 
 test "normalize_example" {
-    const normalized = math.vec4(10, 0.5, -3, -0.2).normalize(math.eps_f32);
+    const normalized = math.vec4(10, 0.5, -3, -0.2).normalizeEps(math.eps_f32);
     try testing.expect(math.Vec4, math.vec4(0.95, 0.05, -0.3, -0.02)).eqlApprox(normalized, 0.1);
 }
 
 test "normalize_accuracy" {
-    const normalized = math.vec2(1, 1).normalize(0);
+    const normalized = math.vec2(1, 1).normalizeEps(0);
     const norm_val = math.sqrt1_2; // 1 / sqrt(2)
     try testing.expect(math.Vec2, math.Vec2.splat(norm_val)).eql(normalized);
 }
 
 test "normalize_nan" {
     const near_zero = 0.0;
-    const normalized = math.vec2(0, 0).normalize(near_zero);
+    const normalized = math.vec2(0, 0).normalizeEps(near_zero);
     try testing.expect(bool, true).eql(math.isNan(normalized.x()));
 }
 
 test "normalize_no_nan" {
     const near_zero = math.eps_f32;
-    const normalized = math.vec2(0, 0).normalize(near_zero);
+    const normalized = math.vec2(0, 0).normalizeEps(near_zero);
     try testing.expect(math.Vec2, math.vec2(0, 0)).eqlBinary(normalized);
 }
 
@@ -1088,7 +1108,7 @@ test "dot_vec4" {
 }
 
 test "Mat3x3_mulMat" {
-    const matrix = math.Mat3x3.init(
+    const matrix = math.Mat3x3.new(
         &math.vec3(2, 2, 2),
         &math.vec3(3, 4, 3),
         &math.vec3(1, 1, 2),
@@ -1101,7 +1121,7 @@ test "Mat3x3_mulMat" {
 }
 
 test "Mat4x4_mulMat" {
-    const matrix = math.Mat4x4.init(
+    const matrix = math.Mat4x4.new(
         &math.vec4(2, 2, 2, 1),
         &math.vec4(3, 4, 3, 0),
         &math.vec4(1, 1, 2, 2),

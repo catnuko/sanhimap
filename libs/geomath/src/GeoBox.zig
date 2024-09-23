@@ -1,53 +1,40 @@
-const math = @import("math");
-const Cartographic = @import("./Cartographic.zig").Cartographic;
-const MAX_LONGITUDE = @import("./Cartographic.zig").MAX_LONGITUDE;
+const std = @import("std");
+const c = @import("Cartographic.zig");
+const Cartographic = c.Cartographic;
+const MAX_LONGITUDE = c.MAX_LONGITUDE;
 pub const GeoBox = struct {
     southWest: Cartographic,
     northEast: Cartographic,
-    pub fn new(
-        southWestP: Cartographic,
-        northEastP: Cartographic,
-    ) GeoBox {
-        var news = GeoBox{
-            .southWest = southWestP,
-            .northEast = northEastP,
-        };
+    pub fn new(sw: Cartographic, ne: Cartographic) GeoBox {
+        var news = GeoBox{ .southWest = sw, .northEast = ne };
         if (news.west() > news.east()) {
-            news.northEast.longitude += math.tau;
+            news.northEast.lon += std.math.tau;
         }
         return news;
     }
     pub fn fromCenterAndExtents(center_v: Cartographic, extents: GeoBox) GeoBox {
         return GeoBox.new(
-            Cartographic.fromRadians(
-                center_v.longitude - extents.longitudeSpan() / 2,
-                center_v.latitude - extents.latitudeSpan() / 2,
-                0,
-            ),
-            Cartographic.fromRadians(
-                center_v.longitude + extents.longitudeSpan() / 2,
-                center_v.latitude + extents.latitudeSpan() / 2,
-                0,
-            ),
+            Cartographic.fromRadians(center_v.lon - extents.longitudeSpan() / 2, center_v.lat - extents.latitudeSpan() / 2, 0),
+            Cartographic.fromRadians(center_v.lon + extents.longitudeSpan() / 2, center_v.lat + extents.latitudeSpan() / 2, 0),
         );
     }
     pub inline fn minAltitude(self: GeoBox) f64 {
-        return @min(self.southWest.altitude, self.northEast.altitude);
+        return @min(self.southWest.height, self.northEast.height);
     }
     pub inline fn maxAltitude(self: GeoBox) f64 {
-        return @max(self.southWest.altitude, self.northEast.altitude);
+        return @max(self.southWest.height, self.northEast.height);
     }
     pub inline fn south(self: GeoBox) f64 {
-        return self.southWest.latitude;
+        return self.southWest.lat;
     }
     pub inline fn north(self: GeoBox) f64 {
-        return self.northEast.latitude;
+        return self.northEast.lat;
     }
     pub inline fn west(self: GeoBox) f64 {
-        return self.southWest.longitude;
+        return self.southWest.lon;
     }
     pub inline fn east(self: GeoBox) f64 {
-        return self.northEast.longitude;
+        return self.northEast.lon;
     }
     pub inline fn southWest(self: GeoBox) Cartographic {
         return self.southWest;
@@ -70,9 +57,13 @@ pub const GeoBox = struct {
     fn getAltitudeHelper(self: GeoBox) f64 {
         const min_altitude_v = self.minAltitude();
         const altitude_span_v = self.altitudeSpan();
-        const a = min_altitude_v;
-        const b = altitude_span_v;
-        return a + b * 0.5;
+        if (min_altitude_v != 0 and altitude_span_v != 0) {
+            const a = min_altitude_v;
+            const b = altitude_span_v;
+            return a + b * 0.5;
+        } else {
+            return 0;
+        }
     }
     pub fn center(self: GeoBox) Cartographic {
         const east_v = self.east();
@@ -84,10 +75,10 @@ pub const GeoBox = struct {
         if (west_v <= east_v) {
             return Cartographic.fromRadians((west_v + east_v) * 0.5, latitude_v, altitude_v);
         }
-        var longitude_v = (math.tau + east_v + west_v) * 0.5;
+        var longitude_v = (std.math.tau + east_v + west_v) * 0.5;
 
-        if (longitude_v > math.tau) {
-            longitude_v -= math.tau;
+        if (longitude_v > std.math.tau) {
+            longitude_v -= std.math.tau;
         }
         return Cartographic.fromRadians(longitude_v, latitude_v, altitude_v);
     }
@@ -102,7 +93,7 @@ pub const GeoBox = struct {
     pub inline fn longitudeSpan(self: GeoBox) f64 {
         var width = self.east() - self.west();
         if (width < 0.0) {
-            width += math.tau;
+            width += std.math.tau;
         }
         return width;
     }
@@ -112,12 +103,12 @@ pub const GeoBox = struct {
     pub fn contains(self: GeoBox, point: Cartographic) bool {
         const min_altitude_v = self.minAltitude();
         const max_altitude_v = self.maxAltitude();
-        if (point.altitude == 0 or min_altitude_v == 0 or max_altitude_v == 0) {
+        if (point.height == 0 or min_altitude_v == 0 or max_altitude_v == 0) {
             return self.containsHelper(point);
         }
         const min_altitude_h = min_altitude_v;
         const max_altitude_h = max_altitude_v;
-        const point_altitude = point.altitude;
+        const point_altitude = point.height;
         const isFlat = min_altitude_h == max_altitude_h;
         const isSameAltitude = min_altitude_h == point_altitude;
         const isWithinAltitudeRange =
@@ -129,40 +120,57 @@ pub const GeoBox = struct {
         return false;
     }
     pub fn containsHelper(self: GeoBox, point: Cartographic) bool {
-        if (point.latitude < self.southWest.latitude or point.latitude >= self.northEast.latitude) {
+        if (point.lat < self.southWest.lat or point.lat >= self.northEast.lat) {
             return false;
         }
         const east_v: f64 = self.east();
         const west_v: f64 = self.west();
 
-        var longitude = point.longitude;
+        var longitude = point.lon;
         if (east_v > MAX_LONGITUDE) {
             while (longitude < west_v) {
-                longitude = longitude + math.tau;
+                longitude = longitude + std.math.tau;
             }
         }
 
         if (longitude > east_v) {
-            while (longitude > west_v + math.tau) {
-                longitude = longitude - math.tau;
+            while (longitude > west_v + std.math.tau) {
+                longitude = longitude - std.math.tau;
             }
         }
 
         return longitude >= west_v and longitude < east_v;
     }
     pub fn growToContain(self: *GeoBox, point: Cartographic) void {
-        self.southWest.latitude = @min(self.southWest.latitude, point.latitude);
-        self.southWest.longitude = @min(self.southWest.longitude, point.longitude);
-        self.southWest.altitude = @min(self.southWest.altitude, point.altitude);
-        self.northEast.latitude = @max(self.northEast.latitude, point.latitude);
-        self.northEast.longitude = @max(self.northEast.longitude, point.longitude);
-        self.northEast.altitude = @max(self.northEast.altitude, point.altitude);
+        self.southWest.lat = @min(self.southWest.lat, point.lat);
+        self.southWest.lon = @min(self.southWest.lon, point.lon);
+
+        if (self.southWest.height != 0 and point.height != 0) {
+            self.southWest.height = @min(self.southWest.height, point.height);
+        } else if (self.southWest.height != 0) {
+            self.southWest.height = self.southWest.height;
+        } else if (point.height != 0) {
+            self.southWest.height = point.height;
+        } else {
+            self.southWest.height = 0;
+        }
+
+        self.northEast.lat = @max(self.northEast.lat, point.lat);
+        self.northEast.lon = @max(self.northEast.lon, point.lon);
+        if (self.northEast.height != 0 and point.height != 0) {
+            self.northEast.height = @max(self.northEast.height, point.height);
+        } else if (self.northEast.height != 0) {
+            self.northEast.height = self.northEast.height;
+        } else if (point.height != 0) {
+            self.northEast.height = point.height;
+        } else {
+            self.northEast.height = 0;
+        }
     }
 };
 const GEOCOORDS_EPSILON = 0.000001;
-test "Geo.GeoBox.center" {
-    const std = @import("std");
-    const testing = std.testing;
+test "GeoBox.center" {
+    const testing = @import("std").testing;
     const t = std.math.degreesToRadians;
     const g = GeoBox.new(Cartographic.fromDegrees(170, -10, 0), Cartographic.fromDegrees(-160, 10, 0));
     try testing.expectEqual(g.west(), t(170));
@@ -170,8 +178,8 @@ test "Geo.GeoBox.center" {
     try testing.expectEqual(g.north(), t(10));
     try testing.expectEqual(g.south(), t(-10));
     const center = g.center();
-    try testing.expectApproxEqAbs(center.longitude, t(185), GEOCOORDS_EPSILON);
-    try testing.expectApproxEqAbs(center.latitude, t(0), GEOCOORDS_EPSILON);
+    try testing.expectApproxEqAbs(center.lon, t(185), GEOCOORDS_EPSILON);
+    try testing.expectApproxEqAbs(center.lat, t(0), GEOCOORDS_EPSILON);
     try testing.expectApproxEqAbs(g.longitudeSpan(), t(30), GEOCOORDS_EPSILON);
     try testing.expectApproxEqAbs(g.latitudeSpan(), t(20), GEOCOORDS_EPSILON);
 

@@ -6,7 +6,8 @@ const mat = @import("mat.zig");
 const q = @import("quat.zig");
 const ray = @import("ray.zig");
 const h = @import("hpr.zig");
-pub usingnamespace @import("epsilon.zig");
+const epsilon = @import("epsilon.zig");
+pub usingnamespace epsilon;
 
 /// Public namespaces
 pub const collision = @import("collision.zig");
@@ -26,12 +27,10 @@ pub const HeadingPitchRoll = h.HeadingPitchRoll(f32);
 pub const Vec2h = vec.Vec2(f16);
 pub const Vec3h = vec.Vec3(f16);
 pub const Vec4h = vec.Vec4(f16);
-pub const Quath = q.Quat(f16);
 pub const Mat2x2h = mat.Mat2x2(f16);
 pub const Mat3x3h = mat.Mat3x3(f16);
 pub const Mat4x4h = mat.Mat4x4(f16);
 pub const Rayh = ray.Ray3(f16);
-pub const HeadingPitchRollh = h.HeadingPitchRoll(f16);
 
 /// Double-precision f64 types
 pub const Vec2d = vec.Vec2(f64);
@@ -45,43 +44,41 @@ pub const Rayd = ray.Ray3(f64);
 pub const HeadingPitchRolld = h.HeadingPitchRoll(f64);
 
 /// Standard f32 precision initializers
-pub const vec2 = Vec2.init;
-pub const vec3 = Vec3.init;
-pub const vec4 = Vec4.init;
+pub const vec2 = Vec2.new;
+pub const vec3 = Vec3.new;
+pub const vec4 = Vec4.new;
 pub const vec2FromInt = Vec2.fromInt;
 pub const vec3FromInt = Vec3.fromInt;
 pub const vec4FromInt = Vec4.fromInt;
-pub const quat = Quat.init;
-pub const mat2x2 = Mat2x2.init;
-pub const mat3x3 = Mat3x3.init;
-pub const mat4x4 = Mat4x4.init;
-pub const hpr = HeadingPitchRoll.init;
+pub const quat = Quat.new;
+pub const mat2x2 = Mat2x2.new;
+pub const mat3x3 = Mat3x3.new;
+pub const mat4x4 = Mat4x4.new;
+pub const hpr = HeadingPitchRoll.new;
 
 /// Half-precision f16 initializers
-pub const vec2h = Vec2h.init;
-pub const vec3h = Vec3h.init;
-pub const vec4h = Vec4h.init;
+pub const vec2h = Vec2h.new;
+pub const vec3h = Vec3h.new;
+pub const vec4h = Vec4h.new;
 pub const vec2hFromInt = Vec2h.fromInt;
 pub const vec3hFromInt = Vec3h.fromInt;
 pub const vec4hFromInt = Vec4h.fromInt;
-pub const quath = Quath.init;
-pub const mat2x2h = Mat2x2h.init;
-pub const mat3x3h = Mat3x3h.init;
-pub const mat4x4h = Mat4x4h.init;
-pub const hprh = HeadingPitchRollh.init;
+pub const mat2x2h = Mat2x2h.new;
+pub const mat3x3h = Mat3x3h.new;
+pub const mat4x4h = Mat4x4h.new;
 
 /// Double-precision f64 initializers
-pub const vec2d = Vec2d.init;
-pub const vec3d = Vec3d.init;
-pub const vec4d = Vec4d.init;
+pub const vec2d = Vec2d.new;
+pub const vec3d = Vec3d.new;
+pub const vec4d = Vec4d.new;
 pub const vec2dFromInt = Vec2d.fromInt;
 pub const vec3dFromInt = Vec3d.fromInt;
 pub const vec4dFromInt = Vec4d.fromInt;
-pub const quatd = Quatd.init;
-pub const mat2x2d = Mat2x2d.init;
-pub const mat3x3d = Mat3x3d.init;
-pub const mat4x4d = Mat4x4d.init;
-pub const hprd = HeadingPitchRolld.init;
+pub const quatd = Quatd.new;
+pub const mat2x2d = Mat2x2d.new;
+pub const mat3x3d = Mat3x3d.new;
+pub const mat4x4d = Mat4x4d.new;
+pub const hprd = HeadingPitchRolld.new;
 
 test {
     testing.refAllDeclsRecursive(@This());
@@ -109,8 +106,11 @@ pub const pow = std.math.pow;
 pub const sin = std.math.sin;
 pub const cos = std.math.cos;
 pub const acos = std.math.acos;
+pub const atan = std.math.atan;
+pub const atan2 = std.math.atan2;
 pub const isNan = std.math.isNan;
 pub const isInf = std.math.isInf;
+pub const mod = std.math.mod;
 pub const clamp = std.math.clamp;
 pub const log10 = std.math.log10;
 pub const degreesToRadians = std.math.degreesToRadians;
@@ -122,6 +122,8 @@ pub const rad_per_deg = std.math.rad_per_deg;
 pub const deg_per_rad = std.math.deg_per_rad;
 
 pub const pi = std.math.pi;
+
+pub const pi_over_two = pi / 2.0;
 
 /// 2 * pi
 pub const tau = std.math.tau;
@@ -137,4 +139,28 @@ pub const sqrt1_2 = std.math.sqrt1_2;
 
 pub fn asinClamped(value: anytype) @TypeOf(value) {
     return std.math.asin(std.math.clamp(value, -1.0, 1.0));
+}
+pub fn abs(v: f64) f64 {
+    if (v < 0) {
+        return -v;
+    } else {
+        return v;
+    }
+}
+pub fn zeroToTwoPi(angle: f64) f64 {
+    if (angle >= 0 and angle <= tau) {
+        return angle;
+    }
+    const modv = mod(f64, angle, tau) catch unreachable;
+    if (abs(modv) < epsilon.EPSILON14 and abs(angle) > epsilon.EPSILON14) {
+        return tau;
+    }
+    return modv;
+}
+
+pub fn negativePiToPi(angle: f64) f64 {
+    if (angle >= -pi and angle <= pi) {
+        return angle;
+    }
+    return zeroToTwoPi(angle + pi) - pi;
 }

@@ -20,7 +20,7 @@ pub fn Mat2x2(
         /// }
         /// ```
         ///
-        /// Use the init() constructor to write code which visually matches the same layout as you'd
+        /// Use the new() constructor to write code which visually matches the same layout as you'd
         /// see used in scientific / maths communities.
         v: [cols]Vec,
 
@@ -47,9 +47,9 @@ pub fn Mat2x2(
         const Shared = MatShared(RowVec, ColVec, Matrix);
 
         /// Identity matrix
-        pub const ident = Matrix.init(
-            &RowVec.init(1, 0),
-            &RowVec.init(0, 1),
+        pub const ident = Matrix.new(
+            &RowVec.new(1, 0),
+            &RowVec.new(0, 1),
         );
 
         /// Constructs a 2x2 matrix with the given rows. For example to write a translation
@@ -63,50 +63,50 @@ pub fn Mat2x2(
         /// You would write it with the same visual layout:
         ///
         /// ```
-        /// const m = Mat2x2.init(
+        /// const m = Mat2x2.new(
         ///     vec3(1, tx),
         ///     vec3(0, ty),
         /// );
         /// ```
         ///
         /// Note that Mach matrices use [column-major storage and column-vectors](https://machengine.org/engine/math/matrix-storage/).
-        pub inline fn init(r0: *const RowVec, r1: *const RowVec) Matrix {
+        pub fn new(r0: *const RowVec, r1: *const RowVec) Matrix {
             return .{ .v = [_]Vec{
-                Vec.init(r0.x(), r1.x()),
-                Vec.init(r0.y(), r1.y()),
+                Vec.new(r0.x(), r1.x()),
+                Vec.new(r0.y(), r1.y()),
             } };
         }
 
         /// Transposes the matrix.
-        pub inline fn transpose(m: *const Matrix) Matrix {
+        pub fn transpose(m: *const Matrix) Matrix {
             return .{ .v = [_]Vec{
-                Vec.init(m.v[0].v[0], m.v[1].v[0]),
-                Vec.init(m.v[0].v[1], m.v[1].v[1]),
+                Vec.new(m.v[0].v[0], m.v[1].v[0]),
+                Vec.new(m.v[0].v[1], m.v[1].v[1]),
             } };
         }
 
         // Constructs a 1D matrix which scales each dimension by the given scalar.
-        pub inline fn scaleScalar(t: Vec.T) Matrix {
-            return init(
-                &RowVec.init(t, 0),
-                &RowVec.init(0, 1),
+        pub fn scaleScalar(t: T) Matrix {
+            return new(
+                &RowVec.new(t, 0),
+                &RowVec.new(0, 1),
             );
         }
 
         /// Constructs a 1D matrix which translates coordinates by the given scalar.
-        pub inline fn translateScalar(t: Vec.T) Matrix {
-            return init(
-                &RowVec.init(1, t),
-                &RowVec.init(0, 1),
+        pub fn translateScalar(t: T) Matrix {
+            return new(
+                &RowVec.new(1, t),
+                &RowVec.new(0, 1),
             );
         }
 
-        pub inline fn fromRotation(angle_radians: f32) Matrix {
+        pub fn fromRotation(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
-            return Matrix.init(
-                &RowVec.init(c, -s),
-                &RowVec.init(s, c),
+            return Matrix.new(
+                &RowVec.new(c, -s),
+                &RowVec.new(s, c),
             );
         }
         pub const getRow = Shared.getRow;
@@ -120,6 +120,9 @@ pub fn Mat2x2(
         pub const getScale = Shared.getScale;
         pub const mul = Shared.mul;
         pub const mulVec = Shared.mulVec;
+        pub const clone = Shared.clone;
+        pub const fromArray = Shared.fromArray;
+        pub const toArray = Shared.toArray;
     };
 }
 
@@ -141,7 +144,7 @@ pub fn Mat3x3(
         /// }
         /// ```
         ///
-        /// Use the init() constructor to write code which visually matches the same layout as you'd
+        /// Use the new() constructor to write code which visually matches the same layout as you'd
         /// see used in scientific / maths communities.
         v: [cols]Vec,
 
@@ -156,6 +159,7 @@ pub fn Mat3x3(
 
         /// The underlying Vec type, e.g. Mat3x3.Vec == Vec3
         pub const Vec = vec.Vec3(Scalar);
+        pub const Vec2 = vec.Vec2(Scalar);
 
         /// The Vec type corresponding to the number of rows, e.g. Mat3x3.RowVec == Vec3
         pub const RowVec = Vec;
@@ -168,10 +172,10 @@ pub fn Mat3x3(
         const Shared = MatShared(RowVec, ColVec, Matrix);
 
         /// Identity matrix
-        pub const ident = Matrix.init(
-            &RowVec.init(1, 0, 0),
-            &RowVec.init(0, 1, 0),
-            &RowVec.init(0, 0, 1),
+        pub const ident = Matrix.new(
+            &RowVec.new(1, 0, 0),
+            &RowVec.new(0, 1, 0),
+            &RowVec.new(0, 0, 1),
         );
 
         /// Constructs a 3x3 matrix with the given rows. For example to write a translation
@@ -186,7 +190,7 @@ pub fn Mat3x3(
         /// You would write it with the same visual layout:
         ///
         /// ```
-        /// const m = Mat3x3.init(
+        /// const m = Mat3x3.new(
         ///     vec3(1, 0, tx),
         ///     vec3(0, 1, ty),
         ///     vec3(0, 0, tz),
@@ -194,86 +198,86 @@ pub fn Mat3x3(
         /// ```
         ///
         /// Note that Mach matrices use [column-major storage and column-vectors](https://machengine.org/engine/math/matrix-storage/).
-        pub inline fn init(r0: *const RowVec, r1: *const RowVec, r2: *const RowVec) Matrix {
+        pub fn new(r0: *const RowVec, r1: *const RowVec, r2: *const RowVec) Matrix {
             return .{ .v = [_]Vec{
-                Vec.init(r0.x(), r1.x(), r2.x()),
-                Vec.init(r0.y(), r1.y(), r2.y()),
-                Vec.init(r0.z(), r1.z(), r2.z()),
+                Vec.new(r0.x(), r1.x(), r2.x()),
+                Vec.new(r0.y(), r1.y(), r2.y()),
+                Vec.new(r0.z(), r1.z(), r2.z()),
             } };
         }
 
         /// Transposes the matrix.
-        pub inline fn transpose(m: *const Matrix) Matrix {
+        pub fn transpose(m: *const Matrix) Matrix {
             return .{ .v = [_]Vec{
-                Vec.init(m.v[0].v[0], m.v[1].v[0], m.v[2].v[0]),
-                Vec.init(m.v[0].v[1], m.v[1].v[1], m.v[2].v[1]),
-                Vec.init(m.v[0].v[2], m.v[1].v[2], m.v[2].v[2]),
+                Vec.new(m.v[0].v[0], m.v[1].v[0], m.v[2].v[0]),
+                Vec.new(m.v[0].v[1], m.v[1].v[1], m.v[2].v[1]),
+                Vec.new(m.v[0].v[2], m.v[1].v[2], m.v[2].v[2]),
             } };
         }
 
         // /// Constructs a 2D matrix which scales each dimension by the given vector.
-        pub inline fn scale(s: math.Vec2) Matrix {
-            return init(
-                &RowVec.init(s.x(), 0, 0),
-                &RowVec.init(0, s.y(), 0),
-                &RowVec.init(0, 0, 1),
+        pub fn scale(s: Vec2) Matrix {
+            return new(
+                &RowVec.new(s.x(), 0, 0),
+                &RowVec.new(0, s.y(), 0),
+                &RowVec.new(0, 0, 1),
             );
         }
 
         /// Constructs a 2D matrix which scales each dimension by the given scalar.
-        pub inline fn scaleScalar(t: Vec.T) Matrix {
-            return scale(math.Vec2.splat(t));
+        pub fn scaleScalar(t: T) Matrix {
+            return scale(Vec2.splat(t));
         }
 
         /// Constructs a 2D matrix which translates coordinates by the given vector.
-        pub inline fn translate(t: math.Vec2) Matrix {
-            return init(
-                &RowVec.init(1, 0, t.x()),
-                &RowVec.init(0, 1, t.y()),
-                &RowVec.init(0, 0, 1),
+        pub fn translate(t: Vec2) Matrix {
+            return new(
+                &RowVec.new(1, 0, t.x()),
+                &RowVec.new(0, 1, t.y()),
+                &RowVec.new(0, 0, 1),
             );
         }
 
         /// Constructs a 2D matrix which translates coordinates by the given scalar.
-        pub inline fn translateScalar(t: Vec.T) Matrix {
-            return translate(math.Vec2.splat(t));
+        pub fn translateScalar(t: T) Matrix {
+            return translate(Vec2.splat(t));
         }
 
         /// Returns the translation component of the matrix.
-        pub inline fn translation(t: Matrix) math.Vec2 {
-            return math.Vec2.init(t.v[2].x(), t.v[2].y());
+        pub fn translation(t: Matrix) Vec2 {
+            return Vec2.new(t.v[2].x(), t.v[2].y());
         }
 
         /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
-        pub inline fn rotateX(angle_radians: f32) Matrix {
+        pub fn rotateX(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
-            return Matrix.init(
-                &RowVec.init(1, 0, 0),
-                &RowVec.init(0, c, -s),
-                &RowVec.init(0, s, c),
+            return Matrix.new(
+                &RowVec.new(1, 0, 0),
+                &RowVec.new(0, c, -s),
+                &RowVec.new(0, s, c),
             );
         }
 
         /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
-        pub inline fn rotateY(angle_radians: f32) Matrix {
+        pub fn rotateY(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
-            return Matrix.init(
-                &RowVec.init(c, 0, s),
-                &RowVec.init(0, 1, 0),
-                &RowVec.init(-s, 0, c),
+            return Matrix.new(
+                &RowVec.new(c, 0, s),
+                &RowVec.new(0, 1, 0),
+                &RowVec.new(-s, 0, c),
             );
         }
 
         /// Constructs a 3D matrix which rotates around the Z axis by `angle_radians`.
-        pub inline fn rotateZ(angle_radians: f32) Matrix {
+        pub fn rotateZ(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
-            return Matrix.init(
-                &RowVec.init(c, -s, 0),
-                &RowVec.init(s, c, 0),
-                &RowVec.init(0, 0, 1),
+            return Matrix.new(
+                &RowVec.new(c, -s, 0),
+                &RowVec.new(s, c, 0),
+                &RowVec.new(0, 0, 1),
             );
         }
         pub const getRow = Shared.getRow;
@@ -286,6 +290,9 @@ pub fn Mat3x3(
         pub const getScale = Shared.getScale;
         pub const mul = Shared.mul;
         pub const mulVec = Shared.mulVec;
+        pub const clone = Shared.clone;
+        pub const fromArray = Shared.fromArray;
+        pub const toArray = Shared.toArray;
     };
 }
 
@@ -307,7 +314,7 @@ pub fn Mat4x4(
         /// }
         /// ```
         ///
-        /// Use the init() constructor to write code which visually matches the same layout as you'd
+        /// Use the new() constructor to write code which visually matches the same layout as you'd
         /// see used in scientific / maths communities.
         v: [cols]Vec,
 
@@ -334,11 +341,11 @@ pub fn Mat4x4(
         const Shared = MatShared(RowVec, ColVec, Matrix);
 
         /// Identity matrix
-        pub const ident = Matrix.init(
-            &Vec.init(1, 0, 0, 0),
-            &Vec.init(0, 1, 0, 0),
-            &Vec.init(0, 0, 1, 0),
-            &Vec.init(0, 0, 0, 1),
+        pub const ident = Matrix.new(
+            &Vec.new(1, 0, 0, 0),
+            &Vec.new(0, 1, 0, 0),
+            &Vec.new(0, 0, 1, 0),
+            &Vec.new(0, 0, 0, 1),
         );
 
         /// Constructs a 4x4 matrix with the given rows. For example to write a translation
@@ -354,7 +361,7 @@ pub fn Mat4x4(
         /// You would write it with the same visual layout:
         ///
         /// ```
-        /// const m = Mat4x4.init(
+        /// const m = Mat4x4.new(
         ///     &vec4(1, 0, 0, tx),
         ///     &vec4(0, 1, 0, ty),
         ///     &vec4(0, 0, 1, tz),
@@ -363,139 +370,139 @@ pub fn Mat4x4(
         /// ```
         ///
         /// Note that Mach matrices use [column-major storage and column-vectors](https://machengine.org/engine/math/matrix-storage/).
-        pub inline fn init(r0: *const RowVec, r1: *const RowVec, r2: *const RowVec, r3: *const RowVec) Matrix {
+        pub fn new(r0: *const RowVec, r1: *const RowVec, r2: *const RowVec, r3: *const RowVec) Matrix {
             return .{ .v = [_]Vec{
-                Vec.init(r0.x(), r1.x(), r2.x(), r3.x()),
-                Vec.init(r0.y(), r1.y(), r2.y(), r3.y()),
-                Vec.init(r0.z(), r1.z(), r2.z(), r3.z()),
-                Vec.init(r0.w(), r1.w(), r2.w(), r3.w()),
+                Vec.new(r0.x(), r1.x(), r2.x(), r3.x()),
+                Vec.new(r0.y(), r1.y(), r2.y(), r3.y()),
+                Vec.new(r0.z(), r1.z(), r2.z(), r3.z()),
+                Vec.new(r0.w(), r1.w(), r2.w(), r3.w()),
             } };
         }
 
         /// Transposes the matrix.
-        pub inline fn transpose(m: *const Matrix) Matrix {
+        pub fn transpose(m: *const Matrix) Matrix {
             return .{ .v = [_]Vec{
-                Vec.init(m.v[0].v[0], m.v[1].v[0], m.v[2].v[0], m.v[3].v[0]),
-                Vec.init(m.v[0].v[1], m.v[1].v[1], m.v[2].v[1], m.v[3].v[1]),
-                Vec.init(m.v[0].v[2], m.v[1].v[2], m.v[2].v[2], m.v[3].v[2]),
-                Vec.init(m.v[0].v[3], m.v[1].v[3], m.v[2].v[3], m.v[3].v[3]),
+                Vec.new(m.v[0].v[0], m.v[1].v[0], m.v[2].v[0], m.v[3].v[0]),
+                Vec.new(m.v[0].v[1], m.v[1].v[1], m.v[2].v[1], m.v[3].v[1]),
+                Vec.new(m.v[0].v[2], m.v[1].v[2], m.v[2].v[2], m.v[3].v[2]),
+                Vec.new(m.v[0].v[3], m.v[1].v[3], m.v[2].v[3], m.v[3].v[3]),
             } };
         }
 
         /// Constructs a 3D matrix which scales each dimension by the given vector.
-        pub inline fn scale(s: math.Vec3) Matrix {
-            return init(
-                &RowVec.init(s.x(), 0, 0, 0),
-                &RowVec.init(0, s.y(), 0, 0),
-                &RowVec.init(0, 0, s.z(), 0),
-                &RowVec.init(0, 0, 0, 1),
+        pub fn scale(s: Vec3) Matrix {
+            return new(
+                &RowVec.new(s.x(), 0, 0, 0),
+                &RowVec.new(0, s.y(), 0, 0),
+                &RowVec.new(0, 0, s.z(), 0),
+                &RowVec.new(0, 0, 0, 1),
             );
         }
 
         /// Constructs a 3D matrix which scales each dimension by the given scalar.
-        pub inline fn scaleScalar(s: Vec.T) Matrix {
-            return scale(math.Vec3.splat(s));
+        pub fn scaleScalar(s: T) Matrix {
+            return scale(Vec3.splat(s));
         }
 
         /// Constructs a 3D matrix which translates coordinates by the given vector.
-        pub inline fn translate(t: math.Vec3) Matrix {
-            return init(
-                &RowVec.init(1, 0, 0, t.x()),
-                &RowVec.init(0, 1, 0, t.y()),
-                &RowVec.init(0, 0, 1, t.z()),
-                &RowVec.init(0, 0, 0, 1),
+        pub fn translate(t: Vec3) Matrix {
+            return new(
+                &RowVec.new(1, 0, 0, t.x()),
+                &RowVec.new(0, 1, 0, t.y()),
+                &RowVec.new(0, 0, 1, t.z()),
+                &RowVec.new(0, 0, 0, 1),
             );
         }
 
         /// Constructs a 3D matrix which translates coordinates by the given scalar.
-        pub inline fn translateScalar(t: Vec.T) Matrix {
-            return translate(math.Vec3.splat(t));
+        pub fn translateScalar(t: T) Matrix {
+            return translate(Vec3.splat(t));
         }
 
         /// Returns the translation component of the matrix.
-        pub inline fn translation(t: *const Matrix) math.Vec3 {
-            return math.Vec3.init(t.v[3].x(), t.v[3].y(), t.v[3].z());
+        pub fn translation(t: *const Matrix) Vec3 {
+            return Vec3.new(t.v[3].x(), t.v[3].y(), t.v[3].z());
         }
 
         /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
-        pub inline fn rotateX(angle_radians: f32) Matrix {
+        pub fn rotateX(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
-            return Matrix.init(
-                &RowVec.init(1, 0, 0, 0),
-                &RowVec.init(0, c, -s, 0),
-                &RowVec.init(0, s, c, 0),
-                &RowVec.init(0, 0, 0, 1),
+            return Matrix.new(
+                &RowVec.new(1, 0, 0, 0),
+                &RowVec.new(0, c, -s, 0),
+                &RowVec.new(0, s, c, 0),
+                &RowVec.new(0, 0, 0, 1),
             );
         }
 
         /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
-        pub inline fn rotateY(angle_radians: f32) Matrix {
+        pub fn rotateY(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
-            return Matrix.init(
-                &RowVec.init(c, 0, s, 0),
-                &RowVec.init(0, 1, 0, 0),
-                &RowVec.init(-s, 0, c, 0),
-                &RowVec.init(0, 0, 0, 1),
+            return Matrix.new(
+                &RowVec.new(c, 0, s, 0),
+                &RowVec.new(0, 1, 0, 0),
+                &RowVec.new(-s, 0, c, 0),
+                &RowVec.new(0, 0, 0, 1),
             );
         }
 
         /// Constructs a 3D matrix which rotates around the Z axis by `angle_radians`.
-        pub inline fn rotateZ(angle_radians: f32) Matrix {
+        pub fn rotateZ(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
-            return Matrix.init(
-                &RowVec.init(c, -s, 0, 0),
-                &RowVec.init(s, c, 0, 0),
-                &RowVec.init(0, 0, 1, 0),
-                &RowVec.init(0, 0, 0, 1),
+            return Matrix.new(
+                &RowVec.new(c, -s, 0, 0),
+                &RowVec.new(s, c, 0, 0),
+                &RowVec.new(0, 0, 1, 0),
+                &RowVec.new(0, 0, 0, 1),
             );
         }
         const Vec3 = vec.Vec3(T);
-        pub inline fn fromScale(o: *const Vec3) Matrix {
-            return Matrix.init(
-                &RowVec.init(o.x(), 0, 0, 0),
-                &RowVec.init(0, o.y(), 0, 0),
-                &RowVec.init(0, 0, o.z(), 0),
-                &RowVec.init(0, 0, 0, 1),
+        pub fn fromScale(o: *const Vec3) Matrix {
+            return Matrix.new(
+                &RowVec.new(o.x(), 0, 0, 0),
+                &RowVec.new(0, o.y(), 0, 0),
+                &RowVec.new(0, 0, o.z(), 0),
+                &RowVec.new(0, 0, 0, 1),
             );
         }
-        pub inline fn fromUniformScale(s: T) Matrix {
+        pub fn fromUniformScale(s: T) Matrix {
             const tempScale = Vec3.splat(s);
             return fromScale(&tempScale);
         }
-        pub inline fn getScale(m: *const Matrix) Vec3 {
+        pub fn getScale(m: *const Matrix) Vec3 {
             var col: Vec3 = undefined;
-            col.v[0] = Vec3.init(m.v[0].v[0], m.v[0].v[1], m.v[0].v[2]);
-            col.v[1] = Vec3.init(m.v[1].v[0], m.v[1].v[1], m.v[1].v[2]);
-            col.v[2] = Vec3.init(m.v[2].v[0], m.v[2].v[1], m.v[2].v[2]);
+            col.v[0] = Vec3.new(m.v[0].v[0], m.v[0].v[1], m.v[0].v[2]).len();
+            col.v[1] = Vec3.new(m.v[1].v[0], m.v[1].v[1], m.v[1].v[2]).len();
+            col.v[2] = Vec3.new(m.v[2].v[0], m.v[2].v[1], m.v[2].v[2]).len();
             return col;
         }
 
-        pub inline fn setScale(m: *Matrix, s: *const Vec3) void {
+        pub fn setScale(m: *Matrix, s: *const Vec3) void {
             const existingScale = m.getScale();
             const scaleRatio = s.div(&existingScale);
             var matrix: Matrix = undefined;
-            matrix.v[0][0] = matrix.v[0][0] * scaleRatio.x();
-            matrix.v[0][1] = matrix.v[0][1] * scaleRatio.x();
-            matrix.v[0][2] = matrix.v[0][2] * scaleRatio.x();
-            matrix.v[0][3] = matrix.v[0][3];
+            matrix.v[0].v[0] = matrix.v[0].v[0] * scaleRatio.x();
+            matrix.v[0].v[1] = matrix.v[0].v[1] * scaleRatio.x();
+            matrix.v[0].v[2] = matrix.v[0].v[2] * scaleRatio.x();
+            matrix.v[0].v[3] = matrix.v[0].v[3];
 
-            matrix.v[1][0] = matrix.v[1][0] * scaleRatio.y();
-            matrix.v[1][1] = matrix.v[1][1] * scaleRatio.y();
-            matrix.v[1][2] = matrix.v[1][2] * scaleRatio.y();
-            matrix.v[1][3] = matrix.v[1][3];
+            matrix.v[1].v[0] = matrix.v[1].v[0] * scaleRatio.y();
+            matrix.v[1].v[1] = matrix.v[1].v[1] * scaleRatio.y();
+            matrix.v[1].v[2] = matrix.v[1].v[2] * scaleRatio.y();
+            matrix.v[1].v[3] = matrix.v[1].v[3];
 
-            matrix.v[2][0] = matrix.v[2][0] * scaleRatio.z();
-            matrix.v[2][1] = matrix.v[2][1] * scaleRatio.z();
-            matrix.v[2][2] = matrix.v[2][2] * scaleRatio.z();
-            matrix.v[2][3] = matrix.v[2][3];
+            matrix.v[2].v[0] = matrix.v[2].v[0] * scaleRatio.z();
+            matrix.v[2].v[1] = matrix.v[2].v[1] * scaleRatio.z();
+            matrix.v[2].v[2] = matrix.v[2].v[2] * scaleRatio.z();
+            matrix.v[2].v[3] = matrix.v[2].v[3];
 
-            matrix.v[3][0] = matrix.v[3][0];
-            matrix.v[3][1] = matrix.v[3][1];
-            matrix.v[3][2] = matrix.v[3][2];
-            matrix.v[3][3] = matrix.v[3][3];
+            matrix.v[3].v[0] = matrix.v[3].v[0];
+            matrix.v[3].v[1] = matrix.v[3].v[1];
+            matrix.v[3].v[2] = matrix.v[3].v[2];
+            matrix.v[3].v[3] = matrix.v[3].v[3];
         }
 
         /// Constructs a 2D projection matrix, aka. an orthographic projection matrix.
@@ -522,21 +529,21 @@ pub fn Mat4x4(
         ///
         /// Mach mandates the use of a reversed depth buffer, so the returned transformation
         /// matrix maps to near=1 and far=0.
-        pub inline fn projection2D(v: struct {
-            left: f32,
-            right: f32,
-            bottom: f32,
-            top: f32,
-            near: f32,
-            far: f32,
+        pub fn projection2D(v: struct {
+            left: T,
+            right: T,
+            bottom: T,
+            top: T,
+            near: T,
+            far: T,
         }) Matrix {
             var p = Matrix.ident;
-            p = p.mul(&Matrix.translate(math.vec3(
+            p = p.mul(&Matrix.translate(Vec3.new(
                 (v.right + v.left) / (v.left - v.right), // translate X so that the middle of (left, right) maps to x=0 in clip space
                 (v.top + v.bottom) / (v.bottom - v.top), // translate Y so that the middle of (bottom, top) maps to y=0 in clip space
                 v.far / (v.far - v.near), // translate Z so that far maps to z=0
             )));
-            p = p.mul(&Matrix.scale(math.vec3(
+            p = p.mul(&Matrix.scale(Vec3.new(
                 2 / (v.right - v.left), // scale X so that [left, right] has a 2 unit range, e.g. [-1, +1]
                 2 / (v.top - v.bottom), // scale Y so that [bottom, top] has a 2 unit range, e.g. [-1, +1]
                 1 / (v.near - v.far), // scale Z so that [near, far] has a 1 unit range, e.g. [0, -1]
@@ -552,13 +559,16 @@ pub fn Mat4x4(
         pub const mulVec = Shared.mulVec;
         pub const eql = Shared.eql;
         pub const eqlApprox = Shared.eqlApprox;
+        pub const clone = Shared.clone;
+        pub const fromArray = Shared.fromArray;
+        pub const toArray = Shared.toArray;
     };
 }
 
 pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: type) type {
     return struct {
         /// Matrix multiplication a*b
-        pub inline fn mul(a: *const Matrix, b: *const Matrix) Matrix {
+        pub fn mul(a: *const Matrix, b: *const Matrix) Matrix {
             @setEvalBranchQuota(10000);
             var result: Matrix = undefined;
             inline for (0..Matrix.rows) |rowi| {
@@ -578,7 +588,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
         }
 
         /// Matrix * Vector multiplication
-        pub inline fn mulVec(matrix: *const Matrix, vector: *const ColVec) ColVec {
+        pub fn mulVec(matrix: *const Matrix, vector: *const ColVec) ColVec {
             var result = [_]ColVec.T{0} ** ColVec.n;
             inline for (0..Matrix.rows) |rowi| {
                 inline for (0..ColVec.n) |i| {
@@ -588,9 +598,33 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             return ColVec{ .v = result };
         }
 
+        pub fn fromArray(slice: *const [Matrix.cols * Matrix.rows]Matrix.T) Matrix {
+            var result: Matrix = undefined;
+            var i: usize = 0;
+            inline for (0..Matrix.rows) |rowi| {
+                inline for (0..Matrix.cols) |coli| {
+                    result.v[rowi].v[coli] = slice[i];
+                    i += 1;
+                }
+            }
+            return result;
+        }
+
+        pub fn toArray(a: *const Matrix) [Matrix.cols * Matrix.rows]Matrix.T {
+            var slice = [1]Matrix.T{0} ** (Matrix.cols * Matrix.rows);
+            var i: usize = 0;
+            inline for (0..Matrix.rows) |rowi| {
+                inline for (0..Matrix.cols) |coli| {
+                    slice[i] = a.v[rowi].v[coli];
+                    i += 1;
+                }
+            }
+            return slice;
+        }
+
         /// Check if two matrices are approximately equal. Returns true if the absolute difference between
         /// each element in matrix is less than or equal to the specified tolerance.
-        pub inline fn eqlApprox(a: *const Matrix, b: *const Matrix, tolerance: ColVec.T) bool {
+        pub fn eqlApprox(a: *const Matrix, b: *const Matrix, tolerance: ColVec.T) bool {
             inline for (0..Matrix.rows) |rowi| {
                 if (!ColVec.eqlApprox(&a.v[rowi], &b.v[rowi], tolerance)) {
                     return false;
@@ -601,7 +635,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
 
         /// Check if two matrices are approximately equal. Returns true if the absolute difference between
         /// each element in matrix is less than or equal to the epsilon tolerance.
-        pub inline fn eql(a: *const Matrix, b: *const Matrix) bool {
+        pub fn eql(a: *const Matrix, b: *const Matrix) bool {
             inline for (0..Matrix.rows) |rowi| {
                 if (!ColVec.eql(&a.v[rowi], &b.v[rowi])) {
                     return false;
@@ -610,7 +644,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             return true;
         }
 
-        pub inline fn getRow(m: *const Matrix, i: usize) RowVec {
+        pub fn getRow(m: *const Matrix, i: usize) RowVec {
             var result = [_]RowVec.T{0} ** RowVec.n;
             inline for (0..Matrix.cols) |coli| {
                 result[coli] = m.v[coli].v[i];
@@ -618,7 +652,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             return ColVec{ .v = result };
         }
 
-        pub inline fn getCol(m: *const Matrix, i: usize) RowVec {
+        pub fn getCol(m: *const Matrix, i: usize) RowVec {
             var result = [_]ColVec.T{0} ** ColVec.n;
             inline for (0..Matrix.rows) |rowi| {
                 result[rowi] = m.v[i].v[rowi];
@@ -626,19 +660,19 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             return ColVec{ .v = result };
         }
 
-        pub inline fn setRow(m: *const Matrix, i: usize, o: *const RowVec) void {
+        pub fn setRow(m: *Matrix, i: usize, o: *const RowVec) void {
             inline for (0..Matrix.cols) |coli| {
                 m.v[coli].v[i] = o.v[coli];
             }
         }
 
-        pub inline fn setCol(m: *const Matrix, i: usize, o: *const ColVec) void {
+        pub fn setCol(m: *Matrix, i: usize, o: *const ColVec) void {
             inline for (0..Matrix.rows) |rowi| {
                 m.v[i].v[rowi] = o.v[rowi];
             }
         }
 
-        pub inline fn fromScale(o: *const ColVec) Matrix {
+        pub fn fromScale(o: *const ColVec) Matrix {
             var result: Matrix = undefined;
             inline for (0..Matrix.rows) |rowi| {
                 inline for (0..Matrix.cols) |coli| {
@@ -649,18 +683,18 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             }
             return result;
         }
-        pub inline fn fromUniformScale(s: Matrix.T) Matrix {
+        pub fn fromUniformScale(s: Matrix.T) Matrix {
             const tempScale = ColVec.splat(s);
             return fromScale(&tempScale);
         }
-        pub inline fn getScale(m: *const Matrix) ColVec {
+        pub fn getScale(m: *const Matrix) ColVec {
             var result = [_]ColVec.T{0} ** ColVec.n;
             inline for (0..Matrix.rows) |rowi| {
                 result[rowi] = m.getCol(rowi).len();
             }
             return ColVec{ .v = result };
         }
-        pub inline fn setScale(m: *Matrix, s: *const ColVec) void {
+        pub fn setScale(m: *Matrix, s: *const ColVec) void {
             const existingScale = m.getScale();
             const scaleRatio = s.div(&existingScale);
 
@@ -668,7 +702,45 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
                 m.v[coli] = m.v[coli].mulScalar(scaleRatio.v[coli]);
             }
         }
+        pub fn clone(m: *const Matrix) Matrix {
+            return Matrix{ .v = m.v };
+        }
     };
+}
+
+test "Mat4x4_fromArray_toArray" {
+    const std = @import("std");
+    var slice = [1]f64{0} ** 16;
+    //x axis
+    slice[0] = 1;
+    slice[1] = 2;
+    slice[2] = 3;
+    slice[3] = 4;
+    //y axis
+    slice[4] = 5;
+    slice[5] = 6;
+    slice[6] = 7;
+    slice[7] = 8;
+    //z axis
+    slice[8] = 9;
+    slice[9] = 10;
+    slice[10] = 11;
+    slice[11] = 12;
+    //point
+    slice[12] = 13;
+    slice[13] = 14;
+    slice[14] = 15;
+    slice[15] = 16;
+    const actual = Mat4x4(f64).fromArray(&slice);
+    const expect = Mat4x4(f64).new(
+        &math.vec4d(1, 5, 9, 13),
+        &math.vec4d(2, 6, 10, 14),
+        &math.vec4d(3, 7, 11, 15),
+        &math.vec4d(4, 8, 12, 16),
+    );
+    try testing.expect(Mat4x4(f64), expect).eql(actual);
+    const actualSlice = actual.toArray();
+    try std.testing.expect(std.mem.eql(f64, &slice, &actualSlice));
 }
 
 test "gpu_compatibility" {
@@ -703,16 +775,16 @@ test "n" {
     try testing.expect(usize, 3).eql(math.Mat3x3.Vec.n);
 }
 
-test "init" {
+test "new" {
     try testing.expect(math.Mat3x3, math.mat3x3(
         &math.vec3(1, 0, 1337),
         &math.vec3(0, 1, 7331),
         &math.vec3(0, 0, 1),
     )).eql(math.Mat3x3{
         .v = [_]math.Vec3{
-            math.Vec3.init(1, 0, 0),
-            math.Vec3.init(0, 1, 0),
-            math.Vec3.init(1337, 7331, 1),
+            math.Vec3.new(1, 0, 0),
+            math.Vec3.new(0, 1, 0),
+            math.Vec3.new(1337, 7331, 1),
         },
     });
 }
@@ -720,8 +792,8 @@ test "init" {
 test "Mat2x2_ident" {
     try testing.expect(math.Mat2x2, math.Mat2x2.ident).eql(math.Mat2x2{
         .v = [_]math.Vec2{
-            math.Vec2.init(1, 0),
-            math.Vec2.init(0, 1),
+            math.Vec2.new(1, 0),
+            math.Vec2.new(0, 1),
         },
     });
 }
@@ -729,9 +801,9 @@ test "Mat2x2_ident" {
 test "Mat3x3_ident" {
     try testing.expect(math.Mat3x3, math.Mat3x3.ident).eql(math.Mat3x3{
         .v = [_]math.Vec3{
-            math.Vec3.init(1, 0, 0),
-            math.Vec3.init(0, 1, 0),
-            math.Vec3.init(0, 0, 1),
+            math.Vec3.new(1, 0, 0),
+            math.Vec3.new(0, 1, 0),
+            math.Vec3.new(0, 0, 1),
         },
     });
 }
@@ -739,16 +811,16 @@ test "Mat3x3_ident" {
 test "Mat4x4_ident" {
     try testing.expect(math.Mat4x4, math.Mat4x4.ident).eql(math.Mat4x4{
         .v = [_]math.Vec4{
-            math.Vec4.init(1, 0, 0, 0),
-            math.Vec4.init(0, 1, 0, 0),
-            math.Vec4.init(0, 0, 1, 0),
-            math.Vec4.init(0, 0, 0, 1),
+            math.Vec4.new(1, 0, 0, 0),
+            math.Vec4.new(0, 1, 0, 0),
+            math.Vec4.new(0, 0, 1, 0),
+            math.Vec4.new(0, 0, 0, 1),
         },
     });
 }
 
 test "Mat2x2_row" {
-    const m = math.Mat2x2.init(
+    const m = math.Mat2x2.new(
         &math.vec2(0, 1),
         &math.vec2(2, 3),
     );
@@ -757,7 +829,7 @@ test "Mat2x2_row" {
 }
 
 test "Mat2x2_col" {
-    const m = math.Mat2x2.init(
+    const m = math.Mat2x2.new(
         &math.vec2(0, 1),
         &math.vec2(2, 3),
     );
@@ -766,7 +838,7 @@ test "Mat2x2_col" {
 }
 
 test "Mat3x3_row" {
-    const m = math.Mat3x3.init(
+    const m = math.Mat3x3.new(
         &math.vec3(0, 1, 2),
         &math.vec3(3, 4, 5),
         &math.vec3(6, 7, 8),
@@ -777,7 +849,7 @@ test "Mat3x3_row" {
 }
 
 test "Mat3x3_col" {
-    const m = math.Mat3x3.init(
+    const m = math.Mat3x3.new(
         &math.vec3(0, 1, 2),
         &math.vec3(3, 4, 5),
         &math.vec3(6, 7, 8),
@@ -788,7 +860,7 @@ test "Mat3x3_col" {
 }
 
 test "Mat4x4_row" {
-    const m = math.Mat4x4.init(
+    const m = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
@@ -801,7 +873,7 @@ test "Mat4x4_row" {
 }
 
 test "Mat4x4_col" {
-    const m = math.Mat4x4.init(
+    const m = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
@@ -814,23 +886,23 @@ test "Mat4x4_col" {
 }
 
 test "Mat2x2_transpose" {
-    const m = math.Mat2x2.init(
+    const m = math.Mat2x2.new(
         &math.vec2(0, 1),
         &math.vec2(2, 3),
     );
-    try testing.expect(math.Mat2x2, math.Mat2x2.init(
+    try testing.expect(math.Mat2x2, math.Mat2x2.new(
         &math.vec2(0, 2),
         &math.vec2(1, 3),
     )).eql(m.transpose());
 }
 
 test "Mat3x3_transpose" {
-    const m = math.Mat3x3.init(
+    const m = math.Mat3x3.new(
         &math.vec3(0, 1, 2),
         &math.vec3(3, 4, 5),
         &math.vec3(6, 7, 8),
     );
-    try testing.expect(math.Mat3x3, math.Mat3x3.init(
+    try testing.expect(math.Mat3x3, math.Mat3x3.new(
         &math.vec3(0, 3, 6),
         &math.vec3(1, 4, 7),
         &math.vec3(2, 5, 8),
@@ -838,13 +910,13 @@ test "Mat3x3_transpose" {
 }
 
 test "Mat4x4_transpose" {
-    const m = math.Mat4x4.init(
+    const m = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    try testing.expect(math.Mat4x4, math.Mat4x4.init(
+    try testing.expect(math.Mat4x4, math.Mat4x4.new(
         &math.vec4(0, 4, 8, 12),
         &math.vec4(1, 5, 9, 13),
         &math.vec4(2, 6, 10, 14),
@@ -854,7 +926,7 @@ test "Mat4x4_transpose" {
 
 test "Mat2x2_scaleScalar" {
     const m = math.Mat2x2.scaleScalar(2);
-    try testing.expect(math.Mat2x2, math.Mat2x2.init(
+    try testing.expect(math.Mat2x2, math.Mat2x2.new(
         &math.vec2(2, 0),
         &math.vec2(0, 1),
     )).eql(m);
@@ -862,7 +934,7 @@ test "Mat2x2_scaleScalar" {
 
 test "Mat3x3_scale" {
     const m = math.Mat3x3.scale(math.vec2(2, 3));
-    try testing.expect(math.Mat3x3, math.Mat3x3.init(
+    try testing.expect(math.Mat3x3, math.Mat3x3.new(
         &math.vec3(2, 0, 0),
         &math.vec3(0, 3, 0),
         &math.vec3(0, 0, 1),
@@ -871,7 +943,7 @@ test "Mat3x3_scale" {
 
 test "Mat3x3_scaleScalar" {
     const m = math.Mat3x3.scaleScalar(2);
-    try testing.expect(math.Mat3x3, math.Mat3x3.init(
+    try testing.expect(math.Mat3x3, math.Mat3x3.new(
         &math.vec3(2, 0, 0),
         &math.vec3(0, 2, 0),
         &math.vec3(0, 0, 1),
@@ -880,7 +952,7 @@ test "Mat3x3_scaleScalar" {
 
 test "Mat4x4_scale" {
     const m = math.Mat4x4.scale(math.vec3(2, 3, 4));
-    try testing.expect(math.Mat4x4, math.Mat4x4.init(
+    try testing.expect(math.Mat4x4, math.Mat4x4.new(
         &math.vec4(2, 0, 0, 0),
         &math.vec4(0, 3, 0, 0),
         &math.vec4(0, 0, 4, 0),
@@ -890,7 +962,7 @@ test "Mat4x4_scale" {
 
 test "Mat4x4_scaleScalar" {
     const m = math.Mat4x4.scaleScalar(2);
-    try testing.expect(math.Mat4x4, math.Mat4x4.init(
+    try testing.expect(math.Mat4x4, math.Mat4x4.new(
         &math.vec4(2, 0, 0, 0),
         &math.vec4(0, 2, 0, 0),
         &math.vec4(0, 0, 2, 0),
@@ -900,7 +972,7 @@ test "Mat4x4_scaleScalar" {
 
 test "Mat3x3_translate" {
     const m = math.Mat3x3.translate(math.vec2(2, 3));
-    try testing.expect(math.Mat3x3, math.Mat3x3.init(
+    try testing.expect(math.Mat3x3, math.Mat3x3.new(
         &math.vec3(1, 0, 2),
         &math.vec3(0, 1, 3),
         &math.vec3(0, 0, 1),
@@ -909,7 +981,7 @@ test "Mat3x3_translate" {
 
 test "Mat4x4_translate" {
     const m = math.Mat4x4.translate(math.vec3(2, 3, 4));
-    try testing.expect(math.Mat4x4, math.Mat4x4.init(
+    try testing.expect(math.Mat4x4, math.Mat4x4.new(
         &math.vec4(1, 0, 0, 2),
         &math.vec4(0, 1, 0, 3),
         &math.vec4(0, 0, 1, 4),
@@ -919,7 +991,7 @@ test "Mat4x4_translate" {
 
 test "Mat3x3_translateScalar" {
     const m = math.Mat3x3.translateScalar(2);
-    try testing.expect(math.Mat3x3, math.Mat3x3.init(
+    try testing.expect(math.Mat3x3, math.Mat3x3.new(
         &math.vec3(1, 0, 2),
         &math.vec3(0, 1, 2),
         &math.vec3(0, 0, 1),
@@ -928,7 +1000,7 @@ test "Mat3x3_translateScalar" {
 
 test "Mat2x2_translateScalar" {
     const m = math.Mat2x2.translateScalar(2);
-    try testing.expect(math.Mat2x2, math.Mat2x2.init(
+    try testing.expect(math.Mat2x2, math.Mat2x2.new(
         &math.vec2(1, 2),
         &math.vec2(0, 1),
     )).eql(m);
@@ -936,7 +1008,7 @@ test "Mat2x2_translateScalar" {
 
 test "Mat4x4_translateScalar" {
     const m = math.Mat4x4.translateScalar(2);
-    try testing.expect(math.Mat4x4, math.Mat4x4.init(
+    try testing.expect(math.Mat4x4, math.Mat4x4.new(
         &math.vec4(1, 0, 0, 2),
         &math.vec4(0, 1, 0, 2),
         &math.vec4(0, 0, 1, 2),
@@ -965,7 +1037,7 @@ test "Mat2x2_mulVec_vec2_ident" {
 
 test "Mat2x2_mulVec_vec2" {
     const v = math.Vec2.splat(1);
-    const mat = math.Mat2x2.init(
+    const mat = math.Mat2x2.new(
         &math.vec2(2, 0),
         &math.vec2(0, 2),
     );
@@ -986,7 +1058,7 @@ test "Mat3x3_mulVec_vec3_ident" {
 
 test "Mat3x3_mulVec_vec3" {
     const v = math.Vec3.splat(1);
-    const mat = math.Mat3x3.init(
+    const mat = math.Mat3x3.new(
         &math.vec3(2, 0, 0),
         &math.vec3(0, 2, 0),
         &math.vec3(0, 0, 3),
@@ -999,7 +1071,7 @@ test "Mat3x3_mulVec_vec3" {
 
 test "Mat4x4_mulVec_vec4" {
     const v = math.vec4(2, 5, 1, 8);
-    const mat = math.Mat4x4.init(
+    const mat = math.Mat4x4.new(
         &math.vec4(1, 0, 2, 0),
         &math.vec4(0, 3, 0, 4),
         &math.vec4(0, 0, 5, 0),
@@ -1012,17 +1084,17 @@ test "Mat4x4_mulVec_vec4" {
 }
 
 test "Mat2x2_mul" {
-    const a = math.Mat2x2.init(
+    const a = math.Mat2x2.new(
         &math.vec2(4, 2),
         &math.vec2(7, 9),
     );
-    const b = math.Mat2x2.init(
+    const b = math.Mat2x2.new(
         &math.vec2(5, -7),
         &math.vec2(6, -3),
     );
     const c = math.Mat2x2.mul(&a, &b);
 
-    const expected = math.Mat2x2.init(
+    const expected = math.Mat2x2.new(
         &math.vec2(32, -34),
         &math.vec2(89, -76),
     );
@@ -1030,19 +1102,19 @@ test "Mat2x2_mul" {
 }
 
 test "Mat3x3_mul" {
-    const a = math.Mat3x3.init(
+    const a = math.Mat3x3.new(
         &math.vec3(4, 2, -3),
         &math.vec3(7, 9, -8),
         &math.vec3(-1, 8, -8),
     );
-    const b = math.Mat3x3.init(
+    const b = math.Mat3x3.new(
         &math.vec3(5, -7, -8),
         &math.vec3(6, -3, 2),
         &math.vec3(-3, -4, 4),
     );
     const c = math.Mat3x3.mul(&a, &b);
 
-    const expected = math.Mat3x3.init(
+    const expected = math.Mat3x3.new(
         &math.vec3(41, -22, -40),
         &math.vec3(113, -44, -70),
         &math.vec3(67, 15, -8),
@@ -1051,13 +1123,13 @@ test "Mat3x3_mul" {
 }
 
 test "Mat4x4_mul" {
-    const a = math.Mat4x4.init(
+    const a = math.Mat4x4.new(
         &math.vec4(10, -5, 6, -2),
         &math.vec4(0, -1, 0, 9),
         &math.vec4(-1, 6, -4, 8),
         &math.vec4(9, -8, -6, -10),
     );
-    const b = math.Mat4x4.init(
+    const b = math.Mat4x4.new(
         &math.vec4(7, -7, -3, -8),
         &math.vec4(1, -1, -7, -2),
         &math.vec4(-10, 2, 2, -2),
@@ -1065,7 +1137,7 @@ test "Mat4x4_mul" {
     );
     const c = math.Mat4x4.mul(&a, &b);
 
-    const expected = math.Mat4x4.init(
+    const expected = math.Mat4x4.new(
         &math.vec4(-15, -39, 3, -84),
         &math.vec4(89, -62, 70, 11),
         &math.vec4(119, -63, 9, 12),
@@ -1075,13 +1147,13 @@ test "Mat4x4_mul" {
 }
 
 test "Mat4x4_eql_not_ident" {
-    const m1 = math.Mat4x4.init(
+    const m1 = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    const m2 = math.Mat4x4.init(
+    const m2 = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4.5, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
@@ -1091,13 +1163,13 @@ test "Mat4x4_eql_not_ident" {
 }
 
 test "Mat4x4_eql_ident" {
-    const m1 = math.Mat4x4.init(
+    const m1 = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    const m2 = math.Mat4x4.init(
+    const m2 = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
@@ -1107,13 +1179,13 @@ test "Mat4x4_eql_ident" {
 }
 
 test "Mat4x4_eqlApprox_not_ident" {
-    const m1 = math.Mat4x4.init(
+    const m1 = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    const m2 = math.Mat4x4.init(
+    const m2 = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4.11, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
@@ -1123,13 +1195,13 @@ test "Mat4x4_eqlApprox_not_ident" {
 }
 
 test "Mat4x4_eqlApprox_ident" {
-    const m1 = math.Mat4x4.init(
+    const m1 = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    const m2 = math.Mat4x4.init(
+    const m2 = math.Mat4x4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4.09, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
@@ -1291,8 +1363,8 @@ test "projection2D_model_to_clip_space" {
 }
 
 test "Mat2x2_setScale" {
-    const oldScale = math.Vec2.init(2, 3);
-    const newScale = math.Vec2.init(4, 5);
+    const oldScale = math.Vec2.new(2, 3);
+    const newScale = math.Vec2.new(4, 5);
     var matrix = math.Mat2x2.fromScale(&oldScale);
     try testing.expect(math.Vec2, oldScale).eql(matrix.getScale());
     matrix.setScale(&newScale);
@@ -1300,8 +1372,8 @@ test "Mat2x2_setScale" {
 }
 
 test "Mat3x3_setScale" {
-    const oldScale = math.Vec3.init(2, 3, 4);
-    const newScale = math.Vec3.init(5, 6, 7);
+    const oldScale = math.Vec3.new(2, 3, 4);
+    const newScale = math.Vec3.new(5, 6, 7);
     var matrix = math.Mat3x3.fromScale(&oldScale);
     try testing.expect(math.Vec3, oldScale).eql(matrix.getScale());
     matrix.setScale(&newScale);
@@ -1309,8 +1381,8 @@ test "Mat3x3_setScale" {
 }
 
 test "Mat4x4_setScale" {
-    const oldScale = math.Vec3.init(2, 3, 4);
-    const newScale = math.Vec3.init(5, 6, 7);
+    const oldScale = math.Vec3.new(2, 3, 4);
+    const newScale = math.Vec3.new(5, 6, 7);
     var matrix = math.Mat3x3.fromScale(&oldScale);
     try testing.expect(math.Vec3, oldScale).eql(matrix.getScale());
     matrix.setScale(&newScale);

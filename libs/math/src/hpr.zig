@@ -15,8 +15,8 @@ pub fn HeadingPitchRoll(comptime Scalar: type) type {
 
         const HeadingPitchRollN = @This();
 
-        pub inline fn init(hv: T, pv: T, rv: T) HeadingPitchRollN {
-            return .{ .v = Vec.init(hv, pv, rv) };
+        pub fn new(hv: T, pv: T, rv: T) HeadingPitchRollN {
+            return .{ .v = Vec.new(hv, pv, rv) };
         }
 
         pub inline fn h(a: *const HeadingPitchRollN) T {
@@ -29,7 +29,7 @@ pub fn HeadingPitchRoll(comptime Scalar: type) type {
             return a.v.z();
         }
 
-        pub inline fn fromQuat(quat: *const Quat(T)) HeadingPitchRollN {
+        pub fn fromQuat(quat: *const Quat(T)) HeadingPitchRollN {
             const x = quat.v.x();
             const y = quat.v.y();
             const z = quat.v.z();
@@ -43,15 +43,15 @@ pub fn HeadingPitchRoll(comptime Scalar: type) type {
             const hv = -stdmath.atan2(numeratorHeading, denominatorHeading);
             const rv = stdmath.atan2(numeratorRoll, denominatorRoll);
             const pv = -math.asinClamped(testi);
-            return init(hv, pv, rv);
+            return new(hv, pv, rv);
         }
-        pub inline fn fromDegrees(hv: T, pv: T, rv: T) HeadingPitchRollN {
-            return init(hv * math.rad_per_deg, pv * math.rad_per_deg, rv * math.rad_per_deg);
+        pub fn fromDegrees(hv: T, pv: T, rv: T) HeadingPitchRollN {
+            return new(hv * math.rad_per_deg, pv * math.rad_per_deg, rv * math.rad_per_deg);
         }
-        pub inline fn eql(a: *const HeadingPitchRollN, b: *const HeadingPitchRollN) bool {
+        pub fn eql(a: *const HeadingPitchRollN, b: *const HeadingPitchRollN) bool {
             return a.v.eql(&b.v);
         }
-        pub inline fn eqlApprox(a: *const HeadingPitchRollN, b: *const HeadingPitchRollN, tolerance: Scalar) bool {
+        pub fn eqlApprox(a: *const HeadingPitchRollN, b: *const HeadingPitchRollN, tolerance: Scalar) bool {
             return a.v.eqlApprox(&b.v, tolerance);
         }
     };

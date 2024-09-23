@@ -18,37 +18,37 @@ pub fn Quat(comptime Scalar: type) type {
         pub const Axis = vec.Vec3(Scalar);
 
         /// Creates a quaternion from the given x, y, z, and w values
-        pub inline fn init(x: T, y: T, z: T, w: T) Quat(T) {
-            return .{ .v = Vec.init(x, y, z, w) };
+        pub fn new(x: T, y: T, z: T, w: T) Quat(T) {
+            return .{ .v = Vec.new(x, y, z, w) };
         }
 
         /// Returns the identity quaternion.
         pub inline fn identity() Quat(T) {
-            return init(0, 0, 0, 1);
+            return new(0, 0, 0, 1);
         }
 
         /// Returns the inverse of the quaternion.
-        pub inline fn inverse(q: *const Quat(T)) Quat(T) {
+        pub fn inverse(q: *const Quat(T)) Quat(T) {
             const s = 1 / q.len2();
-            return init(-q.v.x() * s, -q.v.y() * s, -q.v.z() * s, q.v.w() * s);
+            return new(-q.v.x() * s, -q.v.y() * s, -q.v.z() * s, q.v.w() * s);
         }
 
         /// Creates a Quaternion based on the given `axis` and `angle`, and returns it.
-        pub inline fn fromAxisAngle(axis: Axis, angle: T) Quat(T) {
+        pub fn fromAxisAngle(axis: Axis, angle: T) Quat(T) {
             const halfAngle = angle * 0.5;
             const s = math.sin(halfAngle);
 
-            return init(s * axis.x(), s * axis.y(), s * axis.z(), math.cos(halfAngle));
+            return new(s * axis.x(), s * axis.y(), s * axis.z(), math.cos(halfAngle));
         }
 
         /// Calculates the angle between two given quaternions.
-        pub inline fn angleBetween(a: *const Quat(T), b: *const Quat(T)) T {
+        pub fn angleBetween(a: *const Quat(T), b: *const Quat(T)) T {
             const d = Vec.dot(&a.v, &b.v);
             return math.acos(2 * d * d - 1);
         }
 
         /// Multiplies two quaternions
-        pub inline fn mul(a: *const Quat(T), b: *const Quat(T)) Quat(T) {
+        pub fn mul(a: *const Quat(T), b: *const Quat(T)) Quat(T) {
             const ax = a.v.x();
             const ay = a.v.y();
             const az = a.v.z();
@@ -63,31 +63,31 @@ pub fn Quat(comptime Scalar: type) type {
             const z = aw * bz + az * bw + ax * by - ay * bx;
             const w = aw * bw - ax * bx - ay * by - az * bz;
 
-            return init(x, y, z, w);
+            return new(x, y, z, w);
         }
 
         /// Adds two quaternions
-        pub inline fn add(a: *const Quat(T), b: *const Quat(T)) Quat(T) {
-            return init(a.v.x() + b.v.x(), a.v.y() + b.v.y(), a.v.z() + b.v.z(), a.v.w() + b.v.w());
+        pub fn add(a: *const Quat(T), b: *const Quat(T)) Quat(T) {
+            return new(a.v.x() + b.v.x(), a.v.y() + b.v.y(), a.v.z() + b.v.z(), a.v.w() + b.v.w());
         }
 
         /// Subtracts two quaternions
-        pub inline fn sub(a: *const Quat(T), b: *const Quat(T)) Quat(T) {
-            return init(a.v.x() - b.v.x(), a.v.y() - b.v.y(), a.v.z() - b.v.z(), a.v.w() - b.v.w());
+        pub fn sub(a: *const Quat(T), b: *const Quat(T)) Quat(T) {
+            return new(a.v.x() - b.v.x(), a.v.y() - b.v.y(), a.v.z() - b.v.z(), a.v.w() - b.v.w());
         }
 
         /// Multiplies a Quaternion by a scalar
-        pub inline fn mulScalar(q: *const Quat(T), s: T) Quat(T) {
-            return init(q.v.x() * s, q.v.y() * s, q.v.z() * s, q.v.w() * s);
+        pub fn mulScalar(q: *const Quat(T), s: T) Quat(T) {
+            return new(q.v.x() * s, q.v.y() * s, q.v.z() * s, q.v.w() * s);
         }
 
         /// Divides a Quaternion by a scalar
-        pub inline fn divScalar(q: *const Quat(T), s: T) Quat(T) {
-            return init(q.v.x() / s, q.v.y() / s, q.v.z() / s, q.v.w() / s);
+        pub fn divScalar(q: *const Quat(T), s: T) Quat(T) {
+            return new(q.v.x() / s, q.v.y() / s, q.v.z() / s, q.v.w() / s);
         }
 
         /// Rotates the give quaternion by the given angle, around the x-axis.
-        pub inline fn rotateX(q: *const Quat(T), angle: T) Quat(T) {
+        pub fn rotateX(q: *const Quat(T), angle: T) Quat(T) {
             const halfAngle = angle * 0.5;
 
             const qx = q.v.x();
@@ -98,11 +98,11 @@ pub fn Quat(comptime Scalar: type) type {
             const bx = math.sin(halfAngle);
             const bw = math.cos(halfAngle);
 
-            return init(qx * bw + qw * bx, qy * bw + qz * bx, qz * bw - qy * bx, qw * bw - qx * bx);
+            return new(qx * bw + qw * bx, qy * bw + qz * bx, qz * bw - qy * bx, qw * bw - qx * bx);
         }
 
         /// Rotates the give quaternion by the given angle, around the y-axis.
-        pub inline fn rotateY(q: *const Quat(T), angle: T) Quat(T) {
+        pub fn rotateY(q: *const Quat(T), angle: T) Quat(T) {
             const halfAngle = angle * 0.5;
 
             const qx = q.v.x();
@@ -113,11 +113,11 @@ pub fn Quat(comptime Scalar: type) type {
             const by = math.sin(halfAngle);
             const bw = math.cos(halfAngle);
 
-            return init(qx * bw - qz * by, qy * bw + qw * by, qz * bw + qx * by, qw * bw - qy * by);
+            return new(qx * bw - qz * by, qy * bw + qw * by, qz * bw + qx * by, qw * bw - qy * by);
         }
 
         /// Rotates the give quaternion by the given angle, around the z-axis.
-        pub inline fn rotateZ(q: *const Quat(T), angle: T) Quat(T) {
+        pub fn rotateZ(q: *const Quat(T), angle: T) Quat(T) {
             const halfAngle = angle * 0.5;
 
             const qx = q.v.x();
@@ -128,11 +128,11 @@ pub fn Quat(comptime Scalar: type) type {
             const bz = math.sin(halfAngle);
             const bw = math.cos(halfAngle);
 
-            return init(qx * bw - qy * bz, qy * bw + qx * bz, qz * bw + qw * bz, qw * bw - qz * bz);
+            return new(qx * bw - qy * bz, qy * bw + qx * bz, qz * bw + qw * bz, qw * bw - qz * bz);
         }
 
         /// Calculates the spherical linear interpolation between two quaternions.
-        pub inline fn slerp(a: *const Quat(T), b: *const Quat(T), t: T) Quat(T) {
+        pub fn slerp(a: *const Quat(T), b: *const Quat(T), t: T) Quat(T) {
             const ax = a.v.x();
             const ay = a.v.y();
             const az = a.v.z();
@@ -165,16 +165,16 @@ pub fn Quat(comptime Scalar: type) type {
                 scale1 = t;
             }
 
-            return init(scale0 * ax + scale1 * bx, scale0 * ay + scale1 * by, scale0 * az + scale1 * bz, scale0 * aw + scale1 * bw);
+            return new(scale0 * ax + scale1 * bx, scale0 * ay + scale1 * by, scale0 * az + scale1 * bz, scale0 * aw + scale1 * bw);
         }
 
         /// Calculates the conjugate of the given quaternion.
-        pub inline fn conjugate(q: *const Quat(T)) Quat(T) {
-            return init(-q.v.x(), -q.v.y(), -q.v.z(), q.v.w());
+        pub fn conjugate(q: *const Quat(T)) Quat(T) {
+            return new(-q.v.x(), -q.v.y(), -q.v.z(), q.v.w());
         }
 
         /// Creates a quaternion from the given transformation matrix.
-        pub inline fn fromMat(comptime matT: type, m: *const matT) Quat(T) {
+        pub fn fromMat(comptime matT: type, m: *const matT) Quat(T) {
             var dst = Quat(T).identity();
             const trace = m.v[0].v[0] + m.v[1].v[1] + m.v[2].v[2];
 
@@ -214,7 +214,7 @@ pub fn Quat(comptime Scalar: type) type {
         }
 
         /// Creates a quaternion from the given Euler angles.
-        pub inline fn fromEuler(x: T, y: T, z: T) Quat(T) {
+        pub fn fromEuler(x: T, y: T, z: T) Quat(T) {
             const xHalf = x * 0.5;
             const yHalf = y * 0.5;
             const zHalf = z * 0.5;
@@ -231,36 +231,36 @@ pub fn Quat(comptime Scalar: type) type {
             const zRet = cx * cy * sz + sx * sy * cz;
             const wRet = cx * cy * cz - sx * sy * sz;
 
-            return init(xRet, yRet, zRet, wRet);
+            return new(xRet, yRet, zRet, wRet);
         }
 
         /// Returns the dot product of two quaternions.
-        pub inline fn dot(a: *const Quat(T), b: *const Quat(T)) T {
+        pub fn dot(a: *const Quat(T), b: *const Quat(T)) T {
             return a.v.x() * b.v.x() + a.v.y() * b.v.y() + a.v.z() * b.v.z() + a.v.w() * b.v.w();
         }
 
         /// Linearly interpolates between two quaternions.
-        pub inline fn lerp(a: *const Quat(T), b: *const Quat(T), t: T) Quat(T) {
+        pub fn lerp(a: *const Quat(T), b: *const Quat(T), t: T) Quat(T) {
             const xRet = a.v.x() + t * (b.v.x() - a.v.x());
             const yRet = a.v.y() + t * (b.v.y() - a.v.y());
             const zRet = a.v.z() + t * (b.v.z() - a.v.z());
             const wRet = a.v.w() + t * (b.v.w() - a.v.w());
 
-            return init(xRet, yRet, zRet, wRet);
+            return new(xRet, yRet, zRet, wRet);
         }
 
         /// Computes the squared length of a given quaternion.
-        pub inline fn len2(q: *const Quat(T)) T {
+        pub fn len2(q: *const Quat(T)) T {
             return q.v.x() * q.v.x() + q.v.y() * q.v.y() + q.v.z() * q.v.z() + q.v.w() * q.v.w();
         }
 
         /// Computes the length of a given quaternion.
-        pub inline fn len(q: *const Quat(T)) T {
+        pub fn len(q: *const Quat(T)) T {
             return math.sqrt(q.v.x() * q.v.x() + q.v.y() * q.v.y() + q.v.z() * q.v.z() + q.v.w() * q.v.w());
         }
 
         /// Computes the normalized version of a given quaternion.
-        pub inline fn normalize(q: *const Quat(T)) Quat(T) {
+        pub fn normalize(q: *const Quat(T)) Quat(T) {
             const q0 = q.v.x();
             const q1 = q.v.y();
             const q2 = q.v.z();
@@ -269,16 +269,16 @@ pub fn Quat(comptime Scalar: type) type {
             const length = math.sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
 
             if (length > 0.00001) {
-                return init(q0 / length, q1 / length, q2 / length, q3 / length);
+                return new(q0 / length, q1 / length, q2 / length, q3 / length);
             } else {
-                return init(0, 0, 0, 0);
+                return new(0, 0, 0, 0);
             }
         }
-        pub inline fn fromHpr(hpr: *const HeadingPitchRoll(T)) Quat(T) {
-            const rQuat = Quat(T).fromAxisAngle(HeadingPitchRoll(T).Vec.init(1, 0, 0), hpr.r());
-            const pQuat = Quat(T).fromAxisAngle(HeadingPitchRoll(T).Vec.init(0, 1, 0), -hpr.p());
+        pub fn fromHpr(hpr: *const HeadingPitchRoll(T)) Quat(T) {
+            const rQuat = Quat(T).fromAxisAngle(HeadingPitchRoll(T).Vec.new(1, 0, 0), hpr.r());
+            const pQuat = Quat(T).fromAxisAngle(HeadingPitchRoll(T).Vec.new(0, 1, 0), -hpr.p());
             const res = pQuat.mul(&rQuat);
-            const hQuat = Quat(T).fromAxisAngle(HeadingPitchRoll(T).Vec.init(0, 0, 1), -hpr.h());
+            const hQuat = Quat(T).fromAxisAngle(HeadingPitchRoll(T).Vec.new(0, 0, 1), -hpr.h());
             return hQuat.mul(&res);
         }
     };
@@ -290,15 +290,15 @@ test "zero_struct_overhead" {
     try testing.expect(usize, @sizeOf(@Vector(4, f32))).eql(@sizeOf(math.Quat));
 }
 
-test "init" {
+test "new" {
     try testing.expect(math.Quat, math.quat(1, 2, 3, 4)).eql(math.Quat{
         .v = math.vec4(1, 2, 3, 4),
     });
 }
 
 test "inverse" {
-    const q = math.Quat.init(1.0, 2.0, 3.0, 4.0);
-    const expected = math.Quat.init(-0.1 / 3.0, -0.1 / 3.0 * 2.0, -0.1, 1.0 / 7.5);
+    const q = math.Quat.new(1.0, 2.0, 3.0, 4.0);
+    const expected = math.Quat.new(-0.1 / 3.0, -0.1 / 3.0 * 2.0, -0.1, 1.0 / 7.5);
     const actual = q.inverse();
 
     try testing.expect(math.Vec4, expected.v).eql(actual.v);
@@ -319,7 +319,7 @@ test "angleBetween" {
 }
 
 test "mul" {
-    const a = math.Quat.init(1.0, 2.0, 3.0, 4.0);
+    const a = math.Quat.new(1.0, 2.0, 3.0, 4.0);
     const b = a.inverse();
     const expected = math.Quat.identity();
     const actual = math.Quat.mul(&a, &b);
@@ -328,34 +328,34 @@ test "mul" {
 }
 
 test "add" {
-    const a = math.Quat.init(1.0, 2.0, 3.0, 4.0);
-    const b = math.Quat.init(5.0, 6.0, 7.0, 8.0);
-    const expected = math.Quat.init(6.0, 8.0, 10.0, 12.0);
+    const a = math.Quat.new(1.0, 2.0, 3.0, 4.0);
+    const b = math.Quat.new(5.0, 6.0, 7.0, 8.0);
+    const expected = math.Quat.new(6.0, 8.0, 10.0, 12.0);
     const actual = math.Quat.add(&a, &b);
 
     try testing.expect(math.Vec4, expected.v).eql(actual.v);
 }
 
 test "sub" {
-    const a = math.Quat.init(1.0, 2.0, 3.0, 4.0);
-    const b = math.Quat.init(5.0, 6.0, 7.0, 8.0);
-    const expected = math.Quat.init(-4.0, -4.0, -4.0, -4.0);
+    const a = math.Quat.new(1.0, 2.0, 3.0, 4.0);
+    const b = math.Quat.new(5.0, 6.0, 7.0, 8.0);
+    const expected = math.Quat.new(-4.0, -4.0, -4.0, -4.0);
     const actual = math.Quat.sub(&a, &b);
 
     try testing.expect(math.Vec4, expected.v).eql(actual.v);
 }
 
 test "mulScalar" {
-    const q = math.Quat.init(1.0, 2.0, 3.0, 4.0);
-    const expected = math.Quat.init(2.0, 4.0, 6.0, 8.0);
+    const q = math.Quat.new(1.0, 2.0, 3.0, 4.0);
+    const expected = math.Quat.new(2.0, 4.0, 6.0, 8.0);
     const actual = math.Quat.mulScalar(&q, 2.0);
 
     try testing.expect(math.Vec4, expected.v).eql(actual.v);
 }
 
 test "divScalar" {
-    const q = math.Quat.init(1.0, 2.0, 3.0, 4.0);
-    const expected = math.Quat.init(0.5, 1.0, 1.5, 2.0);
+    const q = math.Quat.new(1.0, 2.0, 3.0, 4.0);
+    const expected = math.Quat.new(0.5, 1.0, 1.5, 2.0);
     const actual = math.Quat.divScalar(&q, 2.0);
 
     try testing.expect(math.Vec4, expected.v).eql(actual.v);
@@ -383,17 +383,17 @@ test "rotateZ" {
 }
 
 test "slerp" {
-    const a = math.Quat.init(1.0, 2.0, 3.0, 4.0);
-    const b = math.Quat.init(5.0, 6.0, 7.0, 8.0);
-    const expected = math.Quat.init(3.0, 4.0, 5.0, 6.0);
+    const a = math.Quat.new(1.0, 2.0, 3.0, 4.0);
+    const b = math.Quat.new(5.0, 6.0, 7.0, 8.0);
+    const expected = math.Quat.new(3.0, 4.0, 5.0, 6.0);
     const actual = math.Quat.slerp(&a, &b, 0.5);
 
     try testing.expect(math.Vec4, expected.v).eql(actual.v);
 }
 
 test "conjugate" {
-    const q = math.Quat.init(1.0, 2.0, 3.0, 4.0);
-    const expected = math.Quat.init(-1.0, -2.0, -3.0, 4.0);
+    const q = math.Quat.new(1.0, 2.0, 3.0, 4.0);
+    const expected = math.Quat.new(-1.0, -2.0, -3.0, 4.0);
     const actual = math.Quat.conjugate(&q);
 
     try testing.expect(math.Vec4, expected.v).eql(actual.v);
@@ -415,8 +415,8 @@ test "fromEuler" {
 }
 
 test "dot" {
-    const a = math.Quat.init(1.0, 2.0, 3.0, 4.0);
-    const b = math.Quat.init(5.0, 6.0, 7.0, 8.0);
+    const a = math.Quat.new(1.0, 2.0, 3.0, 4.0);
+    const b = math.Quat.new(5.0, 6.0, 7.0, 8.0);
     const expected = 70.0;
     const actual = math.Quat.dot(&a, &b);
 
@@ -424,16 +424,16 @@ test "dot" {
 }
 
 test "lerp" {
-    const a = math.Quat.init(1.0, 2.0, 3.0, 4.0);
-    const b = math.Quat.init(5.0, 6.0, 7.0, 8.0);
-    const expected = math.Quat.init(3.0, 4.0, 5.0, 6.0);
+    const a = math.Quat.new(1.0, 2.0, 3.0, 4.0);
+    const b = math.Quat.new(5.0, 6.0, 7.0, 8.0);
+    const expected = math.Quat.new(3.0, 4.0, 5.0, 6.0);
     const actual = math.Quat.lerp(&a, &b, 0.5);
 
     try testing.expect(math.Vec4, expected.v).eql(actual.v);
 }
 
 test "len2" {
-    const q = math.Quat.init(1.0, 2.0, 3.0, 4.0);
+    const q = math.Quat.new(1.0, 2.0, 3.0, 4.0);
     const expected = 30.0;
     const actual = math.Quat.len2(&q);
 
@@ -441,7 +441,7 @@ test "len2" {
 }
 
 test "len" {
-    const q = math.Quat.init(0.0, 0.0, 3.0, 4.0);
+    const q = math.Quat.new(0.0, 0.0, 3.0, 4.0);
     const expected = 5.0;
     const actual = math.Quat.len(&q);
 
@@ -449,8 +449,8 @@ test "len" {
 }
 
 test "normalize" {
-    const q = math.Quat.init(0.0, 0.0, 3.0, 4.0);
-    const expected = math.Quat.init(0.0, 0.0, 0.6, 0.8);
+    const q = math.Quat.new(0.0, 0.0, 3.0, 4.0);
+    const expected = math.Quat.new(0.0, 0.0, 0.6, 0.8);
     const actual = math.Quat.normalize(&q);
 
     try testing.expect(math.Vec4, expected.v).eql(actual.v);
