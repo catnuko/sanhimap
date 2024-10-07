@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "test",
+            "type": "shell",
+            "command": "zig",
+            "args": [
+                "test",
+                "-ODebug",
+                "--dep",
+                "math",
+                "-Mroot=${workspaceFolder}/libs/shanhaimap/src/root.zig",
+                "-ODebug",
+                "-Mmath=${workspaceFolder}/libs/math/src/root.zig",
+                "--cache-dir",
+                "${workspaceFolder}/libs/shanhaimap/.zig-cache",
+                "--global-cache-dir",
+                "C:/Users/catnuko/AppData/Local/zig",
+                "--name",
+                "test",
+                "-femit-bin=${workspaceFolder}/libs/shanhaimap/zig-out/test.exe",
+                "--test-no-exec",
+                // "--test-filter",
+                // "SphereProjection.projectAndunproject"
+            ]
+        }
+    ]
+}

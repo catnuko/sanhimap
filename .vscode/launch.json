@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cppvsdbg",
+            "request": "launch",
+            "name": "shanhaimap",
+            "program": "${workspaceFolder}/libs/shanhaimap/zig-out/test.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "test",
+            "console":"integratedTerminal"
+        }
+    ]
+}

@@ -109,6 +109,26 @@ pub fn Mat2x2(
                 &RowVec.new(s, c),
             );
         }
+        pub fn inverse(m: *const Matrix) Matrix {
+            const a0 = m.v[0].v[0];
+            const a1 = m.v[0].v[1];
+            const a2 = m.v[1].v[0];
+            const a3 = m.v[1].v[1];
+
+            var det = a0 * a3 - a2 * a1;
+
+            if (math.isNan(det)) {
+                unreachable;
+            }
+            det = 1.0 / det;
+
+            var res: Matrix = undefined;
+            res.v[0].v[0] = a3 * det;
+            res.v[0].v[1] = -a1 * det;
+            res.v[1].v[0] = -a2 * det;
+            res.v[1].v[1] = a0 * det;
+            return res;
+        }
         pub const getRow = Shared.getRow;
         pub const getCol = Shared.getCol;
         pub const setRow = Shared.setRow;
@@ -279,6 +299,44 @@ pub fn Mat3x3(
                 &RowVec.new(s, c, 0),
                 &RowVec.new(0, 0, 1),
             );
+        }
+        pub fn inverse(m: *const Matrix) Matrix {
+            const a00 = m.v[0].v[0];
+            const a01 = m.v[0].v[1];
+            const a02 = m.v[0].v[2];
+
+            const a10 = m.v[1].v[0];
+            const a11 = m.v[1].v[1];
+            const a12 = m.v[1].v[2];
+
+            const a20 = m.v[2].v[0];
+            const a21 = m.v[2].v[1];
+            const a22 = m.v[2].v[2];
+
+            const b01 = a22 * a11 - a12 * a21;
+            const b11 = -a22 * a10 + a12 * a20;
+            const b21 = a21 * a10 - a11 * a20;
+
+            // Calculate the determinant
+            var det = a00 * b01 + a01 * b11 + a02 * b21;
+
+            if (math.isNan(det)) {
+                unreachable;
+            }
+            det = 1.0 / det;
+
+            var res: Matrix = undefined;
+
+            res.v[0].v[0] = b01 * det;
+            res.v[0].v[1] = (-a22 * a01 + a02 * a21) * det;
+            res.v[0].v[2] = (a12 * a01 - a02 * a11) * det;
+            res.v[1].v[0] = b11 * det;
+            res.v[1].v[1] = (a22 * a00 - a02 * a20) * det;
+            res.v[1].v[2] = (-a12 * a00 + a02 * a10) * det;
+            res.v[2].v[0] = b21 * det;
+            res.v[2].v[1] = (-a21 * a00 + a01 * a20) * det;
+            res.v[2].v[2] = (a11 * a00 - a01 * a10) * det;
+            return res;
         }
         pub const getRow = Shared.getRow;
         pub const getCol = Shared.getCol;
@@ -549,6 +607,68 @@ pub fn Mat4x4(
                 1 / (v.near - v.far), // scale Z so that [near, far] has a 1 unit range, e.g. [0, -1]
             )));
             return p;
+        }
+
+        pub fn inverse(m: *const Matrix) Matrix {
+            const a00 = m.v[0].v[0];
+            const a01 = m.v[0].v[1];
+            const a02 = m.v[0].v[2];
+            const a03 = m.v[0].v[3];
+
+            const a10 = m.v[1].v[0];
+            const a11 = m.v[1].v[1];
+            const a12 = m.v[1].v[2];
+            const a13 = m.v[1].v[3];
+
+            const a20 = m.v[2].v[0];
+            const a21 = m.v[2].v[1];
+            const a22 = m.v[2].v[2];
+            const a23 = m.v[2].v[3];
+
+            const a30 = m.v[3].v[0];
+            const a31 = m.v[3].v[1];
+            const a32 = m.v[3].v[2];
+            const a33 = m.v[3].v[3];
+            const b00 = a00 * a11 - a01 * a10;
+            const b01 = a00 * a12 - a02 * a10;
+            const b02 = a00 * a13 - a03 * a10;
+            const b03 = a01 * a12 - a02 * a11;
+            const b04 = a01 * a13 - a03 * a11;
+            const b05 = a02 * a13 - a03 * a12;
+            const b06 = a20 * a31 - a21 * a30;
+            const b07 = a20 * a32 - a22 * a30;
+            const b08 = a20 * a33 - a23 * a30;
+            const b09 = a21 * a32 - a22 * a31;
+            const b10 = a21 * a33 - a23 * a31;
+            const b11 = a22 * a33 - a23 * a32;
+
+            var det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+
+            if (math.isNan(det)) {
+                unreachable;
+            }
+            det = 1.0 / det;
+
+            var res: Matrix = undefined;
+
+            res.v[0].v[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+            res.v[0].v[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+            res.v[0].v[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+            res.v[0].v[3] = (a22 * b04 - a21 * b05 - a23 * b03) * det;
+            res.v[1].v[0] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+            res.v[1].v[1] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+            res.v[1].v[2] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+            res.v[1].v[3] = (a20 * b05 - a22 * b02 + a23 * b01) * det;
+            res.v[2].v[0] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+            res.v[2].v[1] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+            res.v[2].v[2] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+            res.v[2].v[3] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
+            res.v[3].v[0] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
+            res.v[3].v[1] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
+            res.v[3].v[3] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+            res.v[3].v[2] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+
+            return res;
         }
 
         pub const getRow = Shared.getRow;

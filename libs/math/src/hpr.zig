@@ -1,5 +1,4 @@
 const math = @import("root.zig");
-const stdmath = @import("std").math;
 const testing = @import("testing.zig");
 const vec = @import("vec.zig");
 const mat = @import("mat.zig");
@@ -40,8 +39,8 @@ pub fn HeadingPitchRoll(comptime Scalar: type) type {
             const denominatorHeading = 1 - 2 * (y * y + z * z);
             const numeratorHeading = 2 * (w * z + x * y);
 
-            const hv = -stdmath.atan2(numeratorHeading, denominatorHeading);
-            const rv = stdmath.atan2(numeratorRoll, denominatorRoll);
+            const hv = -math.atan2(numeratorHeading, denominatorHeading);
+            const rv = math.atan2(numeratorRoll, denominatorRoll);
             const pv = -math.asinClamped(testi);
             return new(hv, pv, rv);
         }

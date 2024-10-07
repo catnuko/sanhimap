@@ -94,48 +94,50 @@ pub const nan_f16 = std.math.nan(f16);
 pub const nan_f32 = std.math.nan(f32);
 pub const nan_f64 = std.math.nan(f64);
 
+pub usingnamespace std.math;
+
 // std.math 1:1 re-exports below here
 //
 // Having two 'math' imports in your code is annoying, so we in general expect that people will not
 // need to do this and instead can just import mach.math - we add to this list of re-exports as
 // needed.
 
-pub const inf = std.math.inf;
-pub const sqrt = std.math.sqrt;
-pub const pow = std.math.pow;
-pub const sin = std.math.sin;
-pub const cos = std.math.cos;
-pub const acos = std.math.acos;
-pub const atan = std.math.atan;
-pub const atan2 = std.math.atan2;
-pub const isNan = std.math.isNan;
-pub const isInf = std.math.isInf;
-pub const mod = std.math.mod;
-pub const clamp = std.math.clamp;
-pub const log10 = std.math.log10;
-pub const degreesToRadians = std.math.degreesToRadians;
-pub const radiansToDegrees = std.math.radiansToDegrees;
-pub const maxInt = std.math.maxInt;
-pub const lerp = std.math.lerp;
+// pub const inf = std.math.inf;
+// pub const sqrt = std.math.sqrt;
+// pub const pow = std.math.pow;
+// pub const sin = std.math.sin;
+// pub const cos = std.math.cos;
+// pub const acos = std.math.acos;
+// pub const atan = std.math.atan;
+// pub const atan2 = std.math.atan2;
+// pub const isNan = std.math.isNan;
+// pub const isInf = std.math.isInf;
+// pub const mod = std.math.mod;
+// pub const clamp = std.math.clamp;
+// pub const log10 = std.math.log10;
+// pub const degreesToRadians = std.math.degreesToRadians;
+// pub const radiansToDegrees = std.math.radiansToDegrees;
+// pub const maxInt = std.math.maxInt;
+// pub const lerp = std.math.lerp;
 
-pub const rad_per_deg = std.math.rad_per_deg;
-pub const deg_per_rad = std.math.deg_per_rad;
+// pub const rad_per_deg = std.math.rad_per_deg;
+// pub const deg_per_rad = std.math.deg_per_rad;
 
-pub const pi = std.math.pi;
+// pub const pi = std.math.pi;
 
-pub const pi_over_two = pi / 2.0;
+pub const pi_over_two = std.math.pi / 2.0;
 
 /// 2 * pi
-pub const tau = std.math.tau;
+// pub const tau = std.math.tau;
 
 /// 2/sqrt(π)
-pub const two_sqrtpi = std.math.two_sqrtpi;
+// pub const two_sqrtpi = std.math.two_sqrtpi;
 
 /// sqrt(2)
-pub const sqrt2 = std.math.sqrt2;
+// pub const sqrt2 = std.math.sqrt2;
 
 /// 1/sqrt(2)
-pub const sqrt1_2 = std.math.sqrt1_2;
+// pub const sqrt1_2 = std.math.sqrt1_2;
 
 pub fn asinClamped(value: anytype) @TypeOf(value) {
     return std.math.asin(std.math.clamp(value, -1.0, 1.0));
@@ -148,19 +150,19 @@ pub fn abs(v: f64) f64 {
     }
 }
 pub fn zeroToTwoPi(angle: f64) f64 {
-    if (angle >= 0 and angle <= tau) {
+    if (angle >= 0 and angle <= std.math.tau) {
         return angle;
     }
-    const modv = mod(f64, angle, tau) catch unreachable;
+    const modv = std.math.mod(f64, angle, std.math.tau) catch unreachable;
     if (abs(modv) < epsilon.EPSILON14 and abs(angle) > epsilon.EPSILON14) {
-        return tau;
+        return std.math.tau;
     }
     return modv;
 }
 
 pub fn negativePiToPi(angle: f64) f64 {
-    if (angle >= -pi and angle <= pi) {
+    if (angle >= -std.math.pi and angle <= std.math.pi) {
         return angle;
     }
-    return zeroToTwoPi(angle + pi) - pi;
+    return zeroToTwoPi(angle + std.math.pi) - std.math.pi;
 }

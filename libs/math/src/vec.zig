@@ -38,6 +38,13 @@ pub fn Vec2(comptime Scalar: type) type {
             return v.v[1];
         }
 
+        pub inline fn setX(v: *VecN, value: Scalar) void {
+            v.v[0] = value;
+        }
+        pub inline fn setY(v: *VecN, value: Scalar) void {
+            v.v[1] = value;
+        }
+
         pub const add = Shared.add;
         pub const sub = Shared.sub;
         pub const div = Shared.div;
@@ -106,7 +113,15 @@ pub fn Vec3(comptime Scalar: type) type {
         pub inline fn z(v: *const VecN) Scalar {
             return v.v[2];
         }
-
+        pub inline fn setX(v: *VecN, value: Scalar) void {
+            v.v[0] = value;
+        }
+        pub inline fn setY(v: *VecN, value: Scalar) void {
+            v.v[1] = value;
+        }
+        pub inline fn setZ(v: *VecN, value: Scalar) void {
+            v.v[2] = value;
+        }
         pub inline fn swizzle(
             v: *const VecN,
             xc: VecComponent,
@@ -236,7 +251,18 @@ pub fn Vec4(comptime Scalar: type) type {
         pub inline fn w(v: *const VecN) Scalar {
             return v.v[3];
         }
-
+        pub inline fn setX(v: *VecN, value: Scalar) void {
+            v.v[0] = value;
+        }
+        pub inline fn setY(v: *VecN, value: Scalar) void {
+            v.v[1] = value;
+        }
+        pub inline fn setZ(v: *VecN, value: Scalar) void {
+            v.v[2] = value;
+        }
+        pub inline fn setW(v: *VecN, value: Scalar) void {
+            v.v[3] = value;
+        }
         /// Vector * Matrix multiplication
         pub fn mulMat(vector: *const VecN, matrix: *const mat.Mat4x4(T)) VecN {
             var result = [_]VecN.T{0} ** 4;

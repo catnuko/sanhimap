@@ -1,13 +1,18 @@
 const std = @import("std");
-const print = std.debug.print;
-const testing = std.testing;
-const lib = @import("lib.zig");
-const math = lib.math;
-const Vec3 = math.Vec3;
-const Mat4 = math.Mat4;
-const GeoCoordinates = lib.GeoCoordinates;
-const earth = lib.earth;
-const Box3 = lib.Box3;
+const math = @import("math");
+const Vec3 = math.Vec3d;
+const Mat4 = math.Mat4x4d;
+const Mat3 = math.Mat3x3d;
+const Cartographic = @import("../Cartographic.zig").Cartographic;
+const earth = @import("./Earth.zig");
+const ProjectionImpl = @import("./ProjectionImpl.zig").ProjectionImpl;
+const ProjectionType = @import("./ProjectionType.zig").ProjectionType;
+const webMercatorProjection = @import("./WebMercatorProjection.zig").webMercatorProjection;
+const mercatorProjection = @import("./MercatorProjection.zig").mercatorProjection;
+const AABB = @import("../AABB.zig").AABB;
+const OBB = @import("../OBB.zig").OBB;
+const GeoBox = @import("../GeoBox.zig").GeoBox;
+
 pub const MAXIMUM_LATITUDE: f64 = 1.4844222297453323;
 pub const MercatorProjection = struct {
     unit_scale: f64,
@@ -20,44 +25,30 @@ pub const MercatorProjection = struct {
         min_elevation: f64,
         max_elevation: f64,
     ) Box3 {
-        return Box3.new(Vec3.new(
-            0,
-            0,
-            min_elevation,
-        ), Vec3.new(
-            self.unit_scale,
-            self.unit_scale,
-            max_elevation,
-        ));
+        return Box3.new(
+            Vec3.new(0, 0, min_elevation),
+            Vec3.new(self.unit_scale, self.unit_scale, max_elevation),
+        );
     }
-    pub fn projectPoint(self: *Self, geopoint: GeoCoordinates) Vec3 {
+    pub fn project(self: *Self, geopoint: GeoCoordinates) Vec3 {
         const x = geopoint.longitude * self.unit_scale;
         const y = (self.latitudeClampProject(geopoint.latitude) * 0.5 + 0.5) *
             self.unit_scale;
         const z = geopoint.altitude orelse 0;
         return Vec3.new(x, y, z);
     }
-    pub fn unprojectPoint(self: *Self, worldpoint: Vec3) GeoCoordinates {
+    pub fn unproject(self: *Self, worldpoint: Vec3) GeoCoordinates {
         return GeoCoordinates.fromRadians(self.unprojectLatitude((worldpoint.y() / self.unit_scale - 0.5) * 2.0), (worldpoint.x() / self.unit_scale) * 2 * math.pi - math.pi, worldpoint.z());
     }
-    //static methods
-    pub fn surfaceNormal(_: *Self) Vec3 {
-        return Vec3.new(0.0, 0.0, -1.0);
-    }
-    pub fn latitudeClamp(_: *Self, latitude: f64) f64 {
-        return math.clamp(latitude, -MAXIMUM_LATITUDE, MAXIMUM_LATITUDE);
-    }
-    pub fn latitudeProject(_: *Self, latitude: f64) f64 {
-        return math.log(f64, math.e, math.tan(math.pi * 0.25 + latitude * 0.5)) / math.pi;
-    }
+    pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P, worldPoint: *const Vec3) Vec3 {}
+    pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxType: type) ResultBoxType {}
+    pub fn unprojectBox(_: *const Self, _: *const OBB) GeoBox {}
     pub fn unprojectLatitude(_: *Self, y: f64) f64 {
         return 2.0 * math.atan(math.exp(math.pi * y)) - math.pi * 0.5;
     }
-    pub fn latitudeClampProject(self: *Self, latitude: f64) f64 {
-        return self.latitudeProject(self.latitudeClamp(latitude));
-    }
-    pub fn unprojectAltitude(_: *Self, worldpoint: Vec3) f64 {
-        return worldpoint.z();
+    pub fn getScaleFactor(_: *const Self, _: *const Vec3) f64 {}
+    pub fn surfaceNormal(_: *Self) Vec3 {
+        return Vec3.new(0.0, 0.0, -1.0);
     }
     pub fn groundDistance(_: *Self, worldpoint: Vec3) f64 {
         return worldpoint.z();
@@ -66,7 +57,7 @@ pub const MercatorProjection = struct {
         return Vec3.new(worldpoint.x(), worldpoint.y(), worldpoint.z());
     }
     pub fn localTagentSpace(self: *Self, geo_point: GeoCoordinates) Mat4 {
-        const world_point = self.projectPoint(geo_point);
+        const world_point = self.project(geo_point);
         var slice = [1]f64{0} ** 16;
         //x axis
         slice[0] = 1;
@@ -90,10 +81,20 @@ pub const MercatorProjection = struct {
         slice[11] = 1;
         return Mat4.fromSlice(&slice);
     }
-    pub fn projectionI(self: *Self) lib.Projection {
-        return lib.Projection.init(self);
+
+    pub fn latitudeClamp(_: *Self, latitude: f64) f64 {
+        return math.clamp(latitude, -MAXIMUM_LATITUDE, MAXIMUM_LATITUDE);
+    }
+    pub fn latitudeProject(_: *Self, latitude: f64) f64 {
+        return math.log(f64, math.e, math.tan(math.pi * 0.25 + latitude * 0.5)) / math.pi;
+    }
+    pub fn latitudeClampProject(self: *Self, latitude: f64) f64 {
+        return self.latitudeProject(self.latitudeClamp(latitude));
+    }
+    pub fn unprojectAltitude(_: *Self, worldpoint: Vec3) f64 {
+        return worldpoint.z();
     }
 };
-var t = MercatorProjection.new(earth.EQUATORIAL_RADIUS);
+var t = ProjectionImpl(MercatorProjection).new(earth.EQUATORIAL_RADIUS);
 pub var mercatorProjection = t.projectionI();
 test "Geo.MercatorProjection" {}
