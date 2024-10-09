@@ -66,8 +66,6 @@ pub const RenderGraph = struct {
         self.addNode(GraphInputNode{ .inputs = inputs });
     }
     pub fn addNode(self: *Self, node: Node) void {
-        // var nodeMut = node;
-        // nodeMut.name = name;
         self.nodes.put(node.name, node) catch unreachable;
     }
     pub fn getNode(self: *Self, name: StaticStr) RenderGraphError!*Node {
@@ -88,7 +86,7 @@ pub const RenderGraph = struct {
         try outputNode.edges.addOutputEdge(edge);
         try inputNode.edges.addInputEdge(edge);
     }
-    pub fn addNodeEdges(self: *Self, edges: []StaticStr) !void {
+    pub fn addNodeEdges(self: *Self, edges: []StaticStr) void {
         for (0..edges.len - 1) |i| {
             const input = edges[i];
             const output = edges[i + 1];
@@ -175,19 +173,19 @@ pub const RenderGraph = struct {
         const res = outputNode.edges.outputEdges.has(edge) and inputNode.edges.inputEdges.has(edge);
         return res;
     }
-    pub fn addSubGraph(self: *Self, name: StaticStr, subGraph: RenderGraph) !void {
-        return self.subGraphs.put(name, subGraph);
+    pub fn addSubGraph(self: *Self, name: StaticStr, subGraph: RenderGraph) void {
+        return self.subGraphs.put(name, subGraph) orelse unreachable;
     }
     pub fn removeSubGraph(self: *Self, name: StaticStr) bool {
         return self.subGraphs.remove(name);
     }
-    pub fn getSubGraph(self: *Self, name: StaticStr) ?RenderGraph {
-        return self.subGraphs.get(name);
-    }
-
-    pub fn getSubGraphPtr(self: *Self, name: StaticStr) ?*RenderGraph {
+    pub fn getSubGraph(self: *Self, name: StaticStr) ?*RenderGraph {
         return self.subGraphs.getPtr(name);
     }
+
+    // pub fn getSubGraphPtr(self: *Self, name: StaticStr) ?*RenderGraph {
+    //     return self.subGraphs.getPtr(name);
+    // }
     pub const Entry = struct {
         edgePtr: *Edge,
         nodePtr: *Node,
@@ -343,7 +341,7 @@ fn input_nodes(allocator: std.mem.Allocator, graphv: *RenderGraph, name: []const
     }
     return array;
 }
-test "graph.graph.default" {
+test "RenderGraph.default" {
     const allocator = std.testing.allocator;
     var graphv = RenderGraph.init(allocator);
     defer graphv.deinit();
@@ -405,7 +403,7 @@ test "graph.graph.default" {
     }
 }
 
-test "graph.graph.slotAlreadyOccupied" {
+test "RenderGraph.slotAlreadyOccupied" {
     const allocator = std.testing.allocator;
     var graphv = RenderGraph.init(allocator);
     defer graphv.deinit();
@@ -430,7 +428,7 @@ test "graph.graph.slotAlreadyOccupied" {
     try std.testing.expect(RenderGraphError.NodeInputSlotAlreadyOccupied == result);
 }
 
-test "graph.graph.edgeAlreadyExists" {
+test "RenderGraph.edgeAlreadyExists" {
     const allocator = std.testing.allocator;
     var graphv = RenderGraph.init(allocator);
     defer graphv.deinit();
@@ -479,7 +477,7 @@ const SimpleNode = struct {
         return Node.init(allocator, name, @typeName(SimpleNode), self, &.{ .deinit = deinit });
     }
 };
-test "graph.graph.addNodeEdge" {
+test "RenderGraph.addNodeEdge" {
     const allocator = std.testing.allocator;
     var graphv = RenderGraph.init(allocator);
     defer graphv.deinit();

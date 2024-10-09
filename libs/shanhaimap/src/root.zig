@@ -11,11 +11,14 @@ pub usingnamespace @import("./OBB.zig");
 pub usingnamespace @import("./Rectangle.zig");
 pub usingnamespace @import("./RectangleCorner.zig");
 
+pub const math2d = @import("./math2d/index.zig");
 pub const geodesic = @import("geodesic/index.zig");
 pub const ui = @import("./ui/index.zig");
 pub const tiling = @import("./tiling/index.zig");
 pub const projection = @import("./projection/index.zig");
 pub const datasource = @import("./datasource/index.zig");
+pub const graph = @import("./graph/index.zig");
+pub const mesh = @import("./mesh/index.zig");
 
 pub usingnamespace @import("./MapView.zig");
 test {
