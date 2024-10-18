@@ -5,6 +5,7 @@ const SlotInfo = graph.SlotInfo;
 const SlotInfoArrayList = graph.SlotInfoArrayList;
 const RenderGraphError = graph.RenderGraphError;
 const RenderGraphContext = graph.RenderGraphContext;
+const findSlotIndex = graph.findSlotIndex;
 pub const NodeRunError = error{
     InputSlotError,
     OutputSlotError,
@@ -14,23 +15,21 @@ pub const StaticStr = []const u8;
 pub const Node = struct {
     const Self = @This();
     pub const VTable = struct {
-        update: ?*const fn (ctx: *anyopaque) void,
+        update: ?*const fn (ctx: *anyopaque) void = null,
         run: *const fn (ctx: *anyopaque, ctx: *RenderGraphContext) NodeRunError!void,
         deinit: *const fn (ctx: *anyopaque) void,
         inputs: *const fn (ctx: *anyopaque) *SlotInfoArrayList,
         outputs: *const fn (ctx: *anyopaque) *SlotInfoArrayList,
     };
     edges: Edges,
-    typeName: StaticStr,
     name: StaticStr,
     ptr: *anyopaque,
     vtable: *const VTable,
     allocator: std.mem.Allocator,
-    pub fn init(allocator: std.mem.Allocator, name: []const u8, typeName: StaticStr, ptr: *anyopaque, vtable: *const VTable) Self {
+    pub fn init(allocator: std.mem.Allocator, name: []const u8, ptr: *anyopaque, vtable: *const VTable) Self {
         const self: Self = .{
             .allocator = allocator,
             .edges = Edges.init(allocator),
-            .typeName = typeName,
             .ptr = ptr,
             .vtable = vtable,
             .name = name,
@@ -44,11 +43,11 @@ pub const Node = struct {
     }
     pub fn findInputSlotIndex(self: *Self, slotName: StaticStr) RenderGraphError!usize {
         const slots = self.inputs();
-        return graph.findSlotIndex(slots, slotName, graph.RenderGraphError.InvalidInputNodeSlot);
+        return findSlotIndex(slots, slotName, RenderGraphError.InvalidInputNodeSlot);
     }
     pub fn findOutputSlotIndex(self: *Self, slotName: StaticStr) RenderGraphError!usize {
         const slots = self.outputs();
-        return graph.findSlotIndex(slots, slotName, graph.RenderGraphError.InvalidOutputNodeSlot);
+        return findSlotIndex(slots, slotName, RenderGraphError.InvalidOutputNodeSlot);
     }
     pub fn inputs(self: *Self) *SlotInfoArrayList {
         return self.vtable.inputs(self.ptr);
@@ -60,7 +59,7 @@ pub const Node = struct {
         return self.vtable.run(self.ptr, ctx);
     }
     pub fn deinit(self: *Self) void {
-        self.vtable.deinit(self.ptr);
+        self.vtable.deinit(self.ptr); //destroy ptr,sync lifetime
         self.edges.deinit();
     }
 };
@@ -201,27 +200,40 @@ pub const Edges = struct {
 };
 pub const EmptyNode = struct {
     slots: SlotInfoArrayList,
-    pub fn init(allocator: std.mem.Allocator) EmptyNode {
-        return .{ .slots = SlotInfoArrayList.init(allocator) };
+    allocator: std.mem.Allocator,
+    const Self = @This();
+    pub fn new(allocator: std.mem.Allocator) *Self {
+        const self = allocator.create(Self) catch unreachable;
+        self.* = .{
+            .slots = SlotInfoArrayList.init(allocator),
+            .allocator = allocator,
+        };
+        return self;
     }
     pub fn deinit(ctx: *anyopaque) void {
-        const self: *EmptyNode = @ptrCast(@alignCast(ctx));
+        const self: *Self = @ptrCast(@alignCast(ctx));
         self.slots.deinit();
+        self.allocator.destroy(self);
     }
-    pub fn run(ctx: *anyopaque, context: *RenderGraphContext) ?NodeRunError {
-        _ = ctx;
-        _ = context;
+    pub fn inputs(ctx: *anyopaque) *SlotInfoArrayList {
+        const self: *Self = @ptrCast(@alignCast(ctx));
+        return &self.slots;
     }
-    pub fn nodeI(self: *EmptyNode, allocator: std.mem.Allocator) Node {
-        return Node.init(
-            allocator,
-            @typeName(EmptyNode),
+    pub fn outputs(ctx: *anyopaque) *SlotInfoArrayList {
+        const self: *Self = @ptrCast(@alignCast(ctx));
+        return &self.slots;
+    }
+    pub fn run(_: *anyopaque, _: *graph.RenderGraphContext) graph.NodeRunError!void {}
+    pub fn node(self: *Self, name: []const u8) graph.Node {
+        return graph.Node.init(
+            self.allocator,
+            name,
             self,
             &.{
                 .run = run,
                 .deinit = deinit,
-                .inputSlots = self.slots,
-                .outputSlots = self.slots,
+                .inputs = inputs,
+                .outputs = outputs,
             },
         );
     }

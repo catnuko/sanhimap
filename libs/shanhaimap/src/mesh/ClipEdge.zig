@@ -151,7 +151,6 @@ const InsideClosure = struct {
 
 test "ClipEdge" {
     const testing = @import("std").testing;
-    const debug = @import("std").debug;
     var lineString = LineString.init(testing.allocator);
     defer lineString.deinit();
     try lineString.append(Vec2.new(0, 0));
@@ -168,5 +167,4 @@ test "ClipEdge" {
         DEFAULT_EXTENTS + DEFAULT_BORDER,
     );
     defer clippedLineStrings.deinit();
-    debug.print("items.len is {}\n", .{clippedLineStrings.items.len});
 }

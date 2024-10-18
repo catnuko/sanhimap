@@ -16,10 +16,7 @@ const NodeQueue = std.TailQueue(*Node);
 pub const GraphRunner = struct {
     pub fn runGraph(allocator: std.mem.Allocator, graphV: *const RenderGraph, graphName: []const u8, inputs: []const SlotValue) RenderGraphRunnerError!void {
         _ = graphName;
-        var nodeOutputs = std.AutoHashMap(
-            StaticStr,
-            std.ArrayList(SlotValue),
-        ).init(allocator);
+        var nodeOutputs = std.StringHashMap(std.ArrayList(SlotValue)).init(allocator);
         defer nodeOutputs.deinit();
         var nodeQueue = NodeQueue{};
         //pass input into graph
@@ -111,6 +108,6 @@ fn cmpByEntry(a: Entry, b: Entry) bool {
 }
 test "graph.runner.default" {
     const allocator = std.testing.allocator;
-    var graphV = graph.RenderGraph.init(allocator);
+    var graphV = graph.RenderGraph.new(allocator);
     defer graphV.deinit();
 }

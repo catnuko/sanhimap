@@ -1,4 +1,5 @@
 const std = @import("std");
+const ArrayList = std.ArrayList;
 const graph = @import("index.zig");
 const Node = graph.Node;
 const SlotInfoArrayList = graph.SlotInfoArrayList;
@@ -27,23 +28,25 @@ pub const RenderGraphError = error{
 };
 pub const RenderGraph = struct {
     nodes: StringArrayHashMap(Node),
-    subGraphs: StringArrayHashMap(*RenderGraph),
+    subGraphs: StringArrayHashMap(RenderGraph),
     inputNode: ?*Node = undefined,
     allocator: std.mem.Allocator,
     const Self = @This();
-    pub fn init(allocator: std.mem.Allocator) Self {
+    pub fn new(allocator: std.mem.Allocator) Self {
         return .{
             .allocator = allocator,
             .nodes = StringArrayHashMap(Node).init(allocator),
-            .subGraphs = StringArrayHashMap(*RenderGraph).init(allocator),
+            .subGraphs = StringArrayHashMap(RenderGraph).init(allocator),
         };
     }
     pub fn deinit(self: *Self) void {
         for (self.nodes.values()) |*value| {
+            // std.debug.print("node deinit,{s}\n", .{value.name});
             value.deinit();
         }
         var subGraphIt = self.subGraphs.iterator();
         while (subGraphIt.next()) |value| {
+            // std.debug.print("subgraph deinit,{s}\n", .{value.key_ptr});
             value.value_ptr.*.deinit();
         }
         self.nodes.deinit();
@@ -86,7 +89,7 @@ pub const RenderGraph = struct {
         try outputNode.edges.addOutputEdge(edge);
         try inputNode.edges.addInputEdge(edge);
     }
-    pub fn addNodeEdges(self: *Self, edges: []StaticStr) void {
+    pub fn addNodeEdges(self: *Self, edges: [][]const u8) void {
         for (0..edges.len - 1) |i| {
             const input = edges[i];
             const output = edges[i + 1];
@@ -174,7 +177,7 @@ pub const RenderGraph = struct {
         return res;
     }
     pub fn addSubGraph(self: *Self, name: StaticStr, subGraph: RenderGraph) void {
-        return self.subGraphs.put(name, subGraph) orelse unreachable;
+        return self.subGraphs.put(name, subGraph) catch unreachable;
     }
     pub fn removeSubGraph(self: *Self, name: StaticStr) bool {
         return self.subGraphs.remove(name);
@@ -311,12 +314,10 @@ pub const TestNode = struct {
         return Node.init(
             self.allocator,
             name,
-            @typeName(Self),
             self,
             &.{
                 .deinit = deinit,
                 .run = run,
-                .update = null,
                 .inputs = inputs,
                 .outputs = outputs,
             },
@@ -343,7 +344,7 @@ fn input_nodes(allocator: std.mem.Allocator, graphv: *RenderGraph, name: []const
 }
 test "RenderGraph.default" {
     const allocator = std.testing.allocator;
-    var graphv = RenderGraph.init(allocator);
+    var graphv = RenderGraph.new(allocator);
     defer graphv.deinit();
     var n0 = TestNode.init(allocator);
     _ = try n0.outputSlots.append(SlotInfo{ .name = "out_0", .slotType = SlotType.TextureView });
@@ -405,7 +406,7 @@ test "RenderGraph.default" {
 
 test "RenderGraph.slotAlreadyOccupied" {
     const allocator = std.testing.allocator;
-    var graphv = RenderGraph.init(allocator);
+    var graphv = RenderGraph.new(allocator);
     defer graphv.deinit();
     var n0 = TestNode.init(allocator);
     _ = try n0.outputSlots.append(SlotInfo{ .name = "out_0", .slotType = SlotType.TextureView });
@@ -430,7 +431,7 @@ test "RenderGraph.slotAlreadyOccupied" {
 
 test "RenderGraph.edgeAlreadyExists" {
     const allocator = std.testing.allocator;
-    var graphv = RenderGraph.init(allocator);
+    var graphv = RenderGraph.new(allocator);
     defer graphv.deinit();
     var n0 = TestNode.init(allocator);
     const A = n0.nodeI("A");
@@ -445,7 +446,7 @@ test "RenderGraph.edgeAlreadyExists" {
     graphv.addNode(C);
 
     var edges = [_][]const u8{ "A", "B", "C" };
-    try graphv.addNodeEdges(&edges);
+    graphv.addNodeEdges(&edges);
 
     {
         const list = try output_nodes(std.testing.allocator, &graphv, "A");
@@ -479,7 +480,7 @@ const SimpleNode = struct {
 };
 test "RenderGraph.addNodeEdge" {
     const allocator = std.testing.allocator;
-    var graphv = RenderGraph.init(allocator);
+    var graphv = RenderGraph.new(allocator);
     defer graphv.deinit();
 }
 const T = struct { name: []const u8 };

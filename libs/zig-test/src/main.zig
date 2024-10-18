@@ -1,22 +1,36 @@
-const print = @import("std").debug.print;
-// Zig package
-const fabinaci_zig = @import("fabinaci.zig").fabinaci;
-// c package
-const sum_c = @cImport({
-    @cInclude("sum.h");
-});
-// c++ package
-const timeit_cpp = @cImport(@cInclude("timeit.h"));
-
-fn fabinaci23() callconv(.C) void {
-    _ = fabinaci_zig(20);
+const std = @import("std");
+const Test = struct {
+    slots: std.ArrayList(u8),
+    fn new(alloc: std.mem.Allocator) Test {
+        return .{ .slots = std.ArrayList(u8).init(alloc) };
+    }
+    fn getSlots(self: *Test) *std.ArrayList(u8) {
+        return &self.slots;
+    }
+    fn deinit(self: *Test) void {
+        self.slots.deinit();
+    }
+    fn printLen(self: *const Test) void {
+        std.debug.print("{}", .{self.slots.items.len});
+    }
+};
+const TT = struct {
+    t: Test,
+    fn new(alloc: std.mem.Allocator) TT {
+        return .{ .t = Test.new(alloc) };
+    }
+};
+pub fn boo(alloc: std.mem.Allocator) TT {
+    return TT.new(alloc);
 }
-fn sum_test() callconv(.C) void {
-    _ = sum_c.sum(10, 20);
+pub fn foo(alloc: std.mem.Allocator) Test {
+    const t = Test.new(alloc);
+    return t;
 }
-
 pub fn main() !void {
-    print("{} + {} = {}\t\t{d:>12.3} ms\n", .{ 20, 10, sum_c.sum(10, 20), timeit_cpp.time_it(sum_test) });
-
-    print("fabinaci({}) = {}\t{d:>12.3} ms\n", .{ 20, fabinaci_zig(20), timeit_cpp.time_it(fabinaci23) });
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const alloc = gpa.allocator();
+    var t = boo(alloc);
+    t.t.printLen();
 }

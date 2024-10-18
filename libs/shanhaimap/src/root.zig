@@ -17,11 +17,17 @@ pub const ui = @import("./ui/index.zig");
 pub const tiling = @import("./tiling/index.zig");
 pub const projection = @import("./projection/index.zig");
 pub const datasource = @import("./datasource/index.zig");
-pub const graph = @import("./graph/index.zig");
 pub const mesh = @import("./mesh/index.zig");
+pub const render = @import("./render/index.zig");
 
-pub usingnamespace @import("./MapView.zig");
+// pub usingnamespace @import("./MapView.zig");
 test {
     const testing = std.testing;
     testing.refAllDecls(@This()); //只有pub修饰的结构体才会被导入到此处，递归会递归执行非顶级test，就是带名字的test
+
+    var app = render.App.new(testing.allocator);
+    defer app.deinit();
+    var core3dPlugin = render.core.Core3dPlugin.new();
+    const plugin = core3dPlugin.plugin();
+    app.addPlugin(plugin) catch unreachable;
 }
