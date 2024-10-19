@@ -12,7 +12,7 @@ pub usingnamespace @import("./Rectangle.zig");
 pub usingnamespace @import("./RectangleCorner.zig");
 
 pub const math2d = @import("./math2d/index.zig");
-pub const geodesic = @import("geodesic/index.zig");
+pub const geodesy = @import("geodesy/index.zig");
 pub const ui = @import("./ui/index.zig");
 pub const tiling = @import("./tiling/index.zig");
 pub const projection = @import("./projection/index.zig");
