@@ -1,4 +1,4 @@
-const math = @import("math");
+const math = @import("../math.zig");
 const Cartographic = @import("Cartographic.zig").Cartographic;
 pub const NvectorEllipsoidal = struct {
     v: math.Vec3d,

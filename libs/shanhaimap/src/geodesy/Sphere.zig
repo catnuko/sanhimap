@@ -1,5 +1,5 @@
 const Cartographic = @import("../Cartographic.zig").Cartographic;
-const math = @import("math");
+const math = @import("../math.zig");
 // const math = @import("std").math;
 pub const Sphere = struct {
     radius: f64,

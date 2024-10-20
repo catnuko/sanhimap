@@ -1,4 +1,4 @@
-const math = @import("math");
+const math = @import("../math.zig");
 pub const BoundingRectangle = struct {
     x: f64,
     y: f64,

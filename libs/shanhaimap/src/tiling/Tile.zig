@@ -1,4 +1,4 @@
-const math = @import("math");
+const math = @import("../math.zig");
 const TileKey = @import("./TileKey.zig");
 const GeoBox = @import("../GeoBox.zig").GeoBox;
 const OBB = @import("../OBB.zig").OBB;
@@ -34,7 +34,7 @@ pub fn Tile(comptime DataSourceImpl: type) type {
             self.updateBoundingBox();
             return self;
         }
-        pub inline fn center(self: *const Self) *const math.Vec3d {
+        pub inline fn center(self: *const Self) *const math.Vec3 {
             return &self.boundingBox.center;
         }
         pub inline fn projection(self: *const Self) *const DataSource.Projection {

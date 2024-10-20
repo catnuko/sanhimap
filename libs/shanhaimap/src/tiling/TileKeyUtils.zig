@@ -1,5 +1,5 @@
 const std = @import("std");
-const math = @import("math");
+const math = @import("../math.zig");
 const TileKey = @import("./TileKey.zig");
 const Cargotrphic = @import("../Cartographic.zig");
 const GeoBox = @import("../GeoBox.zig");
@@ -77,8 +77,8 @@ pub fn geoRectangleToTileKeys(comptime TilingScheme: type, tilingscheme: TilingS
 }
 pub fn wrap(value: f64, lower: f64, upper: f64) f64 {
     if (value < lower) {
-        return upper - @mod((lower - value) , (upper - lower));
+        return upper - @mod((lower - value), (upper - lower));
     }
 
-    return lower + @mod((value - lower) , (upper - lower));
+    return lower + @mod((value - lower), (upper - lower));
 }

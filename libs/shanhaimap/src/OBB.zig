@@ -1,7 +1,7 @@
 const Rectangle = @import("Rectangle.zig");
-const math = @import("math");
-const Vec3 = math.Vec3d;
-const Mat3 = math.Mat3x3d;
+const math = @import("./math.zig");
+const Vec3 = math.Vec3;
+const Mat3 = math.Mat3;
 const debug = @import("std").debug;
 pub const OBB = struct {
     center: Vec3,

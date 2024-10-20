@@ -91,5 +91,12 @@ pub const App = struct {
             try self.addPlugin(plugin);
         }
     }
-    pub fn run(_: *Self) void {}
+    pub fn setup(self: *Self) void {
+        while (self.plugins.iterator().next()) |value| {
+            value.value_ptr.setups(self);
+        }
+    }
+    pub fn cleanup(self: *Self) void {
+        self.deinit();
+    }
 };

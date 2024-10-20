@@ -1,5 +1,5 @@
 const Cartographic = @import("../Cartographic.zig").Cartographic;
-const math = @import("math");
+const math = @import("../math.zig");
 pub const Ellipsoid = struct {
     a: f64,
     b: f64,
@@ -17,7 +17,7 @@ pub const Ellipsoid = struct {
     pub fn new(av: f64, bv: f64, fv: f64) Self {
         return .{ .a = av, .b = bv, .f = fv };
     }
-    pub fn toCartesian(self: *const Self, cg: *const Cartographic) math.Vec3d {
+    pub fn toCartesian(self: *const Self, cg: *const Cartographic) math.Vec3 {
         const c = cg.lat;
         const d = cg.lon;
         const h = cg.height;
@@ -37,9 +37,9 @@ pub const Ellipsoid = struct {
         const y = (v + h) * cosc * sind;
         const z = (v * (1 - eSq) + h) * sinc;
 
-        return math.vec3d(x, y, z);
+        return math.vec3(x, y, z);
     }
-    pub fn toCartographic(self: *const Self, vec: *const math.Vec3d) Cartographic {
+    pub fn toCartographic(self: *const Self, vec: *const math.Vec3) Cartographic {
         const x = vec.x();
         const y = vec.y();
         const z = vec.z();

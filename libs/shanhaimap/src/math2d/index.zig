@@ -1,17 +1,16 @@
-const math = @import("math");
-const Vec2 = math.Vec2d;
-pub fn intersectLines(x1: f64, y1: f64, x2: f64, y2: f64, x3: f64, y3: f64, x4: f64, y4: f64) ?Vec2 {
+const math = @import("../math.zig");
+pub fn intersectLines(x1: f64, y1: f64, x2: f64, y2: f64, x3: f64, y3: f64, x4: f64, y4: f64) ?math.Vec2 {
     const d = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
     if (d == 0) {
         return null;
     }
     const px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / d;
     const py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / d;
-    return Vec2.new(px, py);
+    return math.Vec2.new(px, py);
 }
 pub const IntersectLineAndCircleResult = union(enum) {
-    point: Vec2,
-    line: [2]Vec2,
+    point: math.Vec2,
+    line: [2]math.Vec2,
 };
 pub fn intersectLineAndCircle(xLine1: f64, yLine1: f64, xLine2: f64, yLine2: f64, radius: f64, xCenter: f64, yCenter: f64) ?IntersectLineAndCircleResult {
     // Line equation: dy*x - dx*y = c, c = dy*x1 - dx*y1 = x1*y2 - x2*y1
@@ -51,7 +50,7 @@ pub fn intersectLineAndCircle(xLine1: f64, yLine1: f64, xLine2: f64, yLine2: f64
     const yMid = -cp * dx;
 
     if (discriminantSquared < epsilon) {
-        return IntersectLineAndCircleResult{ .point = Vec2.new(xCenter + xMid / dSq, yCenter + yMid / dSq) };
+        return IntersectLineAndCircleResult{ .point = math.Vec2.new(xCenter + xMid / dSq, yCenter + yMid / dSq) };
     }
 
     const discriminant = math.sqrt(discriminantSquared);
@@ -63,9 +62,9 @@ pub fn intersectLineAndCircle(xLine1: f64, yLine1: f64, xLine2: f64, yLine2: f64
     const xDist = signDy * dx * discriminant;
     const yDist = absDy * discriminant;
 
-    return .{ .line = [2]Vec2{
-        Vec2.new(xCenter + (xMid + xDist) / dSq, yCenter + (yMid + yDist) / dSq),
-        Vec2.new(xCenter + (xMid - xDist) / dSq, yCenter + (yMid - yDist) / dSq),
+    return .{ .line = [2]math.Vec2{
+        math.Vec2.new(xCenter + (xMid + xDist) / dSq, yCenter + (yMid + yDist) / dSq),
+        math.Vec2.new(xCenter + (xMid - xDist) / dSq, yCenter + (yMid - yDist) / dSq),
     } };
 }
 pub fn distSquared(ax: f64, ay: f64, bx: f64, by: f64) f64 {

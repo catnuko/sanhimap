@@ -1,4 +1,4 @@
-const math = @import("math");
+const math = @import("../math.zig");
 pub const SubdivisionScheme = struct {
     vtable: *const VTable,
     pub const VTable = struct {

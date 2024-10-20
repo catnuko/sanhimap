@@ -1,4 +1,4 @@
-const math = @import("math");
+const math = @import("../math.zig");
 const std = @import("std");
 const shm = @import("../root.zig");
 const AABB = shm.AABB;
@@ -6,7 +6,7 @@ const GeoBox = shm.GeoBox;
 const Cartographic = shm.Cartographic;
 const TileKey = shm.tiling.TileKey;
 const ArrayList = std.ArrayList;
-const Vec3 = math.Vec3d;
+const Vec3 = math.Vec3;
 const TileKeyUtils = shm.tiling.TileKeyUtils;
 const SubdivisionScheme = shm.tiling.SubdivisionScheme;
 const proj = shm.projection;

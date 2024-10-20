@@ -1,5 +1,5 @@
-const math = @import("math");
-const Vec3 = math.Vec3d;
+const math = @import("./math.zig");
+const Vec3 = math.Vec3;
 
 pub const pi = math.pi;
 pub const MAX_LATITUDE = math.pi_over_two;

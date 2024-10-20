@@ -26,9 +26,7 @@ pub const PrepassNode = struct {
         const self: *Self = @ptrCast(@alignCast(ctx));
         return &self.slots;
     }
-    pub fn run(_: *anyopaque, _: *graph.RenderGraphContext) graph.NodeRunError!void {
-        std.debug.print("prepass is running", .{});
-    }
+    pub fn run(_: *anyopaque, _: *graph.RenderGraphContext) graph.NodeRunError!void {}
     pub fn node(self: *Self, name: []const u8) graph.Node {
         return graph.Node.init(
             self.allocator,

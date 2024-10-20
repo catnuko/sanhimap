@@ -1,4 +1,4 @@
-const math = @import("math");
+const math = @import("./math.zig");
 const Cartographic = @import("./Cartographic.zig").Cartographic;
 const MAX_LONGITUDE = @import("./Cartographic.zig").MAX_LONGITUDE;
 const RectangleCorner = @import("RectangleCorner.zig").RectangleCorner;
