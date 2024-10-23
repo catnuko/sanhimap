@@ -1,102 +1,87 @@
-const Allocator = @import("std").mem.Allocator;
-const debug = @import("std").debug;
-const render = @import("./index.zig");
-const graph = render.graph;
-const Plugin = render.Plugin;
-const ArrayList = @import("std").ArrayList;
-const StringHashMap = @import("std").StringHashMap;
-const RenderGraph = graph.RenderGraph;
-const Node = graph.Node;
-pub const GraphManager = struct {
-    graph: RenderGraph,
-    alloc: Allocator,
-    const Self = @This();
-    pub fn new(alloc: Allocator) Self {
-        return .{
-            .alloc = alloc,
-            .graph = RenderGraph.new(alloc),
-        };
-    }
-    pub fn getSubGraph(self: *Self, subGraphName: []const u8) *RenderGraph {
-        return self.graph.getSubGraph(subGraphName) orelse {
-            debug.print("SubGraph {s} not found\n", .{subGraphName});
-            unreachable;
-        };
-    }
-    pub fn addNode(self: *Self, subGraphName: []const u8, node: Node) void {
-        var subGraph = self.getSubGraph(subGraphName);
-        subGraph.addNode(node);
-    }
-    pub fn addSubGraph(self: *Self, subGraphName: []const u8) void {
-        self.graph.addSubGraph(subGraphName, RenderGraph.new(self.alloc));
-    }
+const std = @import("std");
+const debug = @import("debug.zig");
+const images = @import("images.zig");
+const meshes = @import("graphics/mesh.zig");
+const modules = @import("modules.zig");
+const colors = @import("colors.zig");
+const fonts = @import("fonts.zig");
+const scripting = @import("scripting/manager.zig");
 
-    pub fn addEdges(self: *Self, subGraphName: []const u8, edges: [][]const u8) void {
-        var subGraph = self.getSubGraph(subGraphName);
-        subGraph.addNodeEdges(edges);
-    }
-    pub fn addEdge(self: *Self, subGraphName: []const u8, edge: []const u8) void {
-        var subGraph = self.getSubGraph(subGraphName);
-        subGraph.addNodeEdge(edge);
-    }
-    pub fn deinit(self: *Self) void {
-        self.graph.deinit();
-    }
+// Main systems
+const app_backend = @import("platform/app.zig");
+const input = @import("platform/input.zig");
+const audio = @import("platform/audio.zig");
+
+pub var assets_path: [:0]const u8 = "assets";
+
+pub const AppConfig = struct {
+    title: [:0]const u8 = "Delve Framework",
+
+    width: i32 = 960,
+    height: i32 = 540,
+
+    enable_audio: bool = false,
+
+    target_fps: ?i32 = null,
+    use_fixed_timestep: bool = false,
+    fixed_timestep_delta: f32 = 1.0 / 60.0,
+
+    // maximum sizes for graphics buffers
+    buffer_pool_size: i32 = 512,
+    shader_pool_size: i32 = 512,
+    pipeline_pool_size: i32 = 512,
+    image_pool_size: i32 = 256,
+    sampler_pool_size: i32 = 128,
+    pass_pool_size: i32 = 32,
 };
-pub const AppError = error{
-    DuplicatePlugin,
-};
-pub const App = struct {
-    const Plugins = StringHashMap(Plugin);
-    graphManager: GraphManager,
-    plugins: Plugins,
-    alloc: Allocator,
-    const Self = @This();
-    pub fn new(alloc: Allocator) Self {
-        return .{
-            .graphManager = GraphManager.new(alloc),
-            .plugins = Plugins.init(alloc),
-            .alloc = alloc,
-        };
-    }
-    pub fn getSubGraph(self: *Self, subGraphName: []const u8) *RenderGraph {
-        return self.graphManager.getSubGraph(subGraphName);
-    }
-    pub fn addNode(self: *Self, subGraphName: []const u8, node: Node) void {
-        return self.graphManager.addNode(subGraphName, node);
-    }
-    pub fn addSubGraph(self: *Self, subGraphName: []const u8) void {
-        return self.graphManager.addSubGraph(subGraphName);
-    }
-    pub fn addEdges(self: *Self, subGraphName: []const u8, edges: [][]const u8) void {
-        return self.graphManager.addEdges(subGraphName, edges);
-    }
-    pub fn addEdge(self: *Self, subGraphName: []const u8, edge: []const u8) void {
-        return self.graphManager.addEdge(subGraphName, edge);
-    }
-    pub fn deinit(self: *Self) void {
-        self.graphManager.deinit();
-        self.plugins.deinit();
-    }
-    pub fn addPlugin(self: *Self, plugin: Plugin) AppError!void {
-        const exist = self.plugins.contains(plugin.name);
-        if (exist) {
-            return AppError.DuplicatePlugin;
-        }
-        plugin.build(self);
-        self.plugins.put(plugin.name, plugin) catch unreachable;
-    }
-    pub fn addPlugins(self: *Self, plugins: []Plugin) AppError!void {
-        for (plugins) |plugin| {
-            try self.addPlugin(plugin);
-        }
-    }
-    pub fn setup(self: *Self) void {
-        while (self.plugins.iterator().next()) |value| {
-            value.value_ptr.setups(self);
-        }
-    }
-    pub fn cleanup(self: *Self) void {
-        self.deinit();
-    }
-};
+
+var app_config: AppConfig = undefined;
+
+pub fn setAssetsPath(path: [:0]const u8) !void {
+    assets_path = path;
+}
+
+pub fn start(config: AppConfig) !void {
+    app_config = config;
+
+    debug.init();
+
+    debug.log("Delve Framework Starting!", .{});
+
+    // App backend init
+    try app_backend.init();
+
+    // TODO: Handle how the assets path works!
+
+    // Change the working dir to where the assets are
+    // debug.log("Assets Path: {s}", .{assets_path});
+    // const chdir_res = std.c.chdir(assets_path);
+    // if (chdir_res == -1) return error.Oops;
+
+    // Kick off the game loop! This will also start and stop the subsystems.
+    debug.log("Main loop starting", .{});
+    app_backend.startMainLoop(config);
+}
+
+pub fn startSubsystems() !void {
+    try images.init();
+    try colors.init();
+    try input.init();
+    try fonts.init();
+    try meshes.init();
+
+    if (app_config.enable_audio)
+        try audio.init();
+}
+
+pub fn stopSubsystems() void {
+    modules.deinit();
+    colors.deinit();
+    input.deinit();
+    fonts.deinit();
+    meshes.deinit();
+    images.deinit();
+
+    if (app_config.enable_audio)
+        audio.deinit();
+}

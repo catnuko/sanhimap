@@ -4,34 +4,40 @@
     .dependencies = .{
         .math = .{ .path = "../math" },
         .uuid = .{ .path = "../../third/uuid-zig-0.2.1" },
-        .system_sdk = .{ .path = "../../third/system-sdk" },
-        .zglfw = .{ .path = "../../third/zglfw" },
-        .zgpu = .{ .path = "../../third/zgpu" },
-        .zpool = .{ .path = "../../third/zpool" },
-        .zgui = .{ .path = "../../third/zgui" },
-        .dawn_x86_64_windows_gnu = .{
-            .url = "https://github.com/michal-z/webgpu_dawn-x86_64-windows-gnu/archive/d3a68014e6b6b53fd330a0ccba99e4dcfffddae5.tar.gz",
-            .hash = "1220f9448cde02ef3cd51bde2e0850d4489daa0541571d748154e89c6eb46c76a267",
-        },
-        .dawn_x86_64_linux_gnu = .{
-            .url = "https://github.com/michal-z/webgpu_dawn-x86_64-linux-gnu/archive/7d70db023bf254546024629cbec5ee6113e12a42.tar.gz",
-            .hash = "12204a3519efd49ea2d7cf63b544492a3a771d37eda320f86380813376801e4cfa73",
-        },
-        .dawn_aarch64_linux_gnu = .{
-            .url = "https://github.com/michal-z/webgpu_dawn-aarch64-linux-gnu/archive/c1f55e740a62f6942ff046e709ecd509a005dbeb.tar.gz",
-            .hash = "12205cd13f6849f94ef7688ee88c6b74c7918a5dfb514f8a403fcc2929a0aa342627",
-        },
-        .dawn_aarch64_macos = .{
-            .url = "https://github.com/michal-z/webgpu_dawn-aarch64-macos/archive/d2360cdfff0cf4a780cb77aa47c57aca03cc6dfe.tar.gz",
-            .hash = "12201fe677e9c7cfb8984a36446b329d5af23d03dc1e4f79a853399529e523a007fa",
-        },
-        .dawn_x86_64_macos = .{
-            .url = "https://github.com/michal-z/webgpu_dawn-x86_64-macos/archive/901716b10b31ce3e0d3fe479326b41e91d59c661.tar.gz",
-            .hash = "1220b1f02f2f7edd98a078c64e3100907d90311d94880a3cc5927e1ac009d002667a",
-        },
         .sokol = .{
             .url = "git+https://github.com/floooh/sokol-zig.git#580b2ac40621a886c0d440140b6f9704466be20e",
-            .hash = "1220247e48f0feb8ef490bca108c5abbcf418d502f25b719bfd5a70393f67cab4888",
+            .hash = "12201b62a6fd9e15e0b78a4fbcda3ac907a423446c68c6b8614c9b3b21d24a955639",
+        },
+        .ziglua = .{
+            .url = "git+https://github.com/interrupt/ziglua#3d7532ec73202bddfbeba1933d43fe427ca6d80d",
+            .hash = "12207a933b3cca4e301c711acbdb045a50c1d90f9525ab6544e409427b9672a6821f",
+        },
+        // needed because Lua is a lazy dependency inside of ziglua
+        .lua54 = .{
+            .url = "https://www.lua.org/ftp/lua-5.4.6.tar.gz",
+            .hash = "1220f93ada1fa077ab096bf88a5b159ad421dbf6a478edec78ddb186d0c21d3476d9",
+        },
+        .ymlz = .{
+            .url = "git+https://github.com/pwbh/ymlz#bd3ce82da20844117f3da76d0cd40453936b1b66",
+            .hash = "122066bde791372e092cf04ccf2b827e9b1164a2ea23c7187d71d2d2f39252777f25",
+        },
+        .zstbi = .{
+            .path = "../../third/zstbi",
+        },
+        .zmesh = .{
+            .path = "../../third/zmesh",
+        },
+        .zaudio = .{
+            .path = "../../third/zaudio",
+        },
+        .cimgui = .{
+            .path = "../../third/cimgui",
+        },
+        .system_sdk = .{
+            .path = "../../third/system-sdk",
+        },
+        .stb_truetype = .{
+            .path = "../../third/stb_truetype",
         },
     },
     .paths = .{

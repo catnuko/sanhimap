@@ -1,5 +1,5 @@
 const Allocator = @import("std").mem.Allocator;
-const shm = @import("../root.zig");
+const shm = @import("../lib.zig");
 const DataSourceImpl = shm.datasource.DataSource;
 const tiling = shm.tiling;
 const FeatureId = shm.datasource.FeatureId;

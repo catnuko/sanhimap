@@ -258,14 +258,9 @@ pub const Ellipsoid = struct {
     }
 };
 
-test "geodesic.Ellipsoid.toCartesian" {
-    const p1 = Cartographic.fromDegrees(45, 45, 0);
-    const ellipsoid = Ellipsoid.WGS84;
-    const result = ellipsoid.toCartesian(&p1);
-    const std = @import("std");
-    std.debug.print("{},{},{}", .{
-        result.x(),
-        result.y(),
-        result.z(),
-    });
-}
+// test "geodesic.Ellipsoid.toCartesian" {
+//     const p1 = Cartographic.fromDegrees(45, 45, 0);
+//     const ellipsoid = Ellipsoid.WGS84;
+//     const result = ellipsoid.toCartesian(&p1);
+//     const std = @import("std");
+// }

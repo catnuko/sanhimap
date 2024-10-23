@@ -1,5 +1,5 @@
 const math = @import("../math.zig");
-const shm = @import("../root.zig");
+const shm = @import("../lib.zig");
 pub const TileCorner = struct {
     se: math.Vec3,
     sw: math.Vec3,

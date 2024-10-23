@@ -1,6 +1,6 @@
 const math = @import("../math.zig");
 const std = @import("std");
-const shm = @import("../root.zig");
+const shm = @import("../lib.zig");
 const AABB = shm.AABB;
 const GeoBox = shm.GeoBox;
 const Cartographic = shm.Cartographic;
