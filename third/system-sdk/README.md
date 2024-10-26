@@ -1,35 +1,33 @@
-const std = @import("std");
+# [zig-gamedev system-sdk](https://github.com/zig-gamedev/zig-gamedev/tree/main/libs/system-sdk)
 
-pub fn build(_: *std.Build) void {}
+System libraries and headers for cross-compiling [zig-gamedev libs](https://github.com/zig-gamedev/zig-gamedev#libraries)
 
-/// Deprecated: This function invites the user to enforce a dependency on system-sdk even when
-/// library paths may not be required for some build environments / target platforms. Instead
-/// of calling this, users should conditionally use lazy dependencies, see README.md for example.
-pub fn addLibraryPathsTo(compile_step: *std.Build.Step.Compile) void {
-    const b = compile_step.step.owner;
-    const target = compile_step.rootModuleTarget();
-
-    const system_sdk = b.lazyDependency("system_sdk", .{}).?;
-
+## Usage
+build.zig
+```zig
     switch (target.os.tag) {
         .windows => {
             if (target.cpu.arch.isX86()) {
                 if (target.abi.isGnu() or target.abi.isMusl()) {
+                    const system_sdk = b.lazyDependency("system_sdk", .{}).?;
                     compile_step.addLibraryPath(system_sdk.path("windows/lib/x86_64-windows-gnu"));
                 }
             }
         },
         .macos => {
+            const system_sdk = b.lazyDependency("system_sdk", .{}).?;
             compile_step.addLibraryPath(system_sdk.path("macos12/usr/lib"));
             compile_step.addFrameworkPath(system_sdk.path("macos12/System/Library/Frameworks"));
         },
         .linux => {
             if (target.cpu.arch.isX86()) {
+                const system_sdk = b.lazyDependency("system_sdk", .{}).?;
                 compile_step.addLibraryPath(system_sdk.path("linux/lib/x86_64-linux-gnu"));
             } else if (target.cpu.arch == .aarch64) {
+                const system_sdk = b.lazyDependency("system_sdk", .{}).?;
                 compile_step.addLibraryPath(system_sdk.path("linux/lib/aarch64-linux-gnu"));
             }
         },
         else => {},
     }
-}
+```
