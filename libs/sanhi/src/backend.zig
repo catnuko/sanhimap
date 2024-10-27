@@ -70,33 +70,32 @@ pub const AppBackend = struct {
         while (!self.window.shouldClose() and self.window.getKey(.escape) != .press) {
             zglfw.pollEvents();
 
-            zgui.backend.newFrame(
-                self.gctx.swapchain_descriptor.width,
-                self.gctx.swapchain_descriptor.height,
-            );
+            // zgui.backend.newFrame(
+            //     self.gctx.swapchain_descriptor.width,
+            //     self.gctx.swapchain_descriptor.height,
+            // );
 
-            const swapchain_texv = self.gctx.swapchain.getCurrentTextureView();
-            defer swapchain_texv.release();
+            // const swapchain_texv = self.gctx.swapchain.getCurrentTextureView();
+            // defer swapchain_texv.release();
 
+            // const commands = commands: {
+            //     const encoder = self.gctx.device.createCommandEncoder(null);
+            //     defer encoder.release();
+
+            //     // GUI pass
+            //     {
+            //         const pass = zgpu.beginRenderPassSimple(encoder, .load, swapchain_texv, null, null, null);
+            //         defer zgpu.endReleasePass(pass);
+            //         zgui.backend.draw(pass);
+            //     }
+
+            //     break :commands encoder.finish(null);
+            // };
+            // defer commands.release();
+
+            // self.gctx.submit(&.{commands});
+            // _ = self.gctx.present();
             self.on_update_fn();
-
-            const commands = commands: {
-                const encoder = self.gctx.device.createCommandEncoder(null);
-                defer encoder.release();
-
-                // GUI pass
-                {
-                    const pass = zgpu.beginRenderPassSimple(encoder, .load, swapchain_texv, null, null, null);
-                    defer zgpu.endReleasePass(pass);
-                    zgui.backend.draw(pass);
-                }
-
-                break :commands encoder.finish(null);
-            };
-            defer commands.release();
-
-            self.gctx.submit(&.{commands});
-            _ = self.gctx.present();
         }
     }
     pub fn deinit(self: *Self) void {

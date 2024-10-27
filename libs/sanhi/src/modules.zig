@@ -4,7 +4,6 @@ const ModuleQueue = std.PriorityQueue(Module, void, compareModules);
 const backend = @import("./backend.zig");
 var modules: ModuleQueue = undefined;
 var needs_init: bool = true;
-var initialized_modules: bool = false;
 
 // don't put modules in the main list while iterating
 var modules_to_add: ModuleQueue = undefined;
@@ -23,19 +22,16 @@ pub const Priority = struct {
 /// A Module is a named set of functions that tie into the app lifecycle
 pub const Module = struct {
     name: [:0]const u8,
-    init_fn: ?*const fn () anyerror!void = null,
+    init_fn: ?*const fn (appBackend: *backend.AppBackend) anyerror!void = null,
     start_fn: ?*const fn () void = null,
     stop_fn: ?*const fn () void = null,
     tick_fn: ?*const fn (f32) void = null,
     fixed_tick_fn: ?*const fn (f32) void = null,
-    pre_draw_fn: ?*const fn () void = null,
+    pre_draw_fn: ?*const fn (appBackend: *backend.AppBackend) void = null,
     draw_fn: ?*const fn (appBackend: *backend.AppBackend) void = null,
-    post_draw_fn: ?*const fn () void = null,
+    post_draw_fn: ?*const fn (appBackend: *backend.AppBackend) void = null,
     cleanup_fn: ?*const fn () anyerror!void = null,
     priority: i32 = 100, // lower priority runs earlier!
-
-    // state properties
-    did_init: bool = false,
 
     /// Runs the pre draw, draw, and post draw functions for this module. Useful when nesting modules.
     pub fn runFullRenderLifecycle(self: *const Module) void {
@@ -56,36 +52,32 @@ pub fn deinit() void {
 }
 
 /// Registers a module to tie it into the app lifecycle
-pub fn registerModule(module: Module) !void {
+pub fn registerModule(appBackend: *backend.AppBackend, module: Module) !void {
     if (needs_init) {
         const allocator = mem.getAllocator();
-
         modules = ModuleQueue.init(allocator, {});
-        modules_to_add = ModuleQueue.init(allocator, {});
-
         needs_init = false;
     }
 
     // only allow one version of a module to be registered!
-    for (modules_to_add.items) |*m| {
+    for (modules.items) |*m| {
         if (std.mem.eql(u8, module.name, m.name)) {
             std.debug.print("Module {s} is already being registered! Skipping.\n", .{module.name});
             return;
         }
     }
-    for (modules.items) |*m| {
-        if (std.mem.eql(u8, module.name, m.name)) {
-            std.debug.print("Module {s} is already registered! Skipping.\n", .{module.name});
-            return;
-        }
+
+    modules.add(module) catch {
+        std.debug.print("Error adding module to initialize: {s}\n", .{module.name});
+    };
+
+    std.debug.print("Initializing module: {s}\n", .{module.name});
+    if (module.init_fn != null) {
+        module.init_fn.?(appBackend) catch {
+            std.debug.print("Error initializing module: {s}\n", .{module.name});
+        };
     }
-
-    try modules_to_add.add(module);
     std.debug.print("Registered module: {s}\n", .{module.name});
-
-    // Modules registered after initialization should init right away!
-    if (initialized_modules)
-        initModules();
 }
 
 /// Gets a registered module
@@ -96,36 +88,6 @@ pub fn getModule(module_name: [:0]const u8) ?*Module {
         }
     }
     return null;
-}
-
-/// Initialize all the modules
-pub fn initModules() void {
-    // Modules could register other modules during init, so make sure to collect them all
-    while (modules_to_add.items.len > 0) {
-        while (modules_to_add.removeOrNull()) |module| {
-            modules.add(module) catch {
-                std.debug.print("Error adding module to initialize: {s}\n", .{module.name});
-            };
-
-            // initialize any new modules that were added
-            for (modules.items) |*m| {
-                if (m.did_init)
-                    continue;
-
-                std.debug.print("Initializing module: {s}\n", .{m.name});
-                if (m.init_fn != null)
-                    m.init_fn.?() catch {
-                        std.debug.print("Error initializing module: {s}\n", .{m.name});
-                        continue;
-                    };
-
-                m.did_init = true;
-            }
-        }
-    }
-
-    // let late registered modules know that we already did this
-    initialized_modules = true;
 }
 
 /// Let all modules know that initialization is done
@@ -161,39 +123,38 @@ pub fn fixedTickModules(fixed_delta_time: f32) void {
 }
 
 /// Calls the pre-draw function of all modules. Happens before rendering
-pub fn preDrawModules() void {
+pub fn preDrawModules(appBackend: *backend.AppBackend) void {
     for (modules.items) |*module| {
         if (module.pre_draw_fn != null)
-            module.pre_draw_fn.?();
+            module.pre_draw_fn.?(appBackend);
     }
 }
 
 /// Calls the draw function of all modules
 pub fn drawModules(appBackend: *backend.AppBackend) void {
     for (modules.items) |*module| {
-        if (module.draw_fn != null)
+        if (module.draw_fn != null) {
             module.draw_fn.?(appBackend);
+        }
     }
 }
 
 /// Calls the post-draw function of all modules. Happens at the end of a frame, after rendering.
-pub fn postDrawModules() void {
+pub fn postDrawModules(appBackend: *backend.AppBackend) void {
     for (modules.items) |*module| {
         if (module.post_draw_fn != null)
-            module.post_draw_fn.?();
+            module.post_draw_fn.?(appBackend);
     }
 }
 
 /// Calls the cleanup function of all modules
 pub fn cleanupModules() void {
     for (modules.items) |*module| {
-        if (module.cleanup_fn != null)
+        if (module.cleanup_fn != null) {
             module.cleanup_fn.?() catch {
                 std.debug.print("Error cleaning up module: {s}\n", .{module.name});
                 continue;
             };
-
-        // reset back to initial state
-        module.did_init = false;
+        }
     }
 }

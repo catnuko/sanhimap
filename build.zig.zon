@@ -2,6 +2,7 @@
     .name = "zgeo",
     .version = "0.0.0",
     .dependencies = .{
+        .math = .{ .path = "libs/math" },
         .uuid = .{ .path = "third/uuid-zig-0.2.1" },
         .system_sdk = .{ .path = "third/system-sdk" },
         .zglfw = .{ .path = "third/zglfw" },

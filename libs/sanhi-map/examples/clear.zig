@@ -1,5 +1,5 @@
 const std = @import("std");
-const delve = @import("shanhaimap").render;
+const delve = @import("sanhimap").render;
 const testing = @import("std").testing;
 const app = delve.app;
 var time: f32 = 0.0;

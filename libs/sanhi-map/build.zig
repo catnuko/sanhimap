@@ -95,16 +95,16 @@ pub fn build(b: *std.Build) !void {
         .{ .name = "ymlz", .module = dep_yamlz.module("root") },
     };
     // Delve module
-    var shanhaimap_mod = b.addModule("shanhaimap", .{
+    var sanhimap_mod = b.addModule("sanhimap", .{
         .root_source_file = b.path("src/lib.zig"),
         .target = target,
         .optimize = optimize,
     });
-    addImport(shanhaimap_mod, &imports, dep_sokol);
+    addImport(sanhimap_mod, &imports, dep_sokol);
 
     if (target.result.isWasm()) {
         const emsdk_include_path = getEmsdkSystemIncludePath(dep_sokol);
-        shanhaimap_mod.addSystemIncludePath(emsdk_include_path);
+        sanhimap_mod.addSystemIncludePath(emsdk_include_path);
         for (imports) |import| {
             import.module.addSystemIncludePath(emsdk_include_path);
             if (import.linkLib) |lib| {
@@ -113,21 +113,21 @@ pub fn build(b: *std.Build) !void {
         }
     }
 
-    const shanhaimap_lib = b.addStaticLibrary(.{
+    const sanhimap_lib = b.addStaticLibrary(.{
         .target = target,
         .optimize = optimize,
-        .name = "shanhaimap",
+        .name = "sanhimap",
         .root_source_file = b.path("src/lib.zig"),
     });
 
-    b.installArtifact(shanhaimap_lib);
+    b.installArtifact(sanhimap_lib);
 
     const examples = [_][]const u8{
         "clear",
     };
 
     for (examples) |example_item| {
-        try buildExample(b, example_item, shanhaimap_mod, shanhaimap_lib);
+        try buildExample(b, example_item, sanhimap_mod, sanhimap_lib);
     }
 
     buildShaders(b);
@@ -142,7 +142,7 @@ pub fn build(b: *std.Build) !void {
     test_step.dependOn(&lib_tests.step);
 }
 
-fn buildExample(b: *std.Build, example: []const u8, shanhaimap_module: *Build.Module, shanhaimap_lib: *Build.Step.Compile) !void {
+fn buildExample(b: *std.Build, example: []const u8, sanhimap_module: *Build.Module, sanhimap_lib: *Build.Step.Compile) !void {
     const name: []const u8 = example;
     var root_source_buffer = [_]u8{undefined} ** 256;
     const root_source_file = try std.fmt.bufPrint(&root_source_buffer, "examples/{s}.zig", .{name});
@@ -165,8 +165,8 @@ fn buildExample(b: *std.Build, example: []const u8, shanhaimap_module: *Build.Mo
         });
     }
 
-    app.root_module.addImport("shanhaimap", shanhaimap_module);
-    app.linkLibrary(shanhaimap_lib);
+    app.root_module.addImport("sanhimap", sanhimap_module);
+    app.linkLibrary(sanhimap_lib);
 
     if (target.result.isWasm()) {
         const dep_sokol = b.dependency("sokol", .{

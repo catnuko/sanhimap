@@ -140,7 +140,7 @@ pub const AppConfig = struct {
 };
 pub fn init(cfg: AppConfig) !void {
     mem.init(mem.createDefaultAllocator());
-    std.debug.print("App platform starting", .{});
+    std.debug.print("App platform starting\n", .{});
     app_backend = backend.AppBackend{
         .on_init_fn = on_init,
         .on_deinit_fn = on_deinit,
@@ -161,7 +161,7 @@ pub fn init(cfg: AppConfig) !void {
     try app_backend.init(mem.getAllocator());
 }
 pub fn addPlugin(plugin: anytype) !void {
-    try modules.registerModule(plugin.module());
+    try modules.registerModule(&app_backend, plugin.module());
 }
 pub fn deinit() void {
     std.debug.print("App platform stopping", .{});
@@ -170,10 +170,6 @@ pub fn deinit() void {
 }
 
 fn on_init() void {
-    // initialize modules finally
-    modules.initModules();
-
-    // then kick everything off!
     modules.startModules();
 }
 
@@ -212,13 +208,13 @@ fn on_update() void {
 
     modules.tickModules(updateState.delta_time);
     // tell modules we are getting ready to draw!
-    modules.preDrawModules();
+    modules.preDrawModules(&app_backend);
 
     // then draw!
     modules.drawModules(&app_backend);
 
     // tell modules this frame is done
-    modules.postDrawModules();
+    modules.postDrawModules(&app_backend);
 
     // keep under our FPS limit, if needed
     updateState.did_limit_fps = updateState.limitFps();

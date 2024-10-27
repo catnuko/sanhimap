@@ -29,6 +29,5 @@ pub fn module() modules.Module {
         .name = "fps",
         .draw_fn = drawFPS,
     };
-    showFPS(true);
     return fps;
 }

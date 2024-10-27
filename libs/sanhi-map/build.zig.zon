@@ -1,5 +1,5 @@
 .{
-    .name = "shanhaimap",
+    .name = "sanhimap",
     .version = "0.0.0",
     .dependencies = .{
         .math = .{ .path = "../math" },

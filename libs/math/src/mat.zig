@@ -1,6 +1,7 @@
 const testing = @import("testing.zig");
 const math = @import("root.zig");
 const vec = @import("vec.zig");
+const stdmath = @import("std").math;
 
 pub fn Mat2x2(
     comptime Scalar: type,
@@ -608,6 +609,84 @@ pub fn Mat4x4(
             )));
             return p;
         }
+        pub fn lookAt(eye: Vec3, focuspos: Vec3, updir: Vec3) Matrix {
+            const zAxis = eye.sub(&focuspos).normalize();
+            const xAxis = updir.cross(&zAxis).normalize();
+            const yAxis = zAxis.cross(&xAxis).normalize();
+            var res: Matrix = undefined;
+            res.v[0].v[0] = xAxis.x();
+            res.v[0].v[1] = yAxis.x();
+            res.v[0].v[2] = zAxis.x();
+            res.v[0].v[3] = 0;
+            res.v[1].v[0] = xAxis.y();
+            res.v[1].v[1] = yAxis.y();
+            res.v[1].v[2] = zAxis.y();
+            res.v[1].v[3] = 0;
+            res.v[2].v[0] = xAxis.z();
+            res.v[2].v[1] = yAxis.z();
+            res.v[2].v[2] = zAxis.z();
+            res.v[2].v[3] = 0;
+            res.v[3].v[0] = -(xAxis.x() * eye.x() + xAxis.y() * eye.y() + xAxis.z() * eye.z());
+            res.v[3].v[1] = -(yAxis.x() * eye.x() + yAxis.y() * eye.y() + yAxis.z() * eye.z());
+            res.v[3].v[2] = -(zAxis.x() * eye.x() + zAxis.y() * eye.y() + zAxis.z() * eye.z());
+            res.v[3].v[3] = 1;
+            return res;
+        }
+        pub fn perspective(fovy: T, aspect: T, near: T, far: T) Matrix {
+            const bottom = stdmath.tan(fovy * 0.5);
+
+            const column1Row1 = 1.0 / bottom;
+            const column0Row0 = column1Row1 / aspect;
+            const column2Row2 = (far + near) / (near - far);
+            const column3Row2 = (2.0 * far * near) / (near - far);
+
+            var res: Matrix = undefined;
+            res.v[0].v[0] = column0Row0;
+            res.v[0].v[1] = 0;
+            res.v[0].v[2] = 0;
+            res.v[0].v[3] = 0;
+
+            res.v[1].v[0] = 0;
+            res.v[1].v[1] = column1Row1;
+            res.v[1].v[2] = 0;
+            res.v[1].v[3] = 0;
+
+            res.v[2].v[0] = 0;
+            res.v[2].v[1] = 0;
+            res.v[2].v[2] = column2Row2;
+            res.v[2].v[3] = -1;
+
+            res.v[3].v[0] = 0;
+            res.v[3].v[1] = 0;
+            res.v[3].v[2] = column3Row2;
+            res.v[3].v[3] = 0;
+            return res;
+        }
+        // pub fn perspective(fovy: T, aspect: T, near: T, far: T) Matrix {
+        //     const f = stdmath.tan(math.pi * 0.5 - 0.5 * fovy);
+        //     const rangeInv = 1 / (near - far);
+        //     var res: Matrix = undefined;
+        //     res.v[0].v[0] = f / aspect;
+        //     res.v[0].v[1] = 0;
+        //     res.v[0].v[2] = 0;
+        //     res.v[0].v[3] = 0;
+
+        //     res.v[1].v[0] = 0;
+        //     res.v[1].v[1] = f;
+        //     res.v[1].v[2] = 0;
+        //     res.v[1].v[3] = 0;
+
+        //     res.v[2].v[0] = 0;
+        //     res.v[2].v[1] = 0;
+        //     res.v[2].v[2] = far * rangeInv;
+        //     res.v[2].v[3] = -1;
+
+        //     res.v[3].v[0] = 0;
+        //     res.v[3].v[1] = 0;
+        //     res.v[3].v[2] = far * near * rangeInv;
+        //     res.v[3].v[3] = 0;
+        //     return res;
+        // }
 
         pub fn inverse(m: *const Matrix) Matrix {
             const a00 = m.v[0].v[0];
@@ -665,8 +744,8 @@ pub fn Mat4x4(
             res.v[2].v[3] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
             res.v[3].v[0] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
             res.v[3].v[1] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
-            res.v[3].v[3] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
-            res.v[3].v[2] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+            res.v[3].v[2] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+            res.v[3].v[3] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
 
             return res;
         }
