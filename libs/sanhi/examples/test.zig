@@ -8,7 +8,7 @@ pub fn main() !void {
     // try app.addPlugin(sanhi.fps);
     // sanhi.fps.showFPS(true);
     try app.addPlugin(sanhi.input);
-    try app.addPlugin(sanhi.meshes);
+    try app.addPlugin(sanhi.mesh.module);
     app.startMainLoop();
     defer app.deinit();
 }

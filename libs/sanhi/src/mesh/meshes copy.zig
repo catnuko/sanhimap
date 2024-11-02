@@ -31,7 +31,6 @@ const wgsl_fs =
     \\  ) -> @location(0) vec4<f32> {
     \\      return vec4(color, 1.0);
     \\  }
-    // zig fmt: on
 ;
 const GpuMesh = struct {
     gctx: *zgpu.GraphicsContext,
@@ -246,7 +245,6 @@ fn on_draw(appBackend: *backend.AppBackend) void {
 
             zgui.backend.draw(pass);
         }
-
         break :commands encoder.finish(null);
     };
     defer commands.release();

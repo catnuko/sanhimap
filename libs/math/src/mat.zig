@@ -1,6 +1,7 @@
 const testing = @import("testing.zig");
 const math = @import("root.zig");
 const vec = @import("vec.zig");
+const quat = @import("./quat.zig");
 const stdmath = @import("std").math;
 
 pub fn Mat2x2(
@@ -52,6 +53,12 @@ pub fn Mat2x2(
             &RowVec.new(1, 0),
             &RowVec.new(0, 1),
         );
+        pub fn identity() Matrix {
+            return Matrix.new(
+                &RowVec.new(1, 0),
+                &RowVec.new(0, 1),
+            );
+        }
 
         /// Constructs a 2x2 matrix with the given rows. For example to write a translation
         /// matrix like in the left part of this equation:
@@ -198,7 +205,13 @@ pub fn Mat3x3(
             &RowVec.new(0, 1, 0),
             &RowVec.new(0, 0, 1),
         );
-
+        pub fn identity() Matrix {
+            return Matrix.new(
+                &RowVec.new(1, 0, 0),
+                &RowVec.new(0, 1, 0),
+                &RowVec.new(0, 0, 1),
+            );
+        }
         /// Constructs a 3x3 matrix with the given rows. For example to write a translation
         /// matrix like in the left part of this equation:
         ///
@@ -388,6 +401,8 @@ pub fn Mat4x4(
 
         /// The underlying Vec type, e.g. Mat3x3.Vec == Vec3
         pub const Vec = vec.Vec4(Scalar);
+        pub const Vec3 = vec.Vec3(T);
+        pub const Quat = quat.Quat(T);
 
         /// The Vec type corresponding to the number of rows, e.g. Mat3x3.RowVec == Vec3
         pub const RowVec = Vec;
@@ -406,7 +421,14 @@ pub fn Mat4x4(
             &Vec.new(0, 0, 1, 0),
             &Vec.new(0, 0, 0, 1),
         );
-
+        pub fn identity() Matrix {
+            return Matrix.new(
+                &Vec.new(1, 0, 0, 0),
+                &Vec.new(0, 1, 0, 0),
+                &Vec.new(0, 0, 1, 0),
+                &Vec.new(0, 0, 0, 1),
+            );
+        }
         /// Constructs a 4x4 matrix with the given rows. For example to write a translation
         /// matrix like in the left part of this equation:
         ///
@@ -518,7 +540,6 @@ pub fn Mat4x4(
                 &RowVec.new(0, 0, 0, 1),
             );
         }
-        const Vec3 = vec.Vec3(T);
         pub fn fromScale(o: *const Vec3) Matrix {
             return Matrix.new(
                 &RowVec.new(o.x(), 0, 0, 0),
@@ -747,6 +768,53 @@ pub fn Mat4x4(
             res.v[3].v[2] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
             res.v[3].v[3] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
 
+            return res;
+        }
+        pub fn fromTranslationQuaternionRotationScale(translationv: *const Vec3, rotation: *const Quat, scalev: *const Vec3) Matrix {
+            const scaleX = scalev.x();
+            const scaleY = scalev.y();
+            const scaleZ = scalev.z();
+
+            const x2 = rotation.x() * rotation.x();
+            const xy = rotation.x() * rotation.y();
+            const xz = rotation.x() * rotation.z();
+            const xw = rotation.x() * rotation.w();
+            const y2 = rotation.y() * rotation.y();
+            const yz = rotation.y() * rotation.z();
+            const yw = rotation.y() * rotation.w();
+            const z2 = rotation.z() * rotation.z();
+            const zw = rotation.z() * rotation.w();
+            const w2 = rotation.w() * rotation.w();
+
+            const m00 = x2 - y2 - z2 + w2;
+            const m01 = 2.0 * (xy - zw);
+            const m02 = 2.0 * (xz + yw);
+
+            const m10 = 2.0 * (xy + zw);
+            const m11 = -x2 + y2 - z2 + w2;
+            const m12 = 2.0 * (yz - xw);
+
+            const m20 = 2.0 * (xz - yw);
+            const m21 = 2.0 * (yz + xw);
+            const m22 = -x2 - y2 + z2 + w2;
+
+            var res: Matrix = undefined;
+            res.v[0].v[0] = m00 * scaleX;
+            res.v[0].v[1] = m10 * scaleX;
+            res.v[0].v[2] = m20 * scaleX;
+            res.v[0].v[3] = 0.0;
+            res.v[1].v[0] = m01 * scaleY;
+            res.v[1].v[1] = m11 * scaleY;
+            res.v[1].v[2] = m21 * scaleY;
+            res.v[1].v[3] = 0.0;
+            res.v[2].v[0] = m02 * scaleZ;
+            res.v[2].v[1] = m12 * scaleZ;
+            res.v[2].v[2] = m22 * scaleZ;
+            res.v[2].v[3] = 0.0;
+            res.v[3].v[0] = translationv.x();
+            res.v[3].v[1] = translationv.y();
+            res.v[3].v[2] = translationv.z();
+            res.v[3].v[3] = 1.0;
             return res;
         }
 
