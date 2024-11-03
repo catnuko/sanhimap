@@ -5,48 +5,21 @@ const zgui = lib.zgui;
 const zgpu = lib.zgpu;
 const wgpu = lib.wgpu;
 const modules = lib.modules;
-// const math = lib.math;
 const math = @import("math");
 const Mat4 = math.Mat4x4;
 const Vec3 = math.Vec3;
-const mesh = @import("./mesh.zig");
+const mesh = @import("./index.zig");
+const Mesh = mesh.Mesh;
+const Context = mesh.Context;
 const triangle = @import("./Triangle.zig");
 const TriangleMesh = triangle.TriangleMesh;
-
-const wgsl_vs =
-    \\  @group(0) @binding(0) var<uniform> object_to_clip: mat4x4<f32>;
-    \\  struct VertexOut {
-    \\      @builtin(position) position_clip: vec4<f32>,
-    \\      @location(0) color: vec4<f32>,
-    \\  }
-    \\  @vertex fn main(
-    \\      @location(0) position: vec3<f32>,
-    \\      @location(1) color: vec4<f32>,
-    \\  ) -> VertexOut {
-    \\      var output: VertexOut;
-    \\      output.position_clip = object_to_clip * vec4(position, 1.0);
-    \\      output.color = color;
-    \\      return output;
-    \\  }
-;
-const wgsl_fs =
-    \\  @fragment fn main(
-    \\      @location(0) color: vec4<f32>,
-    \\  ) -> @location(0) vec4<f32> {
-    \\      return color;
-    \\  }
-    // zig fmt: on
-;
-
-pub fn State(comptime Mesh: type) type {
-    return struct {
-        gctx: *zgpu.GraphicsContext,
-        mesh: Mesh,
-        depth_texture: zgpu.TextureHandle,
-        depth_texture_view: zgpu.TextureViewHandle,
-    };
-}
-var state: State(TriangleMesh) = undefined;
+const State = struct {
+    depth_texture: zgpu.TextureHandle,
+    depth_texture_view: zgpu.TextureViewHandle,
+    context: Context,
+    mesh: Mesh,
+};
+var state: State = undefined;
 const Vertex = struct {
     position: [3]f32,
     color: [3]f32,
@@ -65,17 +38,36 @@ fn on_init(appBackend: *backend.AppBackend) !void {
     const gctx = appBackend.gctx;
     const depth = createDepthTexture(gctx);
     var triangle_mesh = triangle.initTriangleMesh();
-    triangle_mesh.upload(gctx);
-    state = State(TriangleMesh){
-        .gctx = gctx,
-        .mesh = triangle_mesh,
+    var context: Context = .{ .gctx = gctx };
+    triangle_mesh.upload(&context);
+    state = State{
+        .context = context,
         .depth_texture = depth.texture,
         .depth_texture_view = depth.view,
+        .mesh = triangle_mesh,
     };
 }
 fn on_draw(appBackend: *backend.AppBackend) void {
     const gctx = appBackend.gctx;
+    const fb_width = gctx.swapchain_descriptor.width;
+    const fb_height = gctx.swapchain_descriptor.height;
+    // const t = @as(f32, @floatCast(gctx.stats.time));
 
+    const view = Mat4.lookAt(
+        Vec3.new(3.0, 3.0, -3.0),
+        Vec3.new(0.0, 0.0, 0.0),
+        Vec3.new(0.0, 1.0, 0.0),
+    );
+    const projection = Mat4.perspective(
+        math.pi / 3.0,
+        @as(f32, @floatFromInt(fb_width)) / @as(f32, @floatFromInt(fb_height)),
+        0.01,
+        200.0,
+    );
+    // const object_to_world = Mat4.translate(Vec3.new(-1.0, 0.0, 0.0)).mul(&Mat4.rotateY(t));
+    // const object_to_clip = cam_world_to_clip.mul(&object_to_world);
+    state.context.view = view;
+    state.context.projection = projection;
     zgui.backend.newFrame(
         gctx.swapchain_descriptor.width,
         gctx.swapchain_descriptor.height,
@@ -113,8 +105,9 @@ fn on_draw(appBackend: *backend.AppBackend) void {
                 pass.end();
                 pass.release();
             }
-
-            state.mesh.draw(gctx, pass) orelse unreachable;
+            state.context.pass = pass;
+            state.context.encoder = encoder;
+            state.mesh.draw(&state.context) orelse unreachable;
         }
         {
             const color_attachments = [_]wgpu.RenderPassColorAttachment{.{
