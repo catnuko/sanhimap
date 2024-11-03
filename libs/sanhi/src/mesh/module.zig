@@ -11,13 +11,16 @@ const Vec3 = math.Vec3;
 const mesh = @import("./index.zig");
 const Mesh = mesh.Mesh;
 const Context = mesh.Context;
+const Scene = mesh.Scene;
+const Camera = mesh.Camera;
 const triangle = @import("./Triangle.zig");
 const TriangleMesh = triangle.TriangleMesh;
 const State = struct {
     depth_texture: zgpu.TextureHandle,
     depth_texture_view: zgpu.TextureViewHandle,
     context: Context,
-    mesh: Mesh,
+    scene: Scene,
+    camera: Camera,
 };
 var state: State = undefined;
 const Vertex = struct {
@@ -37,37 +40,35 @@ pub fn to_list(comptime T: type, constList: anytype) std.ArrayList(T) {
 fn on_init(appBackend: *backend.AppBackend) !void {
     const gctx = appBackend.gctx;
     const depth = createDepthTexture(gctx);
-    var triangle_mesh = triangle.initTriangleMesh();
     var context: Context = .{ .gctx = gctx };
-    triangle_mesh.upload(&context);
-    state = State{
-        .context = context,
-        .depth_texture = depth.texture,
-        .depth_texture_view = depth.view,
-        .mesh = triangle_mesh,
-    };
-}
-fn on_draw(appBackend: *backend.AppBackend) void {
-    const gctx = appBackend.gctx;
+    var scene = Scene.new();
+    scene.upload(&context);
     const fb_width = gctx.swapchain_descriptor.width;
     const fb_height = gctx.swapchain_descriptor.height;
-    // const t = @as(f32, @floatCast(gctx.stats.time));
-
-    const view = Mat4.lookAt(
-        Vec3.new(3.0, 3.0, -3.0),
-        Vec3.new(0.0, 0.0, 0.0),
-        Vec3.new(0.0, 1.0, 0.0),
-    );
-    const projection = Mat4.perspective(
+    var camera = Camera.new(
         math.pi / 3.0,
         @as(f32, @floatFromInt(fb_width)) / @as(f32, @floatFromInt(fb_height)),
         0.01,
         200.0,
     );
-    // const object_to_world = Mat4.translate(Vec3.new(-1.0, 0.0, 0.0)).mul(&Mat4.rotateY(t));
-    // const object_to_clip = cam_world_to_clip.mul(&object_to_world);
-    state.context.view = view;
-    state.context.projection = projection;
+    camera.world_matrix = Mat4.lookAt(
+        Vec3.new(3.0, 3.0, -3.0),
+        Vec3.new(0.0, 0.0, 0.0),
+        Vec3.new(0.0, 1.0, 0.0),
+    );
+
+    state = State{
+        .context = context,
+        .depth_texture = depth.texture,
+        .depth_texture_view = depth.view,
+        .scene = scene,
+        .camera = camera,
+    };
+}
+fn on_draw(appBackend: *backend.AppBackend) void {
+    const gctx = appBackend.gctx;
+    state.context.view = state.camera.world_matrix;
+    state.context.projection = state.camera.projection_matrix;
     zgui.backend.newFrame(
         gctx.swapchain_descriptor.width,
         gctx.swapchain_descriptor.height,
@@ -107,7 +108,7 @@ fn on_draw(appBackend: *backend.AppBackend) void {
             }
             state.context.pass = pass;
             state.context.encoder = encoder;
-            state.mesh.draw(&state.context) orelse unreachable;
+            state.scene.draw(&state.context);
         }
         {
             const color_attachments = [_]wgpu.RenderPassColorAttachment{.{
@@ -146,7 +147,7 @@ fn on_draw(appBackend: *backend.AppBackend) void {
     }
 }
 fn on_deinit() !void {
-    state.mesh.deinit();
+    state.scene.deinit();
 }
 
 pub fn module() modules.Module {

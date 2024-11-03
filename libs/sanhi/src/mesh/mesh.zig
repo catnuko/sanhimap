@@ -9,8 +9,6 @@ const mesh = @import("./index.zig");
 const Geometry = mesh.Geometry;
 const Material = mesh.Material;
 const Context = mesh.Context;
-const Object3D = mesh.Object3D;
-const SharedObject3D = mesh.SharedObject3D;
 pub const MeshUniforms = struct {
     model: Mat4,
     view: Mat4,
@@ -31,25 +29,76 @@ const Self = @This();
 geometry: Geometry,
 material: Material,
 state: State = undefined,
-object3D: Object3D,
-pub usingnamespace SharedObject3D(Self);
+is_upload: bool = false,
+matrix: Mat4 = Mat4.identity(),
+matrixWorld: Mat4 = Mat4.identity(),
+parent: ?*Self = null,
+children: lib.ArrayList(*Self),
 // mesh_uniforms: MeshUniforms,
 pub fn new(geometry: Geometry, material: Material) Self {
     return .{
         .geometry = geometry,
         .material = material,
-        .object3D = Object3D.new(),
+        .children = lib.ArrayList(*Self).init(lib.mem.getAllocator()),
     };
 }
 pub fn deinit(self: *Self) void {
     self.geometry.deinit();
     self.material.deinit();
-    self.deinit_object3d();
+    self.removeAll();
+    self.children.deinit();
 }
 pub fn upload(self: *Self, ctx: *Context) void {
+    if (self.is_upload) return;
     self.material.upload(ctx.gctx);
     self.geometry.upload(ctx.gctx);
     self.createRenderPipeline(ctx);
+    self.is_upload = true;
+    for (self.children.items) |children| {
+        children.upload(ctx);
+    }
+}
+pub fn updateMatrixWorld(self: *Self) void {
+    if (self.parent) |parent| {
+        self.matrixWorld = parent.matrixWorld.mul(self.matrix);
+    } else {
+        self.matrixWorld = self.matrix.clone();
+    }
+    for (self.children.items) |children| {
+        children.updateMatrixWorld();
+    }
+}
+pub fn add(self: *Self, meshv: *Self) void {
+    if (self == meshv) {
+        @compileError("mesh can't be added as a child of itself.");
+    }
+    meshv.removeFromParent();
+    meshv.parent = self;
+    self.children.append(meshv);
+}
+pub fn remove(self: *Self, meshv: *Self) void {
+    var targetIndex: usize = -1;
+    for (self.children.items, 0..) |children, i| {
+        if (children == meshv) {
+            targetIndex = i;
+            break;
+        }
+    }
+    if (targetIndex != -1) {
+        const children = self.children.swapRemove(targetIndex);
+        children.parent = null;
+    }
+}
+pub fn removeFromParent(self: *Self) void {
+    if (self.parent) |parent| {
+        parent.remove(self);
+    }
+}
+pub fn removeAll(self: *Self) void {
+    for (self.children.items) |children| {
+        children.parent = null;
+    }
+    self.children.clearAndFree();
 }
 fn createRenderPipeline(self: *Self, ctx: *Context) void {
     //create pipeline layout
@@ -102,7 +151,7 @@ fn createRenderPipeline(self: *Self, ctx: *Context) void {
 
     self.state = .{ .mesh_uniforms_bg = mesh_uniforms_bg, .pipeline = pipeline };
 }
-pub fn draw(self: *Self, ctx: *Context) ?void {
+pub fn draw(self: *Self, ctx: *Context) void {
     var gctx = ctx.gctx;
     const pass = ctx.pass;
     const vb_info = gctx.lookupResourceInfo(self.geometry.vertex_buffer).?;
@@ -115,15 +164,18 @@ pub fn draw(self: *Self, ctx: *Context) ?void {
     pass.setPipeline(pipeline);
     {
         const mem0 = gctx.uniformsAllocate(MeshUniforms, 1);
-        const t = @as(f32, @floatCast(gctx.stats.time));
-        const model = Mat4.translate(Vec3.new(-1.0, 0.0, 0.0)).mul(&Mat4.rotateY(t));
+        // const t = @as(f32, @floatCast(gctx.stats.time));
+        // const model = Mat4.translate(Vec3.new(-1.0, 0.0, 0.0)).mul(&Mat4.rotateY(t));
         mem0.slice[0] = .{
-            .model = model,
+            .model = self.matrixWorld,
             .view = ctx.view,
             .projection = ctx.projection,
         };
         pass.setBindGroup(0, mesh_uniforms_bg, &.{mem0.offset});
         pass.setBindGroup(1, material_uniforms_bg, &.{self.material.uniform.write_uniform(ctx)});
         pass.drawIndexed(3, 1, 0, 0, 0);
+    }
+    for (self.children.items) |children| {
+        children.draw(ctx);
     }
 }
