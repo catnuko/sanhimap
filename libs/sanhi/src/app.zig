@@ -138,6 +138,15 @@ pub const AppConfig = struct {
     use_fixed_timestep: bool = false,
     fixed_timestep_delta: f32 = 1.0 / 60.0,
 };
+pub fn get_app_backend() *backend.AppBackend {
+    return &app_backend;
+}
+pub fn get_width() i32 {
+    return app_backend.width;
+}
+pub fn get_height() i32 {
+    return app_backend.height;
+}
 pub fn init(cfg: AppConfig) !void {
     mem.init(mem.createDefaultAllocator());
     std.debug.print("App platform starting\n", .{});
@@ -164,7 +173,6 @@ pub fn addPlugin(plugin: anytype) !void {
     try modules.registerModule(&app_backend, plugin.module());
 }
 pub fn deinit() void {
-    std.debug.print("App platform stopping", .{});
     app_backend.deinit();
     mem.deinit();
 }

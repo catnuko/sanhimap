@@ -15,55 +15,27 @@ const Scene = mesh.Scene;
 const Camera = mesh.Camera;
 const triangle = @import("./Triangle.zig");
 const TriangleMesh = triangle.TriangleMesh;
+
 const State = struct {
     depth_texture: zgpu.TextureHandle,
     depth_texture_view: zgpu.TextureViewHandle,
     context: Context,
-    scene: Scene,
-    camera: Camera,
+    scene: *Scene,
+    camera: *Camera,
 };
 var state: State = undefined;
-const Vertex = struct {
-    position: [3]f32,
-    color: [3]f32,
-};
-var vs_module: zgpu.wgpu.ShaderModule = undefined;
-var fs_module: zgpu.wgpu.ShaderModule = undefined;
-pub fn to_list(comptime T: type, constList: anytype) std.ArrayList(T) {
-    const allocator = lib.mem.getAllocator(); // 使用合适的内存分配器
-    var list = std.ArrayList(T).initCapacity(allocator, constList.len) catch unreachable;
-    for (0..constList.len) |i| {
-        list.appendAssumeCapacity(constList[i]);
-    }
-    return list;
+pub fn init(scene: *Scene, camera: *Camera) void {
+    state.scene = scene;
+    state.camera = camera;
 }
 fn on_init(appBackend: *backend.AppBackend) !void {
     const gctx = appBackend.gctx;
     const depth = createDepthTexture(gctx);
     var context: Context = .{ .gctx = gctx };
-    var scene = Scene.new();
-    scene.upload(&context);
-    const fb_width = gctx.swapchain_descriptor.width;
-    const fb_height = gctx.swapchain_descriptor.height;
-    var camera = Camera.new(
-        math.pi / 3.0,
-        @as(f32, @floatFromInt(fb_width)) / @as(f32, @floatFromInt(fb_height)),
-        0.01,
-        200.0,
-    );
-    camera.world_matrix = Mat4.lookAt(
-        Vec3.new(3.0, 3.0, -3.0),
-        Vec3.new(0.0, 0.0, 0.0),
-        Vec3.new(0.0, 1.0, 0.0),
-    );
-
-    state = State{
-        .context = context,
-        .depth_texture = depth.texture,
-        .depth_texture_view = depth.view,
-        .scene = scene,
-        .camera = camera,
-    };
+    state.context = context;
+    state.depth_texture = depth.texture;
+    state.depth_texture_view = depth.view;
+    state.scene.upload(&context);
 }
 fn on_draw(appBackend: *backend.AppBackend) void {
     const gctx = appBackend.gctx;
@@ -132,9 +104,10 @@ fn on_draw(appBackend: *backend.AppBackend) void {
         break :commands encoder.finish(null);
     };
     defer commands.release();
-
     gctx.submit(&.{commands});
-
+    check_resize(gctx);
+}
+fn check_resize(gctx: *zgpu.GraphicsContext) void {
     if (gctx.present() == .swap_chain_resized) {
         // Release old depth texture.
         gctx.releaseResource(state.depth_texture_view);
@@ -147,12 +120,17 @@ fn on_draw(appBackend: *backend.AppBackend) void {
     }
 }
 fn on_deinit() !void {
-    state.scene.deinit();
+    // state.scene.deinit();
 }
-
+fn on_pre_draw(_: *backend.AppBackend) void {}
+fn on_post_draw(_: *backend.AppBackend) void {}
+fn on_tick(_: f32) void {}
 pub fn module() modules.Module {
     const meshes = modules.Module{
         .name = "meshes",
+        .pre_draw_fn = on_pre_draw,
+        .post_draw_fn = on_post_draw,
+        .tick_fn = on_tick,
         .draw_fn = on_draw,
         .init_fn = on_init,
         .cleanup_fn = on_deinit,

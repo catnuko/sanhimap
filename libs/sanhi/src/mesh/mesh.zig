@@ -43,10 +43,13 @@ pub fn new(geometry: Geometry, material: Material) Self {
     };
 }
 pub fn deinit(self: *Self) void {
+    for (self.children.items) |children| {
+        children.parent = null;
+        children.deinit();
+    }
+    self.children.deinit();
     self.geometry.deinit();
     self.material.deinit();
-    self.removeAll();
-    self.children.deinit();
 }
 pub fn upload(self: *Self, ctx: *Context) void {
     if (self.is_upload) return;
@@ -93,12 +96,6 @@ pub fn removeFromParent(self: *Self) void {
     if (self.parent) |parent| {
         parent.remove(self);
     }
-}
-pub fn removeAll(self: *Self) void {
-    for (self.children.items) |children| {
-        children.parent = null;
-    }
-    self.children.clearAndFree();
 }
 fn createRenderPipeline(self: *Self, ctx: *Context) void {
     //create pipeline layout

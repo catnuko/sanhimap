@@ -1,5 +1,5 @@
 const stdmath = @import("std").math;
-const math = @import("math");
+pub const math = @import("math");
 pub const Vec2 = math.Vec2d;
 pub const Vec3 = math.Vec3d;
 pub const Vec4 = math.Vec4d;
