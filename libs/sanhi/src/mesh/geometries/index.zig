@@ -6,7 +6,7 @@ const Mesh = mesh.Mesh;
 const Geometry = mesh.Geometry;
 const Material = mesh.Material;
 
-pub fn init_sphere_geometry() Geometry {
+pub fn init_sphere_geometry(slices: i32, stacks: i32) Geometry {
     var geometry = Geometry.new(
         &[_]wgpu.VertexAttribute{
             .{ .format = wgpu.VertexFormat.float32x3, .shader_location = 0, .offset = 0 },
@@ -14,7 +14,7 @@ pub fn init_sphere_geometry() Geometry {
             .{ .format = wgpu.VertexFormat.float32x3, .shader_location = 2, .offset = 20 },
         },
     );
-    const shape = zmesh.Shape.initParametricSphere(50, 50);
+    const shape = zmesh.Shape.initParametricSphere(slices, stacks);
     defer shape.deinit();
     const vertex_length = shape.positions.len;
     var buffer = lib.ArrayList(f32).initCapacity(lib.mem.getAllocator(), vertex_length * 8) catch unreachable;

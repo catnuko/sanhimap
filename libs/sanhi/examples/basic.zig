@@ -9,7 +9,7 @@ pub fn main() !void {
     var viewer = try sanhi.Viewer.new();
     defer viewer.deinit();
 
-    const geometry = mesh.geometry.init_sphere_geometry();
+    const geometry = mesh.geometry.init_sphere_geometry(50, 50);
     const material = mesh.material.init_basic_material();
     var sphere_mesh = mesh.Mesh.new(geometry, material);
     sphere_mesh.matrix.setScaleScalar(0.5);

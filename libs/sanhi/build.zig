@@ -62,8 +62,8 @@ pub fn build(b: *std.Build) !void {
     const app = b.addExecutable(.{
         .target = target,
         .optimize = optimize,
-        .name = "test",
-        .root_source_file = b.path("./examples/test.zig"),
+        .name = "basic",
+        .root_source_file = b.path("./examples/basic.zig"),
     });
     app.root_module.addImport("sanhi", sanhi_mod);
     @import("system_sdk").addLibraryPathsTo(app);
@@ -73,9 +73,9 @@ pub fn build(b: *std.Build) !void {
 
     const run = b.addRunArtifact(app);
     var option_buffer = [_]u8{undefined} ** 100;
-    const run_name = try std.fmt.bufPrint(&option_buffer, "run-{s}", .{"test"});
+    const run_name = try std.fmt.bufPrint(&option_buffer, "run-{s}", .{"basic"});
     var description_buffer = [_]u8{undefined} ** 200;
-    const descr_name = try std.fmt.bufPrint(&description_buffer, "run {s} example", .{"test"});
+    const descr_name = try std.fmt.bufPrint(&description_buffer, "run {s} example", .{"basic"});
     b.step(run_name, descr_name).dependOn(&run.step);
 
     const lib_tests = b.addTest(.{

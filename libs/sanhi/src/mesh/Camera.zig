@@ -45,8 +45,8 @@ pub fn update(self: *Self, app_backend: *backend.AppBackend) void {
 
     const quat = Quat.fromEuler(self.pitch, self.heading, self.roll);
     const rotation = Mat3.fromQuaternion(&quat);
-    const forward = rotation.getCol(2).negate().mul(&distance);
-    const right = rotation.getCol(0).negate().mul(&distance);
+    const forward = rotation.mulVec(&Vec3.new(0, 0, 1)).normalize().negate().mul(&distance);
+    const right = rotation.mulVec(&Vec3.new(1, 0, 0)).normalize().negate().mul(&distance);
     var cam_pos = self.camera_matrix.getTranslation();
     if (window.getKey(.w) == .press) {
         cam_pos = cam_pos.add(&forward);
