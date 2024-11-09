@@ -21,7 +21,6 @@ pub fn Ray3(comptime Scalar: type) type {
 
     const Vec4P = switch (Vec3P) {
         math.Vec3 => math.Vec4,
-        math.Vec3h => math.Vec4h,
         math.Vec3d => math.Vec4d,
         else => @compileError("Expected Vec3, Vec3h, Vec3d, found '" ++
             @typeName(Vec3P) ++ "'"),

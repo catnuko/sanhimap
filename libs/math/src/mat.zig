@@ -1,8 +1,10 @@
 const testing = @import("testing.zig");
 const math = @import("root.zig");
 const vec = @import("vec.zig");
-const quat = @import("./quat.zig");
+const Quat = @import("./quat.zig").Quat;
+const HeadingPitchRoll = @import("./hpr.zig").HeadingPitchRoll;
 const stdmath = @import("std").math;
+const debug = @import("std").debug;
 
 pub fn Mat2x2(
     comptime Scalar: type,
@@ -102,7 +104,7 @@ pub fn Mat2x2(
         }
 
         /// Constructs a 1D matrix which translates coordinates by the given scalar.
-        pub fn translateScalar(t: T) Matrix {
+        pub fn fromTranslationScalar(t: T) Matrix {
             return new(
                 &RowVec.new(1, t),
                 &RowVec.new(0, 1),
@@ -137,20 +139,7 @@ pub fn Mat2x2(
             res.v[1].v[1] = a0 * det;
             return res;
         }
-        pub const getRow = Shared.getRow;
-        pub const getCol = Shared.getCol;
-        pub const setRow = Shared.setRow;
-        pub const setCol = Shared.setCol;
-        pub const fromScale = Shared.fromScale;
-        pub const fromUniformScale = Shared.fromUniformScale;
-        pub const scale = fromScale;
-        pub const setScale = Shared.setScale;
-        pub const getScale = Shared.getScale;
-        pub const mul = Shared.mul;
-        pub const mulVec = Shared.mulVec;
-        pub const clone = Shared.clone;
-        pub const fromArray = Shared.fromArray;
-        pub const toArray = Shared.toArray;
+        pub usingnamespace Shared;
     };
 }
 
@@ -239,7 +228,72 @@ pub fn Mat3x3(
                 Vec.new(r0.z(), r1.z(), r2.z()),
             } };
         }
+        pub fn fromQuaternion(q: *const Quat(T)) Matrix {
+            const x2 = q.x() * q.x();
+            const xy = q.x() * q.y();
+            const xz = q.x() * q.z();
+            const xw = q.x() * q.w();
+            const y2 = q.y() * q.y();
+            const yz = q.y() * q.z();
+            const yw = q.y() * q.w();
+            const z2 = q.z() * q.z();
+            const zw = q.z() * q.w();
+            const w2 = q.w() * q.w();
 
+            const m00 = x2 - y2 - z2 + w2;
+            const m01 = 2.0 * (xy - zw);
+            const m02 = 2.0 * (xz + yw);
+
+            const m10 = 2.0 * (xy + zw);
+            const m11 = -x2 + y2 - z2 + w2;
+            const m12 = 2.0 * (yz - xw);
+
+            const m20 = 2.0 * (xz - yw);
+            const m21 = 2.0 * (yz + xw);
+            const m22 = -x2 - y2 + z2 + w2;
+            var res: Matrix = undefined;
+            res.v[0].v[0] = m00;
+            res.v[0].v[1] = m10;
+            res.v[0].v[2] = m20;
+            res.v[1].v[0] = m01;
+            res.v[1].v[1] = m11;
+            res.v[1].v[2] = m21;
+            res.v[2].v[0] = m02;
+            res.v[2].v[1] = m12;
+            res.v[2].v[2] = m22;
+            return res;
+        }
+        pub fn fromHeadingPitchRoll(hpr: *const HeadingPitchRoll(T)) Matrix {
+            const cosTheta = stdmath.cos(-hpr.p());
+            const cosPsi = stdmath.cos(-hpr.h());
+            const cosPhi = stdmath.cos(hpr.r());
+            const sinTheta = stdmath.sin(-hpr.p());
+            const sinPsi = stdmath.sin(-hpr.h());
+            const sinPhi = stdmath.sin(hpr.r());
+
+            const m00 = cosTheta * cosPsi;
+            const m01 = -cosPhi * sinPsi + sinPhi * sinTheta * cosPsi;
+            const m02 = sinPhi * sinPsi + cosPhi * sinTheta * cosPsi;
+
+            const m10 = cosTheta * sinPsi;
+            const m11 = cosPhi * cosPsi + sinPhi * sinTheta * sinPsi;
+            const m12 = -sinPhi * cosPsi + cosPhi * sinTheta * sinPsi;
+
+            const m20 = -sinTheta;
+            const m21 = sinPhi * cosTheta;
+            const m22 = cosPhi * cosTheta;
+            var res: Matrix = undefined;
+            res.v[0].v[0] = m00;
+            res.v[0].v[1] = m10;
+            res.v[0].v[2] = m20;
+            res.v[1].v[0] = m01;
+            res.v[1].v[1] = m11;
+            res.v[1].v[2] = m21;
+            res.v[2].v[0] = m02;
+            res.v[2].v[1] = m12;
+            res.v[2].v[2] = m22;
+            return res;
+        }
         /// Transposes the matrix.
         pub fn transpose(m: *const Matrix) Matrix {
             return .{ .v = [_]Vec{
@@ -248,42 +302,26 @@ pub fn Mat3x3(
                 Vec.new(m.v[0].v[2], m.v[1].v[2], m.v[2].v[2]),
             } };
         }
-
-        // /// Constructs a 2D matrix which scales each dimension by the given vector.
-        pub fn scale(s: Vec2) Matrix {
-            return new(
-                &RowVec.new(s.x(), 0, 0),
-                &RowVec.new(0, s.y(), 0),
-                &RowVec.new(0, 0, 1),
-            );
-        }
-
-        /// Constructs a 2D matrix which scales each dimension by the given scalar.
-        pub fn scaleScalar(t: T) Matrix {
-            return scale(Vec2.splat(t));
-        }
-
         /// Constructs a 2D matrix which translates coordinates by the given vector.
-        pub fn translate(t: Vec2) Matrix {
+        pub fn fromTranslation(t: *const Vec2) Matrix {
             return new(
                 &RowVec.new(1, 0, t.x()),
                 &RowVec.new(0, 1, t.y()),
                 &RowVec.new(0, 0, 1),
             );
         }
-
         /// Constructs a 2D matrix which translates coordinates by the given scalar.
-        pub fn translateScalar(t: T) Matrix {
-            return translate(Vec2.splat(t));
+        pub fn fromTranslationScalar(t: T) Matrix {
+            return fromTranslation(&Vec2.splat(t));
         }
 
         /// Returns the translation component of the matrix.
-        pub fn translation(t: Matrix) Vec2 {
+        pub fn getTranslation(t: Matrix) Vec2 {
             return Vec2.new(t.v[2].x(), t.v[2].y());
         }
 
         /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
-        pub fn rotateX(angle_radians: T) Matrix {
+        pub fn fromRotationX(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
             return Matrix.new(
@@ -294,7 +332,7 @@ pub fn Mat3x3(
         }
 
         /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
-        pub fn rotateY(angle_radians: T) Matrix {
+        pub fn fromRotationY(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
             return Matrix.new(
@@ -305,7 +343,7 @@ pub fn Mat3x3(
         }
 
         /// Constructs a 3D matrix which rotates around the Z axis by `angle_radians`.
-        pub fn rotateZ(angle_radians: T) Matrix {
+        pub fn fromRotationZ(angle_radians: T) Matrix {
             const c = math.cos(angle_radians);
             const s = math.sin(angle_radians);
             return Matrix.new(
@@ -352,19 +390,7 @@ pub fn Mat3x3(
             res.v[2].v[2] = (a11 * a00 - a01 * a10) * det;
             return res;
         }
-        pub const getRow = Shared.getRow;
-        pub const getCol = Shared.getCol;
-        pub const setRow = Shared.setRow;
-        pub const setCol = Shared.setCol;
-        pub const fromScale = Shared.fromScale;
-        pub const fromUniformScale = Shared.fromUniformScale;
-        pub const setScale = Shared.setScale;
-        pub const getScale = Shared.getScale;
-        pub const mul = Shared.mul;
-        pub const mulVec = Shared.mulVec;
-        pub const clone = Shared.clone;
-        pub const fromArray = Shared.fromArray;
-        pub const toArray = Shared.toArray;
+        pub usingnamespace Shared;
     };
 }
 
@@ -402,7 +428,6 @@ pub fn Mat4x4(
         /// The underlying Vec type, e.g. Mat3x3.Vec == Vec3
         pub const Vec = vec.Vec4(Scalar);
         pub const Vec3 = vec.Vec3(T);
-        pub const Quat = quat.Quat(T);
 
         /// The Vec type corresponding to the number of rows, e.g. Mat3x3.RowVec == Vec3
         pub const RowVec = Vec;
@@ -459,7 +484,15 @@ pub fn Mat4x4(
                 Vec.new(r0.w(), r1.w(), r2.w(), r3.w()),
             } };
         }
-
+        pub fn mulPoint(m: *const Matrix, point: *const Vec3) Vec3 {
+            const vX = point.x();
+            const vY = point.y();
+            const vZ = point.z();
+            const x = m.v[0].v[1][0] * vX + m.v[1].v[0][4] * vY + m.v[2].v[0][8] * vZ + m.v[3].v[0];
+            const y = m.v[0].v[2][1] * vX + m.v[1].v[1][5] * vY + m.v[2].v[1][9] * vZ + m.v[3].v[1];
+            const z = m.v[0].v[3][2] * vX + m.v[1].v[2][6] * vY + m.v[2].v[2][10] * vZ + m.v[3].v[2];
+            return Vec3.new(x, y, z);
+        }
         /// Transposes the matrix.
         pub fn transpose(m: *const Matrix) Matrix {
             return .{ .v = [_]Vec{
@@ -470,23 +503,7 @@ pub fn Mat4x4(
             } };
         }
 
-        /// Constructs a 3D matrix which scales each dimension by the given vector.
-        pub fn scale(s: Vec3) Matrix {
-            return new(
-                &RowVec.new(s.x(), 0, 0, 0),
-                &RowVec.new(0, s.y(), 0, 0),
-                &RowVec.new(0, 0, s.z(), 0),
-                &RowVec.new(0, 0, 0, 1),
-            );
-        }
-
-        /// Constructs a 3D matrix which scales each dimension by the given scalar.
-        pub fn scaleScalar(s: T) Matrix {
-            return scale(Vec3.splat(s));
-        }
-
-        /// Constructs a 3D matrix which translates coordinates by the given vector.
-        pub fn translate(t: Vec3) Matrix {
+        pub fn fromTranslation(t: *const Vec3) Matrix {
             return new(
                 &RowVec.new(1, 0, 0, t.x()),
                 &RowVec.new(0, 1, 0, t.y()),
@@ -494,63 +511,62 @@ pub fn Mat4x4(
                 &RowVec.new(0, 0, 0, 1),
             );
         }
-
-        /// Constructs a 3D matrix which translates coordinates by the given scalar.
-        pub fn translateScalar(t: T) Matrix {
-            return translate(Vec3.splat(t));
+        pub fn fromTranslationScalar(t: T) Matrix {
+            return fromTranslation(&Vec3.splat(t));
+        }
+        pub fn fromRotation(rotation: *const Mat3x3(T)) Matrix {
+            return new(
+                &RowVec.new(rotation.v[0].v[0], rotation.v[1].v[0], rotation.v[2].v[0], 0),
+                &RowVec.new(rotation.v[0].v[1], rotation.v[1].v[1], rotation.v[2].v[1], 0),
+                &RowVec.new(rotation.v[0].v[2], rotation.v[1].v[2], rotation.v[2].v[2], 0),
+                &RowVec.new(0, 0, 0, 1),
+            );
+        }
+        pub fn fromRotationTranslation(rotation: *const Mat3x3(T), t: Vec3) Matrix {
+            return new(
+                &RowVec.new(rotation.v[0].v[0], rotation.v[1].v[0], rotation.v[2].v[0], t.x()),
+                &RowVec.new(rotation.v[0].v[1], rotation.v[1].v[1], rotation.v[2].v[1], t.y()),
+                &RowVec.new(rotation.v[0].v[2], rotation.v[1].v[2], rotation.v[2].v[2], t.z()),
+                &RowVec.new(0, 0, 0, 1),
+            );
         }
 
         /// Returns the translation component of the matrix.
-        pub fn translation(t: *const Matrix) Vec3 {
+        pub fn getTranslation(t: *const Matrix) Vec3 {
             return Vec3.new(t.v[3].x(), t.v[3].y(), t.v[3].z());
         }
+        pub fn getRotation(t: *const Matrix) Mat3x3(T) {
+            const scale = t.getScale();
+            return Mat3x3(T).new(
+                &Mat3x3(T).RowVec.new(t.v[0].v[0] / scale.x(), t.v[1].v[0] / scale.y(), t.v[2].v[0] / scale.z()),
+                &Mat3x3(T).RowVec.new(t.v[0].v[1] / scale.x(), t.v[1].v[1] / scale.y(), t.v[2].v[1] / scale.z()),
+                &Mat3x3(T).RowVec.new(t.v[0].v[2] / scale.x(), t.v[1].v[2] / scale.y(), t.v[2].v[2] / scale.z()),
+            );
+        }
+        pub fn setRotation(t: *Matrix, r: *const Mat3x3(T)) void {
+            const scale = t.getScale();
+            t.v[0].v[0] = r.v[0].v[0] * scale.x();
+            t.v[0].v[1] = r.v[0].v[1] * scale.x();
+            t.v[0].v[2] = r.v[0].v[2] * scale.x();
 
-        /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
-        pub fn rotateX(angle_radians: T) Matrix {
-            const c = math.cos(angle_radians);
-            const s = math.sin(angle_radians);
-            return Matrix.new(
-                &RowVec.new(1, 0, 0, 0),
-                &RowVec.new(0, c, -s, 0),
-                &RowVec.new(0, s, c, 0),
-                &RowVec.new(0, 0, 0, 1),
-            );
-        }
+            t.v[1].v[0] = r.v[1].v[0] * scale.y();
+            t.v[1].v[1] = r.v[1].v[1] * scale.y();
+            t.v[1].v[2] = r.v[1].v[2] * scale.y();
 
-        /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
-        pub fn rotateY(angle_radians: T) Matrix {
-            const c = math.cos(angle_radians);
-            const s = math.sin(angle_radians);
-            return Matrix.new(
-                &RowVec.new(c, 0, s, 0),
-                &RowVec.new(0, 1, 0, 0),
-                &RowVec.new(-s, 0, c, 0),
+            t.v[2].v[0] = r.v[2].v[0] * scale.z();
+            t.v[2].v[1] = r.v[2].v[1] * scale.z();
+            t.v[2].v[2] = r.v[2].v[2] * scale.z();
+        }
+        pub fn fromScale(s: *const Vec3) Matrix {
+            return new(
+                &RowVec.new(s.x(), 0, 0, 0),
+                &RowVec.new(0, s.y(), 0, 0),
+                &RowVec.new(0, 0, s.z(), 0),
                 &RowVec.new(0, 0, 0, 1),
             );
         }
-
-        /// Constructs a 3D matrix which rotates around the Z axis by `angle_radians`.
-        pub fn rotateZ(angle_radians: T) Matrix {
-            const c = math.cos(angle_radians);
-            const s = math.sin(angle_radians);
-            return Matrix.new(
-                &RowVec.new(c, -s, 0, 0),
-                &RowVec.new(s, c, 0, 0),
-                &RowVec.new(0, 0, 1, 0),
-                &RowVec.new(0, 0, 0, 1),
-            );
-        }
-        pub fn fromScale(o: *const Vec3) Matrix {
-            return Matrix.new(
-                &RowVec.new(o.x(), 0, 0, 0),
-                &RowVec.new(0, o.y(), 0, 0),
-                &RowVec.new(0, 0, o.z(), 0),
-                &RowVec.new(0, 0, 0, 1),
-            );
-        }
-        pub fn fromUniformScale(s: T) Matrix {
-            const tempScale = Vec3.splat(s);
-            return fromScale(&tempScale);
+        pub fn fromScaleScalar(s: T) Matrix {
+            return fromScale(&Vec3.splat(s));
         }
         pub fn getScale(m: *const Matrix) Vec3 {
             var col: Vec3 = undefined;
@@ -559,79 +575,35 @@ pub fn Mat4x4(
             col.v[2] = Vec3.new(m.v[2].v[0], m.v[2].v[1], m.v[2].v[2]).len();
             return col;
         }
-
+        pub fn setScaleScalar(m: *Matrix, t: T) void {
+            return setScale(m, &Vec3.splat(t));
+        }
         pub fn setScale(m: *Matrix, s: *const Vec3) void {
             const existingScale = m.getScale();
             const scaleRatio = s.div(&existingScale);
-            var matrix: Matrix = undefined;
-            matrix.v[0].v[0] = matrix.v[0].v[0] * scaleRatio.x();
-            matrix.v[0].v[1] = matrix.v[0].v[1] * scaleRatio.x();
-            matrix.v[0].v[2] = matrix.v[0].v[2] * scaleRatio.x();
-            matrix.v[0].v[3] = matrix.v[0].v[3];
+            m.v[0].v[0] = m.v[0].v[0] * scaleRatio.x();
+            m.v[0].v[1] = m.v[0].v[1] * scaleRatio.x();
+            m.v[0].v[2] = m.v[0].v[2] * scaleRatio.x();
+            m.v[0].v[3] = m.v[0].v[3];
 
-            matrix.v[1].v[0] = matrix.v[1].v[0] * scaleRatio.y();
-            matrix.v[1].v[1] = matrix.v[1].v[1] * scaleRatio.y();
-            matrix.v[1].v[2] = matrix.v[1].v[2] * scaleRatio.y();
-            matrix.v[1].v[3] = matrix.v[1].v[3];
+            m.v[1].v[0] = m.v[1].v[0] * scaleRatio.y();
+            m.v[1].v[1] = m.v[1].v[1] * scaleRatio.y();
+            m.v[1].v[2] = m.v[1].v[2] * scaleRatio.y();
+            m.v[1].v[3] = m.v[1].v[3];
 
-            matrix.v[2].v[0] = matrix.v[2].v[0] * scaleRatio.z();
-            matrix.v[2].v[1] = matrix.v[2].v[1] * scaleRatio.z();
-            matrix.v[2].v[2] = matrix.v[2].v[2] * scaleRatio.z();
-            matrix.v[2].v[3] = matrix.v[2].v[3];
+            m.v[2].v[0] = m.v[2].v[0] * scaleRatio.z();
+            m.v[2].v[1] = m.v[2].v[1] * scaleRatio.z();
+            m.v[2].v[2] = m.v[2].v[2] * scaleRatio.z();
+            m.v[2].v[3] = m.v[2].v[3];
 
-            matrix.v[3].v[0] = matrix.v[3].v[0];
-            matrix.v[3].v[1] = matrix.v[3].v[1];
-            matrix.v[3].v[2] = matrix.v[3].v[2];
-            matrix.v[3].v[3] = matrix.v[3].v[3];
+            m.v[3].v[0] = m.v[3].v[0];
+            m.v[3].v[1] = m.v[3].v[1];
+            m.v[3].v[2] = m.v[3].v[2];
+            m.v[3].v[3] = m.v[3].v[3];
         }
 
-        /// Constructs a 2D projection matrix, aka. an orthographic projection matrix.
-        ///
-        /// First, a cuboid is defined with the parameters:
-        ///
-        /// * (right - left) defining the distance between the left and right faces of the cube
-        /// * (top - bottom) defining the distance between the top and bottom faces of the cube
-        /// * (near - far) defining the distance between the back (near) and front (far) faces of the cube
-        ///
-        /// We then need to construct a projection matrix which converts points in that
-        /// cuboid's space into clip space:
-        ///
-        /// https://machengine.org/engine/math/traversing-coordinate-systems/#view---clip-space
-        ///
-        /// Normally, in sysgpu/webgpu the depth buffer of floating point values would
-        /// have the range [0, 1] representing [near, far], i.e. a pixel very close to the
-        /// viewer would have a depth value of 0.0, and a pixel very far from the viewer
-        /// would have a depth value of 1.0. But this is an ineffective use of floating
-        /// point precision, a better approach is a reversed depth buffer:
-        ///
-        /// * https://webgpu.github.io/webgpu-samples/samples/reversedZ
-        /// * https://developer.nvidia.com/content/depth-precision-visualized
-        ///
-        /// Mach mandates the use of a reversed depth buffer, so the returned transformation
-        /// matrix maps to near=1 and far=0.
-        pub fn projection2D(v: struct {
-            left: T,
-            right: T,
-            bottom: T,
-            top: T,
-            near: T,
-            far: T,
-        }) Matrix {
-            var p = Matrix.ident;
-            p = p.mul(&Matrix.translate(Vec3.new(
-                (v.right + v.left) / (v.left - v.right), // translate X so that the middle of (left, right) maps to x=0 in clip space
-                (v.top + v.bottom) / (v.bottom - v.top), // translate Y so that the middle of (bottom, top) maps to y=0 in clip space
-                v.far / (v.far - v.near), // translate Z so that far maps to z=0
-            )));
-            p = p.mul(&Matrix.scale(Vec3.new(
-                2 / (v.right - v.left), // scale X so that [left, right] has a 2 unit range, e.g. [-1, +1]
-                2 / (v.top - v.bottom), // scale Y so that [bottom, top] has a 2 unit range, e.g. [-1, +1]
-                1 / (v.near - v.far), // scale Z so that [near, far] has a 1 unit range, e.g. [0, -1]
-            )));
-            return p;
-        }
-        pub fn lookAt(eye: Vec3, focuspos: Vec3, updir: Vec3) Matrix {
-            const zAxis = eye.sub(&focuspos).normalize();
+        pub fn lookAt(eye: *const Vec3, focuspos: *const Vec3, updir: *const Vec3) Matrix {
+            const zAxis = eye.sub(focuspos).normalize();
             const xAxis = updir.cross(&zAxis).normalize();
             const yAxis = zAxis.cross(&xAxis).normalize();
             var res: Matrix = undefined;
@@ -683,32 +655,6 @@ pub fn Mat4x4(
             res.v[3].v[3] = 0;
             return res;
         }
-        // pub fn perspective(fovy: T, aspect: T, near: T, far: T) Matrix {
-        //     const f = stdmath.tan(math.pi * 0.5 - 0.5 * fovy);
-        //     const rangeInv = 1 / (near - far);
-        //     var res: Matrix = undefined;
-        //     res.v[0].v[0] = f / aspect;
-        //     res.v[0].v[1] = 0;
-        //     res.v[0].v[2] = 0;
-        //     res.v[0].v[3] = 0;
-
-        //     res.v[1].v[0] = 0;
-        //     res.v[1].v[1] = f;
-        //     res.v[1].v[2] = 0;
-        //     res.v[1].v[3] = 0;
-
-        //     res.v[2].v[0] = 0;
-        //     res.v[2].v[1] = 0;
-        //     res.v[2].v[2] = far * rangeInv;
-        //     res.v[2].v[3] = -1;
-
-        //     res.v[3].v[0] = 0;
-        //     res.v[3].v[1] = 0;
-        //     res.v[3].v[2] = far * near * rangeInv;
-        //     res.v[3].v[3] = 0;
-        //     return res;
-        // }
-
         pub fn inverse(m: *const Matrix) Matrix {
             const a00 = m.v[0].v[0];
             const a01 = m.v[0].v[1];
@@ -770,7 +716,7 @@ pub fn Mat4x4(
 
             return res;
         }
-        pub fn fromTranslationQuaternionRotationScale(translationv: *const Vec3, rotation: *const Quat, scalev: *const Vec3) Matrix {
+        pub fn fromTranslationQuaternionRotationScale(translationv: *const Vec3, rotation: *const Quat(T), scalev: *const Vec3) Matrix {
             const scaleX = scalev.x();
             const scaleY = scalev.y();
             const scaleZ = scalev.z();
@@ -829,6 +775,7 @@ pub fn Mat4x4(
         pub const clone = Shared.clone;
         pub const fromArray = Shared.fromArray;
         pub const toArray = Shared.toArray;
+        pub const print = Shared.print;
     };
 }
 
@@ -940,7 +887,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
         }
 
         pub fn fromScale(o: *const ColVec) Matrix {
-            var result: Matrix = undefined;
+            var result = Matrix.identity();
             inline for (0..Matrix.rows) |rowi| {
                 inline for (0..Matrix.cols) |coli| {
                     if (rowi == coli) {
@@ -950,7 +897,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             }
             return result;
         }
-        pub fn fromUniformScale(s: Matrix.T) Matrix {
+        pub fn fromScaleScalar(s: Matrix.T) Matrix {
             const tempScale = ColVec.splat(s);
             return fromScale(&tempScale);
         }
@@ -969,8 +916,20 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
                 m.v[coli] = m.v[coli].mulScalar(scaleRatio.v[coli]);
             }
         }
+        pub fn setScaleScalar(m: *Matrix, s: Matrix.T) void {
+            setScale(m, &ColVec.splat(s));
+        }
         pub fn clone(m: *const Matrix) Matrix {
             return Matrix{ .v = m.v };
+        }
+        pub fn print(m: *const Matrix) void {
+            inline for (0..Matrix.rows) |rowi| {
+                inline for (0..ColVec.n) |coli| {
+                    const colv = m.v[coli].v[rowi];
+                    debug.print("{},", .{colv});
+                }
+                debug.print("\n", .{});
+            }
         }
     };
 }
@@ -1015,10 +974,6 @@ test "gpu_compatibility" {
     try testing.expect(usize, 16).eql(@sizeOf(math.Mat2x2));
     try testing.expect(usize, 48).eql(@sizeOf(math.Mat3x3));
     try testing.expect(usize, 64).eql(@sizeOf(math.Mat4x4));
-
-    try testing.expect(usize, 8).eql(@sizeOf(math.Mat2x2h));
-    try testing.expect(usize, 24).eql(@sizeOf(math.Mat3x3h));
-    try testing.expect(usize, 32).eql(@sizeOf(math.Mat4x4h));
 
     try testing.expect(usize, 32).eql(@sizeOf(math.Mat2x2d)); // speculative
     try testing.expect(usize, 96).eql(@sizeOf(math.Mat3x3d)); // speculative
@@ -1191,16 +1146,16 @@ test "Mat4x4_transpose" {
     )).eql(m.transpose());
 }
 
-test "Mat2x2_scaleScalar" {
-    const m = math.Mat2x2.scaleScalar(2);
+test "Mat2x2_fromScaleScalar" {
+    const m = math.Mat2x2.fromScaleScalar(2);
     try testing.expect(math.Mat2x2, math.Mat2x2.new(
         &math.vec2(2, 0),
-        &math.vec2(0, 1),
+        &math.vec2(0, 2),
     )).eql(m);
 }
 
-test "Mat3x3_scale" {
-    const m = math.Mat3x3.scale(math.vec2(2, 3));
+test "Mat3x3_fromScale" {
+    const m = math.Mat3x3.fromScale(&math.vec3(2, 3, 1));
     try testing.expect(math.Mat3x3, math.Mat3x3.new(
         &math.vec3(2, 0, 0),
         &math.vec3(0, 3, 0),
@@ -1208,17 +1163,17 @@ test "Mat3x3_scale" {
     )).eql(m);
 }
 
-test "Mat3x3_scaleScalar" {
-    const m = math.Mat3x3.scaleScalar(2);
+test "Mat3x3_fromScaleScalar" {
+    const m = math.Mat3x3.fromScaleScalar(2);
     try testing.expect(math.Mat3x3, math.Mat3x3.new(
         &math.vec3(2, 0, 0),
         &math.vec3(0, 2, 0),
-        &math.vec3(0, 0, 1),
+        &math.vec3(0, 0, 2),
     )).eql(m);
 }
 
-test "Mat4x4_scale" {
-    const m = math.Mat4x4.scale(math.vec3(2, 3, 4));
+test "Mat4x4_fromScale" {
+    const m = math.Mat4x4.fromScale(&math.vec3(2, 3, 4));
     try testing.expect(math.Mat4x4, math.Mat4x4.new(
         &math.vec4(2, 0, 0, 0),
         &math.vec4(0, 3, 0, 0),
@@ -1227,8 +1182,8 @@ test "Mat4x4_scale" {
     )).eql(m);
 }
 
-test "Mat4x4_scaleScalar" {
-    const m = math.Mat4x4.scaleScalar(2);
+test "Mat4x4_fromScaleScalar" {
+    const m = math.Mat4x4.fromScaleScalar(2);
     try testing.expect(math.Mat4x4, math.Mat4x4.new(
         &math.vec4(2, 0, 0, 0),
         &math.vec4(0, 2, 0, 0),
@@ -1237,8 +1192,8 @@ test "Mat4x4_scaleScalar" {
     )).eql(m);
 }
 
-test "Mat3x3_translate" {
-    const m = math.Mat3x3.translate(math.vec2(2, 3));
+test "Mat3x3_fromTranslation" {
+    const m = math.Mat3x3.fromTranslation(&math.vec2(2, 3));
     try testing.expect(math.Mat3x3, math.Mat3x3.new(
         &math.vec3(1, 0, 2),
         &math.vec3(0, 1, 3),
@@ -1246,8 +1201,8 @@ test "Mat3x3_translate" {
     )).eql(m);
 }
 
-test "Mat4x4_translate" {
-    const m = math.Mat4x4.translate(math.vec3(2, 3, 4));
+test "Mat4x4_fromTranslation" {
+    const m = math.Mat4x4.fromTranslation(&math.vec3(2, 3, 4));
     try testing.expect(math.Mat4x4, math.Mat4x4.new(
         &math.vec4(1, 0, 0, 2),
         &math.vec4(0, 1, 0, 3),
@@ -1256,8 +1211,8 @@ test "Mat4x4_translate" {
     )).eql(m);
 }
 
-test "Mat3x3_translateScalar" {
-    const m = math.Mat3x3.translateScalar(2);
+test "Mat3x3_fromTranslationScalar" {
+    const m = math.Mat3x3.fromTranslationScalar(2);
     try testing.expect(math.Mat3x3, math.Mat3x3.new(
         &math.vec3(1, 0, 2),
         &math.vec3(0, 1, 2),
@@ -1265,16 +1220,16 @@ test "Mat3x3_translateScalar" {
     )).eql(m);
 }
 
-test "Mat2x2_translateScalar" {
-    const m = math.Mat2x2.translateScalar(2);
+test "Mat2x2_fromTranslationScalar" {
+    const m = math.Mat2x2.fromTranslationScalar(2);
     try testing.expect(math.Mat2x2, math.Mat2x2.new(
         &math.vec2(1, 2),
         &math.vec2(0, 1),
     )).eql(m);
 }
 
-test "Mat4x4_translateScalar" {
-    const m = math.Mat4x4.translateScalar(2);
+test "Mat4x4_fromTranslationScalar" {
+    const m = math.Mat4x4.fromTranslationScalar(2);
     try testing.expect(math.Mat4x4, math.Mat4x4.new(
         &math.vec4(1, 0, 0, 2),
         &math.vec4(0, 1, 0, 2),
@@ -1283,14 +1238,14 @@ test "Mat4x4_translateScalar" {
     )).eql(m);
 }
 
-test "Mat3x3_translation" {
-    const m = math.Mat3x3.translate(math.vec2(2, 3));
-    try testing.expect(math.Vec2, math.vec2(2, 3)).eql(m.translation());
+test "Mat3x3_getTranslation" {
+    const m = math.Mat3x3.fromTranslation(&math.vec2(2, 3));
+    try testing.expect(math.Vec2, math.vec2(2, 3)).eql(m.getTranslation());
 }
 
-test "Mat4x4_translation" {
-    const m = math.Mat4x4.translate(math.vec3(2, 3, 4));
-    try testing.expect(math.Vec3, math.vec3(2, 3, 4)).eql(m.translation());
+test "Mat4x4_getTranslation" {
+    const m = math.Mat4x4.fromTranslation(&math.vec3(2, 3, 4));
+    try testing.expect(math.Vec3, math.vec3(2, 3, 4)).eql(m.getTranslation());
 }
 
 test "Mat2x2_mulVec_vec2_ident" {
@@ -1475,158 +1430,6 @@ test "Mat4x4_eqlApprox_ident" {
         &math.vec4(12, 13, 14, 15),
     );
     try testing.expect(bool, math.Mat4x4.eqlApprox(&m1, &m2, 0.1)).eql(true);
-}
-
-test "projection2D_xy_centered" {
-    const v = .{
-        .left = -400,
-        .right = 400,
-        .bottom = -200,
-        .top = 200,
-        .near = 0,
-        .far = 100,
-    };
-    const m = math.Mat4x4.projection2D(v);
-
-    // Calculate some reference points
-    const width = v.right - v.left;
-    const height = v.top - v.bottom;
-    const width_mid = v.left + (width / 2.0);
-    const height_mid = v.bottom + (height / 2.0);
-    try testing.expect(f32, 800).eql(width);
-    try testing.expect(f32, 400).eql(height);
-    try testing.expect(f32, 0).eql(width_mid);
-    try testing.expect(f32, 0).eql(height_mid);
-
-    // Probe some points on the X axis from beyond the left face, all the way to beyond the right face.
-    try testing.expect(math.Vec4, math.vec4(-2, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.left - (width / 2), height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(-1, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.left, height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(-0.5, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.left + (width / 4.0), height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0.5, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.right - (width / 4.0), height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(1, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.right, height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(2, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.right + (width / 2), height_mid, 0, 1)));
-
-    // Probe some points on the Y axis from beyond the bottom face, all the way to beyond the top face.
-    try testing.expect(math.Vec4, math.vec4(0, -2, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.bottom - (height / 2), 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, -1, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.bottom, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, -0.5, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.bottom + (height / 4.0), 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0.5, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.top - (height / 4.0), 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 1, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.top, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 2, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.top + (height / 2), 0, 1)));
-}
-
-test "projection2D_xy_offcenter" {
-    const v = .{
-        .left = 100,
-        .right = 500,
-        .bottom = 100,
-        .top = 500,
-        .near = 0,
-        .far = 100,
-    };
-    const m = math.Mat4x4.projection2D(v);
-
-    // Calculate some reference points
-    const width = v.right - v.left;
-    const height = v.top - v.bottom;
-    const width_mid = v.left + (width / 2.0);
-    const height_mid = v.bottom + (height / 2.0);
-    try testing.expect(f32, 400).eql(width);
-    try testing.expect(f32, 400).eql(height);
-    try testing.expect(f32, 300).eql(width_mid);
-    try testing.expect(f32, 300).eql(height_mid);
-
-    // Probe some points on the X axis from beyond the left face, all the way to beyond the right face.
-    try testing.expect(math.Vec4, math.vec4(-2, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.left - (width / 2), height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(-1, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.left, height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(-0.5, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.left + (width / 4.0), height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0.5, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.right - (width / 4.0), height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(1, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.right, height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(2, 0, 1, 1)).eql(m.mulVec(&math.vec4(v.right + (width / 2), height_mid, 0, 1)));
-
-    // Probe some points on the Y axis from beyond the bottom face, all the way to beyond the top face.
-    try testing.expect(math.Vec4, math.vec4(0, -2, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.bottom - (height / 2), 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, -1, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.bottom, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, -0.5, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.bottom + (height / 4.0), 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, height_mid, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0.5, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.top - (height / 4.0), 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 1, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.top, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 2, 1, 1)).eql(m.mulVec(&math.vec4(width_mid, v.top + (height / 2), 0, 1)));
-}
-
-test "projection2D_z" {
-    const m = math.Mat4x4.projection2D(.{
-        // Set x=0 and y=0 as centers, so we can specify 0 centers in our testing.expects below
-        .left = -400,
-        .right = 400,
-        .bottom = -200,
-        .top = 200,
-
-        // Choose some near/far plane values that we can easily test against
-        // We'll have [near, far] == [-100, 100] == [1, 0]
-        .near = -100,
-        .far = 100,
-    });
-
-    // Probe some points on the Z axis from the near plane, all the way to the far plane.
-    try testing.expect(math.Vec4, math.vec4(0, 0, 1, 1)).eql(m.mulVec(&math.vec4(0, 0, -100, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0.75, 1)).eql(m.mulVec(&math.vec4(0, 0, -50, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0.5, 1)).eql(m.mulVec(&math.vec4(0, 0, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0.25, 1)).eql(m.mulVec(&math.vec4(0, 0, 50, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0, 1)).eql(m.mulVec(&math.vec4(0, 0, 100, 1)));
-
-    // Probe some points outside the near/far planes
-    try testing.expect(math.Vec4, math.vec4(0, 0, 2, 1)).eql(m.mulVec(&math.vec4(0, 0, -100 - 200, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, -1, 1)).eql(m.mulVec(&math.vec4(0, 0, 100 + 200, 1)));
-}
-
-test "projection2D_z_positive" {
-    const m = math.Mat4x4.projection2D(.{
-        // Set x=0 and y=0 as centers, so we can specify 0 centers in our testing.expects below
-        .left = -400,
-        .right = 400,
-        .bottom = -200,
-        .top = 200,
-
-        // Choose some near/far plane values that we can easily test against
-        // We'll have [near, far] == [0, 100] == [1, 0]
-        .near = 0,
-        .far = 100,
-    });
-
-    // Probe some points on the Z axis from the near plane, all the way to the far plane.
-    try testing.expect(math.Vec4, math.vec4(0, 0, 1, 1)).eql(m.mulVec(&math.vec4(0, 0, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0.75, 1)).eql(m.mulVec(&math.vec4(0, 0, 25, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0.5, 1)).eql(m.mulVec(&math.vec4(0, 0, 50, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0.25, 1)).eql(m.mulVec(&math.vec4(0, 0, 75, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0, 1)).eql(m.mulVec(&math.vec4(0, 0, 100, 1)));
-
-    // Probe some points outside the near/far planes
-    try testing.expect(math.Vec4, math.vec4(0, 0, 2, 1)).eql(m.mulVec(&math.vec4(0, 0, 0 - 100, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, -1, 1)).eql(m.mulVec(&math.vec4(0, 0, 100 + 100, 1)));
-}
-
-test "projection2D_model_to_clip_space" {
-    const model = math.Mat4x4.ident;
-    const view = math.Mat4x4.ident;
-    const proj = math.Mat4x4.projection2D(.{
-        .left = -50,
-        .right = 50,
-        .bottom = -50,
-        .top = 50,
-        .near = 0,
-        .far = 100,
-    });
-    const mvp = model.mul(&view).mul(&proj);
-
-    try testing.expect(math.Vec4, math.vec4(0, 0, 1.0, 1)).eql(mvp.mulVec(&math.vec4(0, 0, 0, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0.5, 1)).eql(mvp.mulVec(&math.vec4(0, 0, 50, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, -1, 1, 1)).eql(mvp.mul(&math.Mat4x4.rotateX(math.degreesToRadians(90))).mulVec(&math.vec4(0, 0, 50, 1)));
-    try testing.expect(math.Vec4, math.vec4(1, 0, 1, 1)).eql(mvp.mul(&math.Mat4x4.rotateY(math.degreesToRadians(90))).mulVec(&math.vec4(0, 0, 50, 1)));
-    try testing.expect(math.Vec4, math.vec4(0, 0, 0.5, 1)).eql(mvp.mul(&math.Mat4x4.rotateZ(math.degreesToRadians(90))).mulVec(&math.vec4(0, 0, 50, 1)));
 }
 
 test "Mat2x2_setScale" {

@@ -39,13 +39,13 @@ fn on_init(appBackend: *backend.AppBackend) !void {
 }
 fn on_draw(appBackend: *backend.AppBackend) void {
     const gctx = appBackend.gctx;
-    state.context.view = state.camera.world_matrix;
+    state.context.view = state.camera.camera_matrix;
     state.context.projection = state.camera.projection_matrix;
     zgui.backend.newFrame(
         gctx.swapchain_descriptor.width,
         gctx.swapchain_descriptor.height,
     );
-    zgui.showDemoWindow(null);
+    // zgui.showDemoWindow(null);
 
     const back_buffer_view = gctx.swapchain.getCurrentTextureView();
     defer back_buffer_view.release();
@@ -119,10 +119,10 @@ fn check_resize(gctx: *zgpu.GraphicsContext) void {
         state.depth_texture_view = depth.view;
     }
 }
-fn on_deinit() !void {
-    // state.scene.deinit();
+fn on_deinit() !void {}
+fn on_pre_draw(app_backend: *backend.AppBackend) void {
+    state.camera.update(app_backend);
 }
-fn on_pre_draw(_: *backend.AppBackend) void {}
 fn on_post_draw(_: *backend.AppBackend) void {}
 fn on_tick(_: f32) void {}
 pub fn module() modules.Module {

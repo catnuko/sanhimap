@@ -1,3 +1,4 @@
+const lib = @import("../lib.zig");
 const mesh = @import("./index.zig");
 const Context = mesh.Context;
 const Object3D = mesh.Object3D;
@@ -6,9 +7,9 @@ const SharedObject3D = mesh.SharedObject3D;
 const triangle = mesh.triangle;
 
 const Self = @This();
-root: Mesh,
+root: *Mesh,
 pub fn new() Self {
-    return .{ .root = triangle.initTriangleMesh() };
+    return .{ .root = Mesh.empty() };
 }
 pub fn upload(self: *Self, ctx: *Context) void {
     self.root.upload(ctx);

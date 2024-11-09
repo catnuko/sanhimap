@@ -43,9 +43,8 @@ const wgsl_fs =
 const TriangleUniforms = extern struct {
     a: f32,
 };
-pub fn initTriangleMesh() Mesh {
+pub fn initTriangleMesh() *Mesh {
     var geometry = Geometry.new(
-        .triangle_list,
         &[_]wgpu.VertexAttribute{
             .{
                 .format = wgpu.VertexFormat.float32x3,

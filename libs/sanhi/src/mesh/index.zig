@@ -7,3 +7,6 @@ pub const Material = @import("./Material.zig");
 pub const Geometry = @import("./Geometry.zig");
 pub const Scene = @import("./Scene.zig");
 pub const Camera = @import("./Camera.zig");
+pub const geometry = @import("./geometries/index.zig");
+pub const material = @import("./materials/index.zig");
+pub const meshes = @import("./meshes/index.zig");

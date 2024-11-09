@@ -5,7 +5,7 @@ const ModuleImport = struct {
     name: []const u8,
     linkLib: ?*Build.Step.Compile = null,
 };
-fn addImport(module: *std.Build.Module, imports: *const [5]ModuleImport) void {
+fn addImport(module: *std.Build.Module, imports: *const [6]ModuleImport) void {
     for (imports) |import| {
         module.addImport(import.name, import.module);
         if (import.linkLib) |linkLib| {
@@ -29,11 +29,17 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+    const zmesh = b.dependency("zmesh", .{
+        .target = target,
+        .optimize = optimize,
+        .shape_use_32bit_indices = true,
+    });
     //导入模块
     const imports = [_]ModuleImport{
         .{ .module = zglfw.module("root"), .name = "zglfw", .linkLib = zglfw.artifact("glfw") },
         .{ .module = zgpu.module("root"), .name = "zgpu", .linkLib = zgpu.artifact("zdawn") },
         .{ .module = zgui.module("root"), .name = "zgui", .linkLib = zgui.artifact("imgui") },
+        .{ .module = zmesh.module("root"), .name = "zmesh", .linkLib = zmesh.artifact("zmesh") },
         .{ .module = uuid.module("uuid"), .name = "uuid" },
         .{ .module = math.module("root"), .name = "math" },
     };

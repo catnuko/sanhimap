@@ -23,15 +23,6 @@ pub const Mat4x4 = mat.Mat4x4(f32);
 pub const Ray = ray.Ray3(f32);
 pub const HeadingPitchRoll = h.HeadingPitchRoll(f32);
 
-/// Half-precision f16 types
-pub const Vec2h = vec.Vec2(f16);
-pub const Vec3h = vec.Vec3(f16);
-pub const Vec4h = vec.Vec4(f16);
-pub const Mat2x2h = mat.Mat2x2(f16);
-pub const Mat3x3h = mat.Mat3x3(f16);
-pub const Mat4x4h = mat.Mat4x4(f16);
-pub const Rayh = ray.Ray3(f16);
-
 /// Double-precision f64 types
 pub const Vec2d = vec.Vec2(f64);
 pub const Vec3d = vec.Vec3(f64);
@@ -55,17 +46,6 @@ pub const mat2x2 = Mat2x2.new;
 pub const mat3x3 = Mat3x3.new;
 pub const mat4x4 = Mat4x4.new;
 pub const hpr = HeadingPitchRoll.new;
-
-/// Half-precision f16 initializers
-pub const vec2h = Vec2h.new;
-pub const vec3h = Vec3h.new;
-pub const vec4h = Vec4h.new;
-pub const vec2hFromInt = Vec2h.fromInt;
-pub const vec3hFromInt = Vec3h.fromInt;
-pub const vec4hFromInt = Vec4h.fromInt;
-pub const mat2x2h = Mat2x2h.new;
-pub const mat3x3h = Mat3x3h.new;
-pub const mat4x4h = Mat4x4h.new;
 
 /// Double-precision f64 initializers
 pub const vec2d = Vec2d.new;

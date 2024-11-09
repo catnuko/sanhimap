@@ -1,3 +1,4 @@
+const std = @import("std");
 const lib = @import("../lib.zig");
 const wgpu = lib.wgpu;
 const zgpu = lib.zgpu;
@@ -6,27 +7,29 @@ const Mat4 = math.Mat4x4;
 const Vec3 = math.Vec3;
 const Quat = math.Quat;
 const Geometry = @import("./Geometry.zig");
-const attr = @import("./attribute.zig");
-const VertexAttribute = attr.VertexAttribute;
-const Attribute = attr.Attribute;
-const AttributeData = attr.AttributeData;
-const sizeOfVertexFormat = attr.sizeOfVertexFormat;
 
 attributes: []const wgpu.VertexAttribute,
-primitiveTopology: wgpu.PrimitiveTopology,
+primitiveTopology: wgpu.PrimitiveTopology = wgpu.PrimitiveTopology.triangle_list,
 index_data: []const u8 = undefined,
 index_buffer: zgpu.BufferHandle = undefined,
+index_count: u32 = 0,
 vertex_data: []const u8 = undefined,
 vertex_buffer: zgpu.BufferHandle = undefined,
 const Self = @This();
-pub fn new(primitiveTopology: wgpu.PrimitiveTopology, attributes: []const wgpu.VertexAttribute) Self {
+pub fn new(attributes: []const wgpu.VertexAttribute) Self {
     return .{
-        .primitiveTopology = primitiveTopology,
         .attributes = attributes,
     };
 }
-pub fn deinit(_: *Self) void {}
-pub fn vertexBufferLayout(self: *Self) wgpu.VertexBufferLayout {
+pub fn deinit(self: *Self) void {
+    self.release();
+}
+pub fn release(self: *const Self) void {
+    const allocator = lib.mem.getAllocator();
+    allocator.free(self.vertex_data);
+    allocator.free(self.index_data);
+}
+pub fn vertexBufferLayout(self: *const Self) wgpu.VertexBufferLayout {
     var array_stride: u64 = 0;
     for (self.attributes) |attribute| {
         array_stride += sizeOfVertexFormat(attribute.format);
@@ -38,16 +41,12 @@ pub fn vertexBufferLayout(self: *Self) wgpu.VertexBufferLayout {
     };
 }
 pub fn set_vertex_data(self: *Self, comptime T: type, data: []const T) void {
-    const gpu_data = @as([*]const u8, @ptrCast(data.ptr));
-    const size = @as(u64, @intCast(data.len)) * @sizeOf(T);
-    self.vertex_data = gpu_data[0..size];
+    self.vertex_data = lib.utils.erase_list(lib.mem.getAllocator(), T, data);
 }
 pub fn set_index_data(self: *Self, comptime T: type, data: []const T) void {
-    const gpu_data = @as([*]const u8, @ptrCast(data.ptr));
-    const size = @as(u64, @intCast(data.len)) * @sizeOf(T);
-    self.index_data = gpu_data[0..size];
+    self.index_count = @intCast(data.len);
+    self.index_data = lib.utils.erase_list(lib.mem.getAllocator(), T, data);
 }
-
 pub fn upload(self: *Self, gctx: *zgpu.GraphicsContext) void {
     const vertex_buffer = gctx.createBuffer(.{
         .usage = .{ .copy_dst = true, .vertex = true },
@@ -66,4 +65,40 @@ pub fn upload(self: *Self, gctx: *zgpu.GraphicsContext) void {
     gctx.queue.writeBuffer(gctx.lookupResource(index_buf).?, 0, u8, self.index_data);
     self.index_buffer = index_buf;
     self.vertex_buffer = vertex_buffer;
+}
+
+pub fn sizeOfVertexFormat(format: wgpu.VertexFormat) u64 {
+    return switch (format) {
+        .undef => 0,
+        .uint8x2 => 2,
+        .uint8x4 => 4,
+        .sint8x2 => 2,
+        .sint8x4 => 4,
+        .unorm8x2 => 2,
+        .unorm8x4 => 4,
+        .snorm8x2 => 2,
+        .snorm8x4 => 4,
+        .uint16x2 => 4,
+        .uint16x4 => 8,
+        .sint16x2 => 4,
+        .sint16x4 => 8,
+        .unorm16x2 => 4,
+        .unorm16x4 => 8,
+        .snorm16x2 => 4,
+        .snorm16x4 => 8,
+        .float16x2 => 2,
+        .float16x4 => 8,
+        .float32 => 4,
+        .float32x2 => 8,
+        .float32x3 => 12,
+        .float32x4 => 16,
+        .uint32 => 4,
+        .uint32x2 => 8,
+        .uint32x3 => 12,
+        .uint32x4 => 16,
+        .sint32 => 4,
+        .sint32x2 => 8,
+        .sint32x3 => 12,
+        .sint32x4 => 16,
+    };
 }

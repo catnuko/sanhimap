@@ -1,6 +1,7 @@
 const lib = @import("./lib.zig");
 const wgpu = lib.wgpu;
 const zgpu = lib.zgpu;
+const zmesh = lib.zmesh;
 const app = lib.app;
 const math = @import("math");
 const Mat4 = math.Mat4x4;
@@ -16,6 +17,7 @@ camera: *Camera,
 pub fn new() !Self {
     try app.init(.{});
     const allocator = lib.mem.getAllocator();
+    zmesh.init(allocator);
     const scene = try allocator.create(Scene);
     scene.* = Scene.new();
     const width = app.get_width();
@@ -28,19 +30,21 @@ pub fn new() !Self {
         10000.0,
     );
     mesh.module.init(scene, camera);
-    try app.addPlugin(mesh.module);
     return .{
         .scene = scene,
         .camera = camera,
     };
 }
 pub fn startMainLoop(_: *Self) void {
+    try app.addPlugin(mesh.module);
+    try app.addPlugin(lib.input);
     app.startMainLoop();
 }
 pub fn deinit(self: *Self) void {
-    self.scene.deinit();
     const allocator = lib.mem.getAllocator();
+    self.scene.deinit();
     allocator.destroy(self.camera);
     allocator.destroy(self.scene);
+    zmesh.deinit();
     app.deinit();
 }

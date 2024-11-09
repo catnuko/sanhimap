@@ -116,9 +116,9 @@ fn Expect(comptime T: type) type {
     if (@typeInfo(T) == .Vector) return ExpectVector(T);
 
     // Vector and matrix equality
-    const is_vec2 = T == math.Vec2 or T == math.Vec2h or T == math.Vec2d;
-    const is_vec3 = T == math.Vec3 or T == math.Vec3h or T == math.Vec3d;
-    const is_vec4 = T == math.Vec4 or T == math.Vec4h or T == math.Vec4d;
+    const is_vec2 = T == math.Vec2 or T == math.Vec2d;
+    const is_vec3 = T == math.Vec3 or T == math.Vec3d;
+    const is_vec4 = T == math.Vec4 or T == math.Vec4d;
     if (is_vec2 or is_vec3 or is_vec4) return ExpectVecMat(T);
 
     // TODO(testing): TODO(math): handle Mat, []Vec, []Mat without generic equality below.
@@ -211,7 +211,6 @@ test {
     refAllDeclsRecursive(Expect(f32));
     refAllDeclsRecursive(Expect([]const u8));
     refAllDeclsRecursive(Expect(@Vector(3, f32)));
-    refAllDeclsRecursive(Expect(math.Vec2h));
     refAllDeclsRecursive(Expect(math.Vec3));
     refAllDeclsRecursive(Expect(math.Vec4d));
     refAllDeclsRecursive(Expect(math.Ray));

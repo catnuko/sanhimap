@@ -606,10 +606,6 @@ test "gpu_compatibility" {
     try testing.expect(usize, 16).eql(@sizeOf(math.Vec3)); // WGSL AlignOf 16, SizeOf 12
     try testing.expect(usize, 16).eql(@sizeOf(math.Vec4)); // WGSL AlignOf 16, SizeOf 16
 
-    try testing.expect(usize, 4).eql(@sizeOf(math.Vec2h)); // WGSL AlignOf 4, SizeOf 4
-    try testing.expect(usize, 8).eql(@sizeOf(math.Vec3h)); // WGSL AlignOf 8, SizeOf 6
-    try testing.expect(usize, 8).eql(@sizeOf(math.Vec4h)); // WGSL AlignOf 8, SizeOf 8
-
     try testing.expect(usize, 8 * 2).eql(@sizeOf(math.Vec2d)); // speculative
     try testing.expect(usize, 16 * 2).eql(@sizeOf(math.Vec3d)); // speculative
     try testing.expect(usize, 16 * 2).eql(@sizeOf(math.Vec4d)); // speculative
@@ -623,18 +619,6 @@ test "zero_struct_overhead" {
 
 test "dimensions" {
     try testing.expect(usize, 3).eql(math.Vec3.n);
-}
-
-test "type" {
-    try testing.expect(type, f16).eql(math.Vec3h.T);
-}
-
-test "new" {
-    try testing.expect(math.Vec3h, math.vec3h(1, 2, 3)).eql(math.vec3h(1, 2, 3));
-}
-
-test "splat" {
-    try testing.expect(math.Vec3h, math.vec3h(1337, 1337, 1337)).eql(math.Vec3h.splat(1337));
 }
 
 test "swizzle_singular" {
