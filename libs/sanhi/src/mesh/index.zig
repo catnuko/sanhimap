@@ -10,3 +10,4 @@ pub const Camera = @import("./Camera.zig");
 pub const geometry = @import("./geometries/index.zig");
 pub const material = @import("./materials/index.zig");
 pub const meshes = @import("./meshes/index.zig");
+pub const Control = @import("./Control.zig");

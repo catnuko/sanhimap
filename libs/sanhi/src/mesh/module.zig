@@ -120,8 +120,8 @@ fn check_resize(gctx: *zgpu.GraphicsContext) void {
     }
 }
 fn on_deinit() !void {}
-fn on_pre_draw(app_backend: *backend.AppBackend) void {
-    state.camera.update(app_backend);
+fn on_pre_draw(_: *backend.AppBackend) void {
+    // state.camera.update(app_backend);
 }
 fn on_post_draw(_: *backend.AppBackend) void {}
 fn on_tick(_: f32) void {}
