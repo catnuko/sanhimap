@@ -1,3 +1,4 @@
+const stdmath = @import("std").math;
 const testing = @import("testing.zig");
 const math = @import("root.zig");
 const vec = @import("Vector.zig");
@@ -157,7 +158,7 @@ pub fn Ray3(comptime Scalar: type) type {
                 undefined,
                 undefined,
                 undefined,
-                math.inf(f32),
+                stdmath.inf(f32),
             );
 
             if (backface_culling) {

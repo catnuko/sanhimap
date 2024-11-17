@@ -2,6 +2,7 @@ const std = @import("std");
 const testing = @import("testing.zig");
 const math = @import("root.zig");
 const mat = @import("Matrix.zig");
+const stdmath = @import("std").math;
 const quat = @import("Quaternion.zig");
 
 pub const VecComponent = enum { x, y, z, w };
@@ -319,7 +320,7 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
 
         /// Computes the length of the vector.
         pub inline fn length(v: *const VecN) Scalar {
-            return math.sqrt(length2(v));
+            return stdmath.sqrt(length2(v));
         }
 
         /// Normalizes a vector, such that all components end up in the range [0.0, 1.0].
@@ -357,7 +358,7 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
 
         /// Calculates the distance between points a and b.
         pub inline fn distance(a: *const VecN, b: *const VecN) Scalar {
-            return math.sqrt(a.distance2(b));
+            return stdmath.sqrt(a.distance2(b));
         }
 
         /// Performs linear interpolation between a and b by some amount.
@@ -582,14 +583,14 @@ test "normalize_example" {
 
 test "normalize_accuracy" {
     const normalized = math.vec2(1, 1).normalizeEps(0);
-    const norm_val = math.sqrt1_2; // 1 / sqrt(2)
+    const norm_val = stdmath.sqrt1_2; // 1 / sqrt(2)
     try testing.expect(math.Vector2, math.Vector2.splat(norm_val)).eql(normalized);
 }
 
 test "normalize_nan" {
     const near_zero = 0.0;
     const normalized = math.vec2(0, 0).normalizeEps(near_zero);
-    try testing.expect(bool, true).eql(math.isNan(normalized.x()));
+    try testing.expect(bool, true).eql(stdmath.isNan(normalized.x()));
 }
 
 test "normalize_no_nan" {
@@ -907,7 +908,7 @@ test "dir_zero_vec4" {
 test "dir_vec2" {
     const a: math.Vector2 = math.vec2(1, 2);
     const b: math.Vector2 = math.vec2(3, 4);
-    try testing.expect(math.Vector2, math.vec2(math.sqrt1_2, math.sqrt1_2))
+    try testing.expect(math.Vector2, math.vec2(stdmath.sqrt1_2, stdmath.sqrt1_2))
         .eql(a.direction(&b, 0));
 }
 
@@ -1081,7 +1082,7 @@ test "Matrix4_mulMat" {
 test "mulQuat" {
     const up = math.vec3(0, 1, 0);
     const id = math.Quaternion.fromIdentity();
-    const rot = math.Quaternion.rotateZ(&id, -math.pi / 2.0);
+    const rot = math.Quaternion.rotateZ(&id, -stdmath.pi / 2.0);
     try testing.expect(math.Vector3, math.vec3(1, 0, 0)).eql(up.mulQuat(&rot));
 }
 

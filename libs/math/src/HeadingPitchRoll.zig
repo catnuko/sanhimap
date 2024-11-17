@@ -1,3 +1,4 @@
+const stdmath = @import("std").math;
 const math = @import("root.zig");
 const testing = @import("testing.zig");
 const vec = @import("Vector.zig");
@@ -39,13 +40,13 @@ pub fn HeadingPitchRoll(comptime Scalar: type) type {
             const denominatorHeading = 1 - 2 * (y * y + z * z);
             const numeratorHeading = 2 * (w * z + x * y);
 
-            const hv = -math.atan2(numeratorHeading, denominatorHeading);
-            const rv = math.atan2(numeratorRoll, denominatorRoll);
+            const hv = -stdmath.atan2(numeratorHeading, denominatorHeading);
+            const rv = stdmath.atan2(numeratorRoll, denominatorRoll);
             const pv = -math.asinClamped(testi);
             return new(hv, pv, rv);
         }
         pub fn fromDegrees(hv: T, pv: T, rv: T) HeadingPitchRollN {
-            return new(hv * math.rad_per_deg, pv * math.rad_per_deg, rv * math.rad_per_deg);
+            return new(hv * stdmath.rad_per_deg, pv * stdmath.rad_per_deg, rv * stdmath.rad_per_deg);
         }
         pub fn eql(a: *const HeadingPitchRollN, b: *const HeadingPitchRollN) bool {
             return a.v.eql(&b.v);
@@ -57,7 +58,7 @@ pub fn HeadingPitchRoll(comptime Scalar: type) type {
 }
 
 test "HeadingPitchRoll_init" {
-    const deg2rad = math.deg_per_rad;
+    const deg2rad = stdmath.deg_per_rad;
     const result = math.hpr(1.0 * deg2rad, 2.0 * deg2rad, 3.0 * deg2rad);
     try testing.expect(f32, 1.0 * deg2rad).eql(result.h());
     try testing.expect(f32, 2.0 * deg2rad).eql(result.p());
@@ -65,7 +66,7 @@ test "HeadingPitchRoll_init" {
 }
 
 test "HeadingPitchRoll_fromQuat" {
-    const deg2rad = math.rad_per_deg;
+    const deg2rad = stdmath.rad_per_deg;
     const testingTab = [9][3]f64{
         .{ 0, 0, 0 },
         .{ 90 * deg2rad, 0, 0 },
@@ -91,7 +92,7 @@ test "HeadingPitchRoll_fromQuat" {
 }
 
 test "HeadingPitchRoll_fromDegrees" {
-    const deg2rad = math.rad_per_deg;
+    const deg2rad = stdmath.rad_per_deg;
     const testingTab = [9][3]f64{
         .{ 0, 0, 0 },
         .{ 90, 0, 0 },

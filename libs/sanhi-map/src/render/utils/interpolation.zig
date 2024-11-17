@@ -134,7 +134,7 @@ pub fn easeExpo(alpha: f32) f32 {
 }
 
 pub fn easeElastic(alpha: f32) f32 {
-    const c4 = (2.0 * std.math.pi) / 3.0;
+    const c4 = (2.0 * std.stdmath.pi) / 3.0;
     if (alpha == 0.0)
         return 0.0;
     if (alpha == 1.0)
@@ -171,7 +171,7 @@ pub fn circle(alpha: f32) f32 {
 }
 
 pub fn sin(alpha: f32) f32 {
-    return (1.0 - std.math.cos(alpha * std.math.pi)) * 0.5;
+    return (1.0 - std.math.cos(alpha * std.stdmath.pi)) * 0.5;
 }
 
 /// Ken Perlin's improved smoothstep

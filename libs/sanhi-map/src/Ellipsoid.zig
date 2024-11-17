@@ -164,7 +164,7 @@ pub const Ellipsoid = struct {
         const maxLatitude = rectangle.north;
 
         while (maxLongitude < minLongitude) {
-            maxLongitude += math.tau;
+            maxLongitude += stdmath.tau;
         }
         const radiiSquared = self.radiiSquared;
         const a2 = radiiSquared.x();
@@ -298,7 +298,7 @@ test "Ellipsoid.surfaceArea" {
     var a2 = ellipsoid.radiiSquared.x();
     var c2 = ellipsoid.radiiSquared.z();
     var e = math.sqrt(1.0 - c2 / a2);
-    var area = math.tau * a2 + math.pi * (c2 / e) * math.log(f64, math.e, (1.0 + e) / (1.0 - e));
+    var area = stdmath.tau * a2 + stdmath.pi * (c2 / e) * math.log(f64, math.e, (1.0 + e) / (1.0 - e));
     try testing.expectApproxEqAbs(area, ellipsoid.surfaceArea(&Rectangle.MAX_VALUE), math.epsilon3);
 
     ellipsoid = Ellipsoid.new(3, 3, 4);
@@ -308,7 +308,7 @@ test "Ellipsoid.surfaceArea" {
     const a = ellipsoid.radii.x();
     const c = ellipsoid.radii.z();
     area =
-        math.tau * a2 + math.tau * ((a * c) / e) * math.asin(e);
+        stdmath.tau * a2 + stdmath.tau * ((a * c) / e) * math.asin(e);
     try testing.expectApproxEqAbs(area, ellipsoid.surfaceArea(&Rectangle.MAX_VALUE), math.epsilon3);
 }
 

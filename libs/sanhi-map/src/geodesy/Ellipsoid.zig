@@ -196,19 +196,19 @@ pub const Ellipsoid = struct {
         const cosU2 = 1 / math.sqrt((1 + tanU2 * tanU2));
         const sinU2 = tanU2 * cosU2;
 
-        const antipodal = math.abs(L) > math.pi / 2.0 or math.abs(lat2 - lat1) > math.pi / 2.0;
+        const antipodal = math.abs(L) > stdmath.pi / 2.0 or math.abs(lat2 - lat1) > stdmath.pi / 2.0;
 
         var l = L;
         var sinl: f64 = 0;
         var cosl: f64 = 0; // l = difference in longitude on an auxiliary sphere
-        var o: f64 = if (antipodal) math.pi else 0.0;
+        var o: f64 = if (antipodal) stdmath.pi else 0.0;
         var sino: f64 = 0;
         var coso: f64 = if (antipodal) -1 else 1.0;
         var sinSqo: f64 = 0; // o = angular distance P₁ P₂ on the sphere
         var cos2o: f64 = 1; // oₘ = angular distance on the sphere from the equator to the midpoint of the line
         var cosSqo: f64 = 1; // a = azimuth of the geodesic at the equator
 
-        var ll = -math.inf(f64);
+        var ll = -stdmath.inf(f64);
         var iter: u64 = 0;
         while (math.abs(l - ll) > 1e-12 and iter < 1000) : (iter += 1) {
             sinl = math.sin(l);
@@ -224,9 +224,9 @@ pub const Ellipsoid = struct {
             const C = f / 16 * cosSqo * (4 + f * (4 - 3 * cosSqo));
             ll = l;
             l = L + (1 - C) * f * sina * (o + C * sino * (cos2o + C * coso * (-1 + 2 * cos2o * cos2o)));
-            const iterationCheck = if (antipodal) math.abs(l) - math.pi else math.abs(l);
+            const iterationCheck = if (antipodal) math.abs(l) - stdmath.pi else math.abs(l);
 
-            if (iterationCheck > math.pi) {
+            if (iterationCheck > stdmath.pi) {
                 return null;
             }
         }
@@ -243,11 +243,11 @@ pub const Ellipsoid = struct {
         const s = b * A * (o - ao); // s = length of the geodesic
 
         // note special handling of exactly antipodal points where sin²o = 0 (due to discontinuity
-        // atan2(0, 0) = 0 but atan2(e, 0) = math.pi/2 / 90°) - in which case bearing is always meridional,
+        // atan2(0, 0) = 0 but atan2(e, 0) = stdmath.pi/2 / 90°) - in which case bearing is always meridional,
         // due north (or due south!)
         // a = azimuths of the geodesic; a2 the direction P₁ P₂ produced
         const a1 = if (math.abs(sinSqo) < math.eps_f64) 0 else math.atan2(cosU2 * sinl, cosU1 * sinU2 - sinU1 * cosU2 * cosl);
-        const a2 = if (math.abs(sinSqo) < math.eps_f64) math.pi else math.atan2(cosU1 * sinl, -sinU1 * cosU2 + cosU1 * sinU2 * cosl);
+        const a2 = if (math.abs(sinSqo) < math.eps_f64) stdmath.pi else math.atan2(cosU1 * sinl, -sinU1 * cosU2 + cosU1 * sinU2 * cosl);
 
         return .{
             .distance = s,

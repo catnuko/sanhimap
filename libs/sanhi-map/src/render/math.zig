@@ -11,7 +11,7 @@ const assert = std.debug.assert;
 const math = std.math;
 
 fn radians(deg: f32) f32 {
-    return deg * (math.pi / 180.0);
+    return deg * (stdmath.pi / 180.0);
 }
 
 pub fn vec2(x: f32, y: f32) Vector2 {
@@ -68,7 +68,7 @@ pub const Vector2 = extern struct {
     }
 
     pub fn angleDegrees(self: *const Vector2) f32 {
-        return std.math.atan2(f32, self.y, self.x) * (360.0 / (std.math.tau));
+        return std.math.atan2(f32, self.y, self.x) * (360.0 / (std.stdmath.tau));
     }
 
     pub const zero = Vector2.new(0.0, 0.0);
@@ -427,7 +427,7 @@ pub const Mat4 = extern struct {
 
     pub fn persp(fov: f32, aspect: f32, near: f32, far: f32) Mat4 {
         var res = Mat4.fromIdentity;
-        const t = math.tan(fov * (math.pi / 360.0));
+        const t = math.tan(fov * (stdmath.pi / 360.0));
         res.m[0][0] = 1.0 / t;
         res.m[1][1] = aspect / t;
         res.m[2][3] = -1.0;

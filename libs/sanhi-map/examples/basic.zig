@@ -2,9 +2,9 @@ const std = @import("std");
 const sanhimap = @import("sanhimap");
 const sanhi = sanhimap.sanhi;
 
-const Mat4 = sanhi.math.math.Matrix4;
-const Quaternion = sanhi.math.math.Quaternion;
-const Vector3 = sanhi.math.math.Vector3;
+const Mat4 = sanhi.math.Matrix4;
+const Quaternion = sanhi.math.Quaternion;
+const Vector3 = sanhi.math.Vector3;
 const zmesh = sanhi.zmesh;
 const mesh = sanhi.mesh;
 const app = sanhi.app;

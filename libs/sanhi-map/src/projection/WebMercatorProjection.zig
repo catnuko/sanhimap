@@ -27,18 +27,18 @@ pub fn worldExtent(self: *const Self, minElevation: f64, maxElevation: f64) AABB
     );
 }
 pub fn project(self: *const Self, geoPoint: *const Cartographic) Vector3 {
-    const x = ((geoPoint.lon + math.pi) / math.tau) * self.unitScale;
+    const x = ((geoPoint.lon + stdmath.pi) / stdmath.tau) * self.unitScale;
     const sy = math.sin(MercatorProjection.latitudeClamp(geoPoint.lat));
-    const y = (0.5 - math.log(f64, math.eps_f64, (1 + sy) / (1 - sy)) / (4 * math.pi)) * self.unitScale;
+    const y = (0.5 - math.log(f64, math.eps_f64, (1 + sy) / (1 - sy)) / (4 * stdmath.pi)) * self.unitScale;
     const z = geoPoint.height;
     return Vector3.new(x, y, z);
 }
 pub fn unproject(self: *const Self, worldPoint: *const Vector3) Cartographic {
     const x = worldPoint.x() / self.unitScale - 0.5;
     const y = 0.5 - worldPoint.y() / self.unitScale;
-    const lon = math.tau * x;
+    const lon = stdmath.tau * x;
     //todo may bug
-    const lat = math.pi - (math.tau * math.atan(math.exp(-y * 2 * math.pi))) / math.pi;
+    const lat = stdmath.pi - (stdmath.tau * math.atan(math.exp(-y * 2 * stdmath.pi))) / stdmath.pi;
     return Cartographic.new(lon, lat, worldPoint.z());
 }
 pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P, worldPoint: *const Vector3) Vector3 {
@@ -94,7 +94,7 @@ pub fn unprojectAltitude(_: *const Self, worldPoint: *const Vector3) f64 {
 }
 //same to MercatorProjection
 pub fn getScaleFactor(self: *const Self, worldPoint: *const Vector3) f64 {
-    return math.cosh(2 * math.pi * (worldPoint.y() / self.unitScale - 0.5));
+    return math.cosh(2 * stdmath.pi * (worldPoint.y() / self.unitScale - 0.5));
 }
 pub fn surfaceNormal(_: *const Self) Vector3 {
     return Vector3.new(0.0, 0.0, -1.0);

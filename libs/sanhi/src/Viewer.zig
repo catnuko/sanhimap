@@ -1,4 +1,5 @@
 const lib = @import("./lib.zig");
+const stdmath = @import("std").math;
 const wgpu = lib.wgpu;
 const zgpu = lib.zgpu;
 const zmesh = lib.zmesh;
@@ -25,7 +26,7 @@ pub fn new() !Self {
     const height = app.get_height();
     const camera = try allocator.create(Camera);
     camera.* = Camera.new(
-        math.pi / 3.0,
+        stdmath.pi / 3.0,
         @as(f32, @floatFromInt(width)) / @as(f32, @floatFromInt(height)),
         0.1,
         10000.0,

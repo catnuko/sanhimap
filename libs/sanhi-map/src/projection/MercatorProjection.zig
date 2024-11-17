@@ -26,7 +26,7 @@ pub fn worldExtent(self: *const Self, minElevation: f64, maxElevation: f64) AABB
     );
 }
 pub fn project(self: *const Self, geoPoint: *const Cartographic) Vector3 {
-    const x = ((geoPoint.lon + math.pi) / math.tau) * self.unitScale;
+    const x = ((geoPoint.lon + stdmath.pi) / stdmath.tau) * self.unitScale;
     const y = (latitudeClampProject(geoPoint.lat) * 0.5 + 0.5) *
         self.unitScale;
     const z = geoPoint.height;
@@ -34,7 +34,7 @@ pub fn project(self: *const Self, geoPoint: *const Cartographic) Vector3 {
 }
 pub fn unproject(self: *const Self, worldPoint: *const Vector3) Cartographic {
     return Cartographic.fromRadians(
-        (worldPoint.x() / self.unitScale) * 2 * math.pi - math.pi,
+        (worldPoint.x() / self.unitScale) * 2 * stdmath.pi - stdmath.pi,
         unprojectLatitude((worldPoint.y() / self.unitScale - 0.5) * 2.0),
         worldPoint.z(),
     );
@@ -57,7 +57,7 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
     const worldYCenter = (worldNorth + worldSouth) * 0.5;
     worldCenter.setY(worldYCenter);
     const latitudeSpan = worldNorth - worldSouth;
-    const longitudeSpan = (geoBox.longitudeSpan() / math.tau) * self.unitScale;
+    const longitudeSpan = (geoBox.longitudeSpan() / stdmath.tau) * self.unitScale;
     if (ResultBoxType == AABB) {
         const minx = worldCenter.x() - longitudeSpan * 0.5;
         const miny = worldCenter.y() - latitudeSpan * 0.5;
@@ -100,7 +100,7 @@ pub fn unprojectAltitude(_: *const Self, worldPoint: *const Vector3) f64 {
     return worldPoint.z();
 }
 pub fn getScaleFactor(self: *const Self, worldPoint: *const Vector3) f64 {
-    return math.cosh(2 * math.pi * (worldPoint.y() / self.unitScale - 0.5));
+    return math.cosh(2 * stdmath.pi * (worldPoint.y() / self.unitScale - 0.5));
 }
 pub fn surfaceNormal(_: *const Self) Vector3 {
     return Vector3.new(0.0, 0.0, 1.0);
@@ -137,13 +137,13 @@ pub fn localTangentSpace(self: *const Self, geoPoint: *const Cartographic) Mat4 
     return Mat4.fromColumnMajorArray(&slice);
 }
 pub fn unprojectLatitude(y: f64) f64 {
-    return 2.0 * math.atan(math.exp(math.pi * y)) - math.pi * 0.5;
+    return 2.0 * math.atan(math.exp(stdmath.pi * y)) - stdmath.pi * 0.5;
 }
 pub fn latitudeClamp(lat: f64) f64 {
     return math.clamp(lat, -MAXIMUM_LATITUDE, MAXIMUM_LATITUDE);
 }
 pub fn latitudeProject(lat: f64) f64 {
-    return math.log(f64, math.e, math.tan(math.pi * 0.25 + lat * 0.5)) / math.pi;
+    return math.log(f64, math.e, math.tan(stdmath.pi * 0.25 + lat * 0.5)) / stdmath.pi;
 }
 pub fn latitudeClampProject(lat: f64) f64 {
     return latitudeProject(latitudeClamp(lat));

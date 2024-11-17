@@ -9,7 +9,7 @@ pub const Rectangle = struct {
     north: f64,
     const Self = @This();
 
-    pub const MAX_VALUE = new(-math.pi, -math.pi_over_two, math.pi, math.pi_over_two);
+    pub const MAX_VALUE = new(-stdmath.pi, -math.pi_over_two, stdmath.pi, math.pi_over_two);
 
     pub fn new(westv: f64, southv: f64, eastv: f64, northv: f64) Self {
         return .{
@@ -23,7 +23,7 @@ pub const Rectangle = struct {
         var e = self.east;
         const w = self.west;
         if (e < w) {
-            e += math.tau;
+            e += stdmath.tau;
         }
         return e - w;
     }
@@ -32,10 +32,10 @@ pub const Rectangle = struct {
     }
     pub fn fromDegrees(w: f64, s: f64, e: f64, n: f64) Self {
         return new(
-            math.degreesToRadians(w),
-            math.degreesToRadians(s),
-            math.degreesToRadians(e),
-            math.degreesToRadians(n),
+            stdmath.degreesToRadians(w),
+            stdmath.degreesToRadians(s),
+            stdmath.degreesToRadians(e),
+            stdmath.degreesToRadians(n),
         );
     }
     pub fn fromRadians(w: f64, s: f64, e: f64, n: f64) Self {
@@ -60,7 +60,7 @@ pub const Rectangle = struct {
         var e = self.east;
         const w = self.west;
         if (e < w) {
-            e += math.tau;
+            e += stdmath.tau;
         }
         const lon = math.negativePiToPi((w + e) * 0.5);
         const lat = (self.north + self.south) * 0.5;
@@ -82,9 +82,9 @@ pub const Rectangle = struct {
         var east = self.east;
 
         if (east < west) {
-            east += math.tau;
+            east += stdmath.tau;
             if (longitude < 0.0) {
-                longitude += math.tau;
+                longitude += stdmath.tau;
             }
         }
         return ((longitude > west or
@@ -102,15 +102,15 @@ pub const Rectangle = struct {
         var otherRectangleWest = other.west;
 
         if (rectangleEast < rectangleWest and otherRectangleEast > 0.0) {
-            rectangleEast += math.tau;
+            rectangleEast += stdmath.tau;
         } else if (otherRectangleEast < otherRectangleWest and rectangleEast > 0.0) {
-            otherRectangleEast += math.tau;
+            otherRectangleEast += stdmath.tau;
         }
 
         if (rectangleEast < rectangleWest and otherRectangleWest < 0.0) {
-            otherRectangleWest += math.tau;
+            otherRectangleWest += stdmath.tau;
         } else if (otherRectangleEast < otherRectangleWest and rectangleWest < 0.0) {
-            rectangleWest += math.tau;
+            rectangleWest += stdmath.tau;
         }
 
         const west = math.negativePiToPi(@max(rectangleWest, otherRectangleWest));
@@ -151,14 +151,14 @@ pub const Rectangle = struct {
         var otherRectangleWest = other.west;
 
         if (rectangleEast < rectangleWest and otherRectangleEast > 0.0) {
-            rectangleEast += math.tau;
+            rectangleEast += stdmath.tau;
         } else if (otherRectangleEast < otherRectangleWest and rectangleEast > 0.0) {
-            otherRectangleEast += math.tau;
+            otherRectangleEast += stdmath.tau;
         }
         if (rectangleEast < rectangleWest and otherRectangleWest < 0.0) {
-            otherRectangleWest += math.tau;
+            otherRectangleWest += stdmath.tau;
         } else if (otherRectangleEast < otherRectangleWest and rectangleWest < 0.0) {
-            rectangleWest += math.tau;
+            rectangleWest += stdmath.tau;
         }
 
         const west = math.negativePiToPi(@min(rectangleWest, otherRectangleWest));
@@ -179,7 +179,7 @@ pub const Rectangle = struct {
             result.west = self.west + westLerp * width;
             result.east = self.west + eastLerp * width;
         } else {
-            const width = math.tau + self.east - self.west;
+            const width = stdmath.tau + self.east - self.west;
             result.west = math.negativePiToPi(self.west + westLerp * width);
             result.east = math.negativePiToPi(self.west + eastLerp * width);
         }

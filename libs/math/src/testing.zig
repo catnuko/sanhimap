@@ -1,5 +1,6 @@
 const std = @import("std");
 const testing = std.testing;
+const stdmath = @import("std").math;
 const math = @import("root.zig");
 
 fn ExpectFloat(comptime T: type) type {
@@ -173,7 +174,7 @@ fn Expect(comptime T: type) type {
 /// ```
 ///
 /// ```diff
-/// -std.testing.expectApproxEqAbs(@as(f32, 1.0), actual(), std.math.floatEps(f32))
+/// -std.testing.expectApproxEqAbs(@as(f32, 1.0), actual(), std.stdmath.floatEps(f32))
 /// +mach.testing.expect(f32, 1.0).eql(actual())
 /// ```
 ///

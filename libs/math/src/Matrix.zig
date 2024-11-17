@@ -1,9 +1,9 @@
+const stdmath = @import("std").math;
 const testing = @import("testing.zig");
 const math = @import("root.zig");
 const vec = @import("Vector.zig");
 const Quaternion = @import("./Quaternion.zig").Quaternion;
 const HeadingPitchRoll = @import("./HeadingPitchRoll.zig").HeadingPitchRoll;
-const stdmath = @import("std").math;
 const debug = @import("std").debug;
 
 pub fn Matrix2(
@@ -102,8 +102,8 @@ pub fn Matrix2(
         }
 
         pub fn fromRotation(angle_radians: T) Matrix {
-            const c = math.cos(angle_radians);
-            const s = math.sin(angle_radians);
+            const c = stdmath.cos(angle_radians);
+            const s = stdmath.sin(angle_radians);
             return Matrix.new(
                 &RowVec.new(c, -s),
                 &RowVec.new(s, c),
@@ -117,7 +117,7 @@ pub fn Matrix2(
 
             var det = a0 * a3 - a2 * a1;
 
-            if (math.isNan(det)) {
+            if (stdmath.isNan(det)) {
                 unreachable;
             }
             det = 1.0 / det;
@@ -301,8 +301,8 @@ pub fn Matrix3(
 
         /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
         pub fn fromRotationX(angle_radians: T) Matrix {
-            const c = math.cos(angle_radians);
-            const s = math.sin(angle_radians);
+            const c = stdmath.cos(angle_radians);
+            const s = stdmath.sin(angle_radians);
             return Matrix.new(
                 &RowVec.new(1, 0, 0),
                 &RowVec.new(0, c, -s),
@@ -312,8 +312,8 @@ pub fn Matrix3(
 
         /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
         pub fn fromRotationY(angle_radians: T) Matrix {
-            const c = math.cos(angle_radians);
-            const s = math.sin(angle_radians);
+            const c = stdmath.cos(angle_radians);
+            const s = stdmath.sin(angle_radians);
             return Matrix.new(
                 &RowVec.new(c, 0, s),
                 &RowVec.new(0, 1, 0),
@@ -323,8 +323,8 @@ pub fn Matrix3(
 
         /// Constructs a 3D matrix which rotates around the Z axis by `angle_radians`.
         pub fn fromRotationZ(angle_radians: T) Matrix {
-            const c = math.cos(angle_radians);
-            const s = math.sin(angle_radians);
+            const c = stdmath.cos(angle_radians);
+            const s = stdmath.sin(angle_radians);
             return Matrix.new(
                 &RowVec.new(c, -s, 0),
                 &RowVec.new(s, c, 0),
@@ -351,7 +351,7 @@ pub fn Matrix3(
             // Calculate the determinant
             var det = a00 * b01 + a01 * b11 + a02 * b21;
 
-            if (math.isNan(det)) {
+            if (stdmath.isNan(det)) {
                 unreachable;
             }
             det = 1.0 / det;
@@ -706,7 +706,7 @@ pub fn Matrix4(
 
             var det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
-            if (math.isNan(det)) {
+            if (stdmath.isNan(det)) {
                 unreachable;
             }
             det = 1.0 / det;
@@ -1582,7 +1582,7 @@ test "Matrix4_fromTranslationQuaternionScale" {
     const expected = math.Matrix4D.fromColumnMajorArray(&.{ 7.0, 0.0, 0.0, 1.0, 0.0, 0.0, 9.0, 2.0, 0.0, -8.0, 0.0, 3.0, 0.0, 0.0, 0.0, 1.0 }).transpose();
     const returnedResult = math.Matrix4D.fromTranslationQuaternionScale(
         &math.vec3d(1.0, 2.0, 3.0), // translation
-        &math.QuaternionD.fromAxisAngle(&math.Vector3D.unit_x, math.degreesToRadians(-90.0)), // rotation
+        &math.QuaternionD.fromAxisAngle(&math.Vector3D.unit_x, stdmath.degreesToRadians(-90.0)), // rotation
         &math.vec3d(7.0, 8.0, 9.0),
     ); // scale
     try testing.expect(bool, true).eql(expected.eqlApprox(&returnedResult, math.epsilon14));

@@ -8,7 +8,7 @@ pub const GeoBox = struct {
     pub fn new(sw: Cartographic, ne: Cartographic) GeoBox {
         var news = GeoBox{ .southWest = sw, .northEast = ne };
         if (news.west() > news.east()) {
-            news.northEast.lon += std.math.tau;
+            news.northEast.lon += std.stdmath.tau;
         }
         return news;
     }
@@ -75,10 +75,10 @@ pub const GeoBox = struct {
         if (west_v <= east_v) {
             return Cartographic.fromRadians((west_v + east_v) * 0.5, latitude_v, altitude_v);
         }
-        var longitude_v = (std.math.tau + east_v + west_v) * 0.5;
+        var longitude_v = (std.stdmath.tau + east_v + west_v) * 0.5;
 
-        if (longitude_v > std.math.tau) {
-            longitude_v -= std.math.tau;
+        if (longitude_v > std.stdmath.tau) {
+            longitude_v -= std.stdmath.tau;
         }
         return Cartographic.fromRadians(longitude_v, latitude_v, altitude_v);
     }
@@ -93,7 +93,7 @@ pub const GeoBox = struct {
     pub inline fn longitudeSpan(self: *const GeoBox) f64 {
         var width = self.east() - self.west();
         if (width < 0.0) {
-            width += std.math.tau;
+            width += std.stdmath.tau;
         }
         return width;
     }
@@ -129,13 +129,13 @@ pub const GeoBox = struct {
         var longitude = point.lon;
         if (east_v > MAX_LONGITUDE) {
             while (longitude < west_v) {
-                longitude = longitude + std.math.tau;
+                longitude = longitude + std.stdmath.tau;
             }
         }
 
         if (longitude > east_v) {
-            while (longitude > west_v + std.math.tau) {
-                longitude = longitude - std.math.tau;
+            while (longitude > west_v + std.stdmath.tau) {
+                longitude = longitude - std.stdmath.tau;
             }
         }
 
@@ -171,7 +171,7 @@ pub const GeoBox = struct {
 const GEOCOORDS_epsilon = 0.000001;
 test "GeoBox.center" {
     const testing = @import("std").testing;
-    const t = std.math.degreesToRadians;
+    const t = std.stdmath.degreesToRadians;
     const g = GeoBox.new(Cartographic.fromDegrees(170, -10, 0), Cartographic.fromDegrees(-160, 10, 0));
     try testing.expectEqual(g.west(), t(170));
     try testing.expectEqual(g.east(), t(200));

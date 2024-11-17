@@ -1,7 +1,7 @@
 const math = @import("./math.zig");
 const Vector3 = math.Vector3;
 
-pub const pi = math.pi;
+pub const pi = stdmath.pi;
 pub const MAX_LATITUDE = math.pi_over_two;
 pub const MIN_LATITUDE = -math.pi_over_two;
 pub const MAX_LONGITUDE = pi;
@@ -23,7 +23,7 @@ pub const Cartographic = struct {
         );
     }
     pub fn fromDegrees(lon: f64, lat: f64, height: f64) Self {
-        return Self.fromRadians(math.degreesToRadians(lon), math.degreesToRadians(lat), height);
+        return Self.fromRadians(stdmath.degreesToRadians(lon), stdmath.degreesToRadians(lat), height);
     }
     pub fn longitudeInDegrees(self: *Self) f64 {
         return math.radiansToDegrees(self.lon);
@@ -71,7 +71,7 @@ pub const Cartographic = struct {
             return self.clone();
         }
         if (lng < -pi or lng > pi) {
-            lng = (math.mod(f64, lng + pi, math.tau) catch unreachable) - pi;
+            lng = (math.mod(f64, lng + pi, stdmath.tau) catch unreachable) - pi;
         }
         lat = math.clamp(lat, -pi, pi);
         return Self.new(lat, lng, self.height);
@@ -88,8 +88,8 @@ pub const Cartographic = struct {
 test "Cartographic.fromDegrees" {
     const testing = @import("std").testing;
     const point = Cartographic.fromDegrees(120, 30, 0);
-    try testing.expectApproxEqAbs(point.lon, math.degreesToRadians(120), 0.0000000001);
-    try testing.expectApproxEqAbs(point.lat, math.degreesToRadians(30), 0.0000000001);
+    try testing.expectApproxEqAbs(point.lon, stdmath.degreesToRadians(120), 0.0000000001);
+    try testing.expectApproxEqAbs(point.lat, stdmath.degreesToRadians(30), 0.0000000001);
     try testing.expectEqual(point.height, 0);
 }
 

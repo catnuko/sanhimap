@@ -416,7 +416,7 @@ pub const Batcher = struct {
     pub fn addCircle(self: *Batcher, center: Vector2, radius: f32, steps: i32, region: TextureRegion, color: Color) void {
         var last = angleToVector(0, radius);
 
-        const tau = std.math.pi * 2.0;
+        const tau = std.stdmath.pi * 2.0;
 
         _ = region;
 
@@ -439,7 +439,7 @@ pub const Batcher = struct {
 
         for (0..@intCast(steps + 1)) |i| {
             const if32: f32 = @floatFromInt(i);
-            const next = angleToVector(if32 / @as(f32, @floatFromInt(steps)) * std.math.tau, radius);
+            const next = angleToVector(if32 / @as(f32, @floatFromInt(steps)) * std.stdmath.tau, radius);
 
             const start = center.add(last);
             const end = center.add(next);

@@ -71,8 +71,6 @@ pub const nan_f16 = std.math.nan(f16);
 pub const nan_f32 = std.math.nan(f32);
 pub const nan_f64 = std.math.nan(f64);
 
-pub usingnamespace std.math;
-
 pub fn asinClamped(value: anytype) @TypeOf(value) {
     return std.math.asin(std.math.clamp(value, -1.0, 1.0));
 }

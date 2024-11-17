@@ -39,10 +39,10 @@ pub fn worldCoordinatesToTileKey(comptime TilingScheme: type, tilingscheme: Tili
 }
 pub fn geoRectangleToTileKeys(comptime TilingScheme: type, tilingscheme: TilingScheme, geobox: GeoBox, level: u32) []TileKey {
     // Clamp at the poles and wrap around the international date line.
-    const southWestLongitude = wrap(geobox.southWest.longitudeInRadians, -math.pi, math.pi);
-    const southWestLatitude = math.clamp(geobox.southWest.latitudeInRadians, -(math.pi * 0.5), math.pi * 0.5);
-    const northEastLongitude = wrap(geobox.northEast.longitudeInRadians, -math.pi, math.pi);
-    const northEastLatitude = math.clamp(geobox.northEast.latitudeInRadians, -(math.pi * 0.5), math.pi * 0.5);
+    const southWestLongitude = wrap(geobox.southWest.longitudeInRadians, -stdmath.pi, stdmath.pi);
+    const southWestLatitude = math.clamp(geobox.southWest.latitudeInRadians, -(stdmath.pi * 0.5), stdmath.pi * 0.5);
+    const northEastLongitude = wrap(geobox.northEast.longitudeInRadians, -stdmath.pi, stdmath.pi);
+    const northEastLatitude = math.clamp(geobox.northEast.latitudeInRadians, -(stdmath.pi * 0.5), stdmath.pi * 0.5);
     const minTileKey = geoCoordinatesToTileKey(tilingscheme, &Cargotrphic.fromRadians(southWestLatitude, southWestLongitude), level);
     const maxTileKey = geoCoordinatesToTileKey(tilingscheme, &Cargotrphic.fromRadians(northEastLatitude, northEastLongitude), level);
     const columnCount = tilingscheme.subdivisionScheme.getLevelDimensionX(level);

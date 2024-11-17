@@ -62,8 +62,8 @@ pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P
         const yy = worldPoint.y();
         const zz = worldPoint.z();
         const r = self.unitScale;
-        const mx = xx / r - math.pi;
-        const my = yy / r - math.pi;
+        const mx = xx / r - stdmath.pi;
+        const my = yy / r - stdmath.pi;
         const w = math.exp(my);
         const d = w * w;
         const gx = (2 * w) / (d + 1);
@@ -87,7 +87,7 @@ pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P
     }
 }
 fn getLongitudeQuadrant(longitude: f64) usize {
-    const oneOverPI = 1.0 / math.pi;
+    const oneOverPI = 1.0 / stdmath.pi;
     const quadrantIndex = math.floor(2.0 * (longitude * oneOverPI + 1.0));
     const res: usize = @intFromFloat(math.clamp(quadrantIndex, 0, 4));
     return res;
@@ -159,7 +159,7 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
     if (ResultBoxType == AABB) {
         return self.makeBox3(geoBox);
     } else if (ResultBoxType == OBB) {
-        if (geoBox.longitudeSpan() >= math.pi) {
+        if (geoBox.longitudeSpan() >= stdmath.pi) {
             const bounds = self.makeBox3(geoBox);
             var x = (bounds.max.x() + bounds.min.x()) * 0.5;
             var y = (bounds.max.y() + bounds.min.y()) * 0.5;
@@ -316,7 +316,7 @@ const testing = @import("std").testing;
 const debug = @import("std").debug;
 test "SphereProjection.projectAndunproject" {
     const geoPoint = Cartographic.fromDegrees(-122.4410209359072, 37.8178183439856, 12.0);
-    try testing.expectEqual(geoPoint.lon, std.math.degreesToRadians(-122.4410209359072));
+    try testing.expectEqual(geoPoint.lon, std.stdmath.degreesToRadians(-122.4410209359072));
     const epsilon = 0.000000001;
     const worldPoint = sphereProjection.project(&geoPoint);
     const geoPoint2 = sphereProjection.unproject(&worldPoint);

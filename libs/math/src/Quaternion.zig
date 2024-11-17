@@ -1,3 +1,4 @@
+const stdmath = @import("std").math;
 const math = @import("root.zig");
 const testing = @import("testing.zig");
 const vec = @import("Vector.zig");
@@ -53,15 +54,15 @@ pub fn Quaternion(comptime Scalar: type) type {
         /// Creates a Quaternion based on the given `axis` and `angle`, and returns it.
         pub fn fromAxisAngle(axis: *const Axis, angle: T) Quaternion(T) {
             const halfAngle = angle * 0.5;
-            const s = math.sin(halfAngle);
+            const s = stdmath.sin(halfAngle);
 
-            return new(s * axis.x(), s * axis.y(), s * axis.z(), math.cos(halfAngle));
+            return new(s * axis.x(), s * axis.y(), s * axis.z(), stdmath.cos(halfAngle));
         }
 
         /// Calculates the angle between two given quaternions.
         pub fn angleBetween(a: *const Quaternion(T), b: *const Quaternion(T)) T {
             const d = Vec.dot(&a.v, &b.v);
-            return math.acos(2 * d * d - 1);
+            return stdmath.acos(2 * d * d - 1);
         }
 
         /// Multiplies two quaternions
@@ -112,8 +113,8 @@ pub fn Quaternion(comptime Scalar: type) type {
             const qz = q.v.z();
             const qw = q.v.w();
 
-            const bx = math.sin(halfAngle);
-            const bw = math.cos(halfAngle);
+            const bx = stdmath.sin(halfAngle);
+            const bw = stdmath.cos(halfAngle);
 
             return new(qx * bw + qw * bx, qy * bw + qz * bx, qz * bw - qy * bx, qw * bw - qx * bx);
         }
@@ -127,8 +128,8 @@ pub fn Quaternion(comptime Scalar: type) type {
             const qz = q.v.z();
             const qw = q.v.w();
 
-            const by = math.sin(halfAngle);
-            const bw = math.cos(halfAngle);
+            const by = stdmath.sin(halfAngle);
+            const bw = stdmath.cos(halfAngle);
 
             return new(qx * bw - qz * by, qy * bw + qw * by, qz * bw + qx * by, qw * bw - qy * by);
         }
@@ -142,8 +143,8 @@ pub fn Quaternion(comptime Scalar: type) type {
             const qz = q.v.z();
             const qw = q.v.w();
 
-            const bz = math.sin(halfAngle);
-            const bw = math.cos(halfAngle);
+            const bz = stdmath.sin(halfAngle);
+            const bw = stdmath.cos(halfAngle);
 
             return new(qx * bw - qy * bz, qy * bw + qx * bz, qz * bw + qw * bz, qw * bw - qz * bz);
         }
@@ -173,10 +174,10 @@ pub fn Quaternion(comptime Scalar: type) type {
             var scale1: T = 0.0;
 
             if (1.0 - cosOmega > math.eps(T)) {
-                const omega = math.acos(cosOmega);
-                const sinOmega = math.sin(omega);
-                scale0 = math.sin((1.0 - t) * omega) / sinOmega;
-                scale1 = math.sin(t * omega) / sinOmega;
+                const omega = stdmath.acos(cosOmega);
+                const sinOmega = stdmath.sin(omega);
+                scale0 = stdmath.sin((1.0 - t) * omega) / sinOmega;
+                scale1 = stdmath.sin(t * omega) / sinOmega;
             } else {
                 scale0 = 1.0 - t;
                 scale1 = t;
@@ -196,7 +197,7 @@ pub fn Quaternion(comptime Scalar: type) type {
             const trace = m.v[0].v[0] + m.v[1].v[1] + m.v[2].v[2];
 
             if (trace > 0) {
-                const root = math.sqrt(trace + 1.0);
+                const root = stdmath.sqrt(trace + 1.0);
                 dst.v.v[3] = 0.5 * root;
                 const rootInv = 0.5 / root;
 
@@ -219,7 +220,7 @@ pub fn Quaternion(comptime Scalar: type) type {
 
                 var quat = [3]T{ 0, 0, 0 };
 
-                const root = math.sqrt(m.v[i].v[i] - m.v[j].v[j] - m.v[k].v[k] + 1.0);
+                const root = stdmath.sqrt(m.v[i].v[i] - m.v[j].v[j] - m.v[k].v[k] + 1.0);
                 quat[i] = 0.5 * root;
 
                 const rootInv = 0.5 / root;
@@ -242,12 +243,12 @@ pub fn Quaternion(comptime Scalar: type) type {
             const yHalf = yv * 0.5;
             const zHalf = zv * 0.5;
 
-            const sx = math.sin(xHalf);
-            const cx = math.cos(xHalf);
-            const sy = math.sin(yHalf);
-            const cy = math.cos(yHalf);
-            const sz = math.sin(zHalf);
-            const cz = math.cos(zHalf);
+            const sx = stdmath.sin(xHalf);
+            const cx = stdmath.cos(xHalf);
+            const sy = stdmath.sin(yHalf);
+            const cy = stdmath.cos(yHalf);
+            const sz = stdmath.sin(zHalf);
+            const cz = stdmath.cos(zHalf);
 
             const xRet = sx * cy * cz + cx * sy * sz;
             const yRet = cx * sy * cz - sx * cy * sz;
@@ -279,7 +280,7 @@ pub fn Quaternion(comptime Scalar: type) type {
 
         /// Computes the length of a given quaternion.
         pub fn length(q: *const Quaternion(T)) T {
-            return math.sqrt(q.v.x() * q.v.x() + q.v.y() * q.v.y() + q.v.z() * q.v.z() + q.v.w() * q.v.w());
+            return stdmath.sqrt(q.v.x() * q.v.x() + q.v.y() * q.v.y() + q.v.z() * q.v.z() + q.v.w() * q.v.w());
         }
 
         /// Computes the normalized version of a given quaternion.
@@ -289,7 +290,7 @@ pub fn Quaternion(comptime Scalar: type) type {
             const q2 = q.v.z();
             const q3 = q.v.w();
 
-            const len = math.sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+            const len = stdmath.sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
 
             if (len > 0.00001) {
                 return new(q0 / len, q1 / len, q2 / len, q3 / len);
@@ -335,7 +336,7 @@ pub fn Quaternion(comptime Scalar: type) type {
             var zz: T = 0;
             var ww: T = 0;
             var r = vFrom.dot(vTo) + 1.0;
-            if (r < math.floatEps(T)) {
+            if (r < stdmath.floatEps(T)) {
                 r = 0;
                 if (@abs(vFrom.x()) > @abs(vFrom.z())) {
                     xx = -vFrom.y();
@@ -381,8 +382,8 @@ test "inverse" {
 }
 
 test "fromAxisAngle" {
-    const expected = math.Quaternion.fromIdentity().rotateX(math.pi / 4.0);
-    const actual = math.Quaternion.fromAxisAngle(&math.vec3(1, 0, 0), math.pi / 4.0); // 45 degrees in radians (π/4) around the x-axis
+    const expected = math.Quaternion.fromIdentity().rotateX(stdmath.pi / 4.0);
+    const actual = math.Quaternion.fromAxisAngle(&math.vec3(1, 0, 0), stdmath.pi / 4.0); // 45 degrees in radians (π/4) around the x-axis
 
     try testing.expect(math.Vector4, expected.v).eql(actual.v);
 }
@@ -438,22 +439,22 @@ test "divideScalar" {
 }
 
 test "rotateX" {
-    const expected = math.Quaternion.fromAxisAngle(&math.vec3(1, 0, 0), math.pi / 4.0);
-    const actual = math.Quaternion.fromIdentity().rotateX(math.pi / 4.0);
+    const expected = math.Quaternion.fromAxisAngle(&math.vec3(1, 0, 0), stdmath.pi / 4.0);
+    const actual = math.Quaternion.fromIdentity().rotateX(stdmath.pi / 4.0);
 
     try testing.expect(math.Vector4, expected.v).eql(actual.v);
 }
 
 test "rotateY" {
-    const expected = math.Quaternion.fromAxisAngle(&math.vec3(0, 1, 0), math.pi / 4.0);
-    const actual = math.Quaternion.fromIdentity().rotateY(math.pi / 4.0);
+    const expected = math.Quaternion.fromAxisAngle(&math.vec3(0, 1, 0), stdmath.pi / 4.0);
+    const actual = math.Quaternion.fromIdentity().rotateY(stdmath.pi / 4.0);
 
     try testing.expect(math.Vector4, expected.v).eql(actual.v);
 }
 
 test "rotateZ" {
-    const expected = math.Quaternion.fromAxisAngle(&math.vec3(0, 0, 1), math.pi / 4.0);
-    const actual = math.Quaternion.fromIdentity().rotateZ(math.pi / 4.0);
+    const expected = math.Quaternion.fromAxisAngle(&math.vec3(0, 0, 1), stdmath.pi / 4.0);
+    const actual = math.Quaternion.fromIdentity().rotateZ(stdmath.pi / 4.0);
 
     try testing.expect(math.Vector4, expected.v).eql(actual.v);
 }
@@ -476,7 +477,7 @@ test "conjugate" {
 
 test "fromRotationMatrix" {
     {
-        const qqq = math.QuaternionD.fromAxisAngle(&math.Vector3D.unit_z.clone().negate(), math.pi);
+        const qqq = math.QuaternionD.fromAxisAngle(&math.Vector3D.unit_z.clone().negate(), stdmath.pi);
         const rotation = math.Matrix3D.fromColumnMajorArray(&.{ -1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 1.0 }).transpose();
         const actual = math.QuaternionD.fromRotationMatrix(&rotation);
         try testing.expect(bool, true).eql(qqq.eqlApprox(&actual, math.epsilon15));
@@ -490,15 +491,15 @@ test "fromRotationMatrix" {
 }
 test "fromHeadingPitchRoll" {
     {
-        const angle = math.degreesToRadians(20);
+        const angle = stdmath.degreesToRadians(20);
         const hpr = math.HeadingPitchRollD.new(0, 0, angle);
         const quat = math.QuaternionD.fromHeadingPitchRoll(&hpr);
         try testing.expect(bool, true).eql(math.Matrix3D.fromQuaternion(&quat).eqlApprox(&math.Matrix3D.fromRotationX(angle), math.epsilon11));
     }
     {
-        const heading = math.degreesToRadians(180);
-        const pitch = math.degreesToRadians(-45);
-        const roll = math.degreesToRadians(45);
+        const heading = stdmath.degreesToRadians(180);
+        const pitch = stdmath.degreesToRadians(-45);
+        const roll = stdmath.degreesToRadians(45);
         const hpr = math.HeadingPitchRollD.new(heading, pitch, roll);
         const quat = math.QuaternionD.fromHeadingPitchRoll(&hpr);
         const mat1 = math.Matrix3D.fromRotationX(roll);

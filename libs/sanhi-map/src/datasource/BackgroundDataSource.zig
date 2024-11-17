@@ -37,6 +37,11 @@ pub fn DataSourceShared(comptime Self: type) type {
 }
 pub fn BackgroundDataSource(comptime TilingScheme: type) type {
     return struct {
+        pub const GeometryVertex = struct {
+            position: [3]f64,
+            normal: [3]f64,
+            uv: [2]f64,
+        };
         const Self = @This();
         pub const DataSource = DataSourceImpl(TilingScheme);
         pub const Projection = DataSource.Projection;
@@ -78,9 +83,7 @@ pub fn BackgroundDataSource(comptime TilingScheme: type) type {
         }
     };
 }
-pub const Vertex = struct {
-    
-};
+
 const DefaultBackgroundDataSource = BackgroundDataSource(tiling.TilingScheme(proj.WebMercatorProjection));
 pub fn createGroundPlaneGeometry(
     tile: *const DefaultBackgroundDataSource.Tile,
@@ -88,6 +91,7 @@ pub fn createGroundPlaneGeometry(
     createTexCoords: bool,
     receiveShadow: bool,
 ) void {
+    const veertex = std.Arr
     const corners = tiling.projectTilePlaneCorners(DefaultBackgroundDataSource.Tile, tile);
     if (useLocalTargetCoords) {
         corners.sw = corners.sw.subtract(tile.center());

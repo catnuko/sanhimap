@@ -46,7 +46,7 @@ const Spherical = struct {
     // restrict phi to be between EPS and PI-EPS
     pub fn makeSafe(self: *Spherical) void {
         const EPS = 0.000001;
-        self.phi = @max(EPS, @min(math.pi - EPS, self.phi));
+        self.phi = @max(EPS, @min(stdmath.pi - EPS, self.phi));
     }
 
     pub fn setFromVector3(self: *Spherical, v: *const Vector3D) void {
@@ -88,7 +88,7 @@ pub const OrbitControl = struct {
     maxTargetRadius: f64 = stdmath.inf(f64),
 
     minPolarAngle: f64 = 0,
-    maxPolarAngle: f64 = math.pi,
+    maxPolarAngle: f64 = stdmath.pi,
 
     minAzimuthAngle: f64 = -stdmath.inf(f64),
     maxAzimuthAngle: f64 = stdmath.inf(f64),
@@ -287,8 +287,8 @@ pub const OrbitControl = struct {
         var min = self.minAzimuthAngle;
         var max = self.maxAzimuthAngle;
         if (stdmath.isFinite(min) and stdmath.isFinite(max)) {
-            if (min < -math.pi) min += math.tau else if (min > math.pi) min -= math.tau;
-            if (max < -math.pi) max += math.tau else if (max > math.pi) max -= math.tau;
+            if (min < -stdmath.pi) min += stdmath.tau else if (min > stdmath.pi) min -= stdmath.tau;
+            if (max < -stdmath.pi) max += stdmath.tau else if (max > stdmath.pi) max -= stdmath.tau;
             if (min <= max) {
                 self._spherical.theta = @max(min, @min(max, self._spherical.theta));
             } else {
@@ -375,10 +375,10 @@ pub const OrbitControl = struct {
         // self.camera.position.print();
     }
     pub fn setFromSpherical(v: *Vector3D, s: *const Spherical) void {
-        const sinPhiRadius = math.sin(s.phi) * s.radius;
-        v.v[0] = sinPhiRadius * math.sin(s.theta);
-        v.v[1] = math.cos(s.phi) * s.radius;
-        v.v[2] = sinPhiRadius * math.cos(s.theta);
+        const sinPhiRadius = stdmath.sin(s.phi) * s.radius;
+        v.v[0] = sinPhiRadius * stdmath.sin(s.theta);
+        v.v[1] = stdmath.cos(s.phi) * s.radius;
+        v.v[2] = sinPhiRadius * stdmath.cos(s.theta);
     }
     pub fn _clampDistance(self: *const Self, distance: f64) f64 {
         return @max(self.minDistance, @min(self.maxDistance, distance));
@@ -391,9 +391,9 @@ pub const OrbitControl = struct {
     }
     pub fn _getAutoRotationAngle(self: *const Self, deltaTime: ?f64) f64 {
         if (deltaTime) |t| {
-            return (math.tau / 60.0 * self.autoRotateSpeed) * t;
+            return (stdmath.tau / 60.0 * self.autoRotateSpeed) * t;
         } else {
-            return math.tau / 60.0 * self.autoRotateSpeed;
+            return stdmath.tau / 60.0 * self.autoRotateSpeed;
         }
     }
     pub fn getAzimuthalAngle(self: *const Self) f64 {
@@ -458,8 +458,8 @@ pub const OrbitControl = struct {
         self._rotateEnd.setY(event.clientY);
         self._rotateDelta = self._rotateEnd.subtract(&self._rotateStart).multiplyByScalar(self.rotateSpeed);
         const size = self.getWindowSize();
-        self._rotateLeft(math.tau * self._rotateDelta.x() / size[0]);
-        self._rotateUp(math.tau * self._rotateDelta.y() / size[1]);
+        self._rotateLeft(stdmath.tau * self._rotateDelta.x() / size[0]);
+        self._rotateUp(stdmath.tau * self._rotateDelta.y() / size[1]);
         self._rotateStart = self._rotateEnd.clone();
         self.update(null);
     }
@@ -527,10 +527,10 @@ pub const OrbitControl = struct {
         }
     }
     pub fn modAngle32(in_angle: f64) f64 {
-        const angle = in_angle + math.pi;
+        const angle = in_angle + stdmath.pi;
         var temp: f64 = @abs(angle);
-        temp = temp - (2.0 * math.pi * @as(f64, @floatFromInt(@as(i32, @intFromFloat(temp / math.pi)))));
-        temp = temp - math.pi;
+        temp = temp - (2.0 * stdmath.pi * @as(f64, @floatFromInt(@as(i32, @intFromFloat(temp / stdmath.pi)))));
+        temp = temp - stdmath.pi;
         if (angle < 0.0) {
             temp = -temp;
         }
