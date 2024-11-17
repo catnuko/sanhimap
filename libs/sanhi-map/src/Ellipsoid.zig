@@ -2,11 +2,11 @@ const math = @import("./math.zig");
 const Cartographic = @import("Cartographic.zig").Cartographic;
 const Rectangle = @import("Rectangle.zig").Rectangle;
 pub const Ellipsoid = struct {
-    radii: math.Vec3,
-    radiiSquared: math.Vec3,
-    radiiToTheFourth: math.Vec3,
-    oneOverRadii: math.Vec3,
-    oneOverRadiiSquared: math.Vec3,
+    radii: math.Vector3,
+    radiiSquared: math.Vector3,
+    radiiToTheFourth: math.Vector3,
+    oneOverRadii: math.Vector3,
+    oneOverRadiiSquared: math.Vector3,
     minimumRadius: f64,
     maximumRadius: f64,
     centerToleranceSquared: f64,
@@ -20,8 +20,8 @@ pub const Ellipsoid = struct {
     pub fn new(x: f64, y: f64, z: f64) Self {
         var ellipsoid: Ellipsoid = undefined;
         const r = math.vec3(x, y, z);
-        const r_sqared = r.mul(&r);
-        const r_fourth = r_sqared.mul(&r_sqared);
+        const r_sqared = r.multiply(&r);
+        const r_fourth = r_sqared.multiply(&r_sqared);
         const one_over_r = math.vec3(
             if (x == 0) 0.0 else 1.0 / r.x(),
             if (y == 0) 0.0 else 1.0 / r.y(),
@@ -41,7 +41,7 @@ pub const Ellipsoid = struct {
         ellipsoid.oneOverRadiiSquared = one_over_r_sqared;
         ellipsoid.minimumRadius = min_r;
         ellipsoid.maximumRadius = max_r;
-        ellipsoid.centerToleranceSquared = math.EPSILON1;
+        ellipsoid.centerToleranceSquared = math.epsilon1;
         if (r_sqared.z() != 0) {
             ellipsoid.squaredXOverSquaredZ = r_sqared.x() / r_sqared.z();
         }
@@ -61,7 +61,7 @@ pub const Ellipsoid = struct {
         };
     }
 
-    pub fn geodeticSurfaceNormalCartographic(_: *const Self, cartographic: *const Cartographic) math.Vec3 {
+    pub fn geodeticSurfaceNormalCartographic(_: *const Self, cartographic: *const Cartographic) math.Vector3 {
         const longitude = cartographic.lon;
         const latitude = cartographic.lat;
         const cosLatitude = math.cos(latitude);
@@ -72,71 +72,71 @@ pub const Ellipsoid = struct {
         return math.vec3(x, y, z).normalize();
     }
 
-    pub fn geodeticSurfaceNormal(self: *const Self, vec: *const math.Vec3) ?math.Vec3 {
-        if (vec.eqlApprox(&math.Vec3.ZERO, math.EPSILON14)) {
+    pub fn geodeticSurfaceNormal(self: *const Self, vec: *const math.Vector3) ?math.Vector3 {
+        if (vec.eqlApprox(&math.Vector3.zero, math.epsilon14)) {
             return null;
         }
-        return vec.mul(&self.oneOverRadiiSquared).normalize();
+        return vec.multiply(&self.oneOverRadiiSquared).normalize();
     }
-    pub fn toCartesian(self: *const Self, cartographic: *const Cartographic) math.Vec3 {
+    pub fn toCartesian(self: *const Self, cartographic: *const Cartographic) math.Vector3 {
         var n = self.geodeticSurfaceNormalCartographic(cartographic);
-        var k = self.radiiSquared.mul(&n);
+        var k = self.radiiSquared.multiply(&n);
         const gamma = math.sqrt(n.dot(&k));
-        k = k.divScalar(gamma);
-        n = n.mulScalar(cartographic.height);
+        k = k.divideScalar(gamma);
+        n = n.multiplyByScalar(cartographic.height);
         return k.add(&n);
     }
-    pub fn scaleToGeodeticSurface(self: *const Self, vec: *const math.Vec3) ?math.Vec3 {
+    pub fn scaleToGeodeticSurface(self: *const Self, vec: *const math.Vector3) ?math.Vector3 {
         const oneOverRadiiSquared = self.oneOverRadiiSquared;
-        const v2 = vec.mul(vec).mul(&oneOverRadiiSquared);
+        const v2 = vec.multiply(vec).multiply(&oneOverRadiiSquared);
         const squaredNorm = v2.x() + v2.y() + v2.z();
         const ratio = math.sqrt(1 / squaredNorm);
-        const intersection = vec.mulScalar(ratio);
+        const intersection = vec.multiplyByScalar(ratio);
         if (squaredNorm < self.centerToleranceSquared) {
             return if (!math.isFinite(ratio)) null else intersection;
         }
-        const gradient = intersection.mul(&oneOverRadiiSquared.mulScalar(2));
-        var lambda = ((1 - ratio) * vec.len()) / (0.5 * gradient.len());
+        const gradient = intersection.multiply(&oneOverRadiiSquared.multiplyByScalar(2));
+        var lambda = ((1 - ratio) * vec.length()) / (0.5 * gradient.length());
         var correction: f64 = 0.0;
-        var func: f64 = math.EPSILON11;
+        var func: f64 = math.epsilon11;
         var denominator: f64 = undefined;
 
-        const one = math.Vec3.splat(1);
-        var m1: math.Vec3 = undefined;
-        var m2: math.Vec3 = undefined;
-        var m3: math.Vec3 = undefined;
-        var mm: math.Vec3 = undefined;
-        while (math.abs(func) > math.EPSILON12) {
+        const one = math.Vector3.splat(1);
+        var m1: math.Vector3 = undefined;
+        var m2: math.Vector3 = undefined;
+        var m3: math.Vector3 = undefined;
+        var mm: math.Vector3 = undefined;
+        while (math.abs(func) > math.epsilon12) {
             lambda -= correction;
-            m1 = one.div(&oneOverRadiiSquared.mulScalar(lambda).add(&one));
-            m2 = m1.mul(&m1);
-            m3 = m2.mul(&m1);
+            m1 = one.divide(&oneOverRadiiSquared.multiplyByScalar(lambda).add(&one));
+            m2 = m1.multiply(&m1);
+            m3 = m2.multiply(&m1);
             func = v2.x() * m2.x() + v2.y() * m2.y() + v2.z() * m2.z() - 1.0;
-            mm = v2.mul(&m3).mul(&oneOverRadiiSquared);
+            mm = v2.multiply(&m3).multiply(&oneOverRadiiSquared);
             denominator = mm.x() + mm.y() + mm.z();
             const derivative = -2.0 * denominator;
             correction = func / derivative;
         }
-        return vec.mul(&m1);
+        return vec.multiply(&m1);
     }
-    pub fn scaleToGeocentricSurface(self: *const Self, vec: *const math.Vec3) math.Vec3 {
-        const v = vec.mul(vec).mul(&self.oneOverRadiiSquared);
+    pub fn scaleToGeocentricSurface(self: *const Self, vec: *const math.Vector3) math.Vector3 {
+        const v = vec.multiply(vec).multiply(&self.oneOverRadiiSquared);
         const beta = 1 / math.sqrt(v.x() + v.y() + v.z());
-        return vec.mulScalar(beta);
+        return vec.multiplyByScalar(beta);
     }
-    pub fn toCartographic(self: *const Self, vec: *const math.Vec3) ?Cartographic {
+    pub fn toCartographic(self: *const Self, vec: *const math.Vector3) ?Cartographic {
         const p = self.scaleToGeodeticSurface(vec) orelse return null;
 
         const n = self.geodeticSurfaceNormal(&p) orelse unreachable;
-        const h = vec.sub(&p);
+        const h = vec.subtract(&p);
 
         const longitude = math.atan2(n.y(), n.x());
         const latitude = math.asin(n.z());
-        const altitude = math.sign(h.dot(vec)) * h.len();
+        const altitude = math.sign(h.dot(vec)) * h.length();
 
         return Cartographic.new(longitude, latitude, altitude);
     }
-    pub fn getSurfaceNormalIntersectionWithZAxis(self: *const Self, position: *const math.Vec3, buffer: f64) ?math.Vec3 {
+    pub fn getSurfaceNormalIntersectionWithZAxis(self: *const Self, position: *const math.Vector3, buffer: f64) ?math.Vector3 {
         const squaredXOverSquaredZ = self.squaredXOverSquaredZ;
         const result = math.vec3(0, 0, position.z() * (1 - squaredXOverSquaredZ));
         if (math.abs(result.z()) >= self.radii.z() - buffer) {
@@ -145,9 +145,9 @@ pub const Ellipsoid = struct {
 
         return result;
     }
-    pub fn getLocalCurvature(self: *const Self, surfacePosition: *const math.Vec3) math.Vec2 {
+    pub fn getLocalCurvature(self: *const Self, surfacePosition: *const math.Vector3) math.Vector2 {
         const primeVerticalEndpoint = self.getSurfaceNormalIntersectionWithZAxis(surfacePosition, 0.0) orelse unreachable;
-        const primeVerticalRadius = surfacePosition.dist(&primeVerticalEndpoint);
+        const primeVerticalRadius = surfacePosition.distance(&primeVerticalEndpoint);
         // meridional radius = (1 - e^2) * primeVerticalRadius^3 / a^2
         // where 1 - e^2 = b^2 / a^2,
         // so meridional = b^2 * primeVerticalRadius^3 / a^4
@@ -276,7 +276,7 @@ test "Ellipsoid.toCartesian" {
     const spaceCartographic = Cartographic.fromDegrees(-45.0, 15.0, 330000.0);
     const spaceCartesian = math.vec3(4582719.8827300891, -4582719.8827300882, 1725510.4250797231);
     const returnResult = ellipsoid.toCartesian(&spaceCartographic);
-    try testing.expect(returnResult.eqlApprox(&spaceCartesian, math.EPSILON7));
+    try testing.expect(returnResult.eqlApprox(&spaceCartesian, math.epsilon7));
 
     // const a = Cartographic.fromDegrees(45, 45, 0);
     // const debug = @import("std").debug;
@@ -289,7 +289,7 @@ test "Ellipsoid.toCartographic" {
     const spaceCartographic = Cartographic.fromDegrees(-45.0, 15.0, 330000.0);
     const spaceCartesian = math.vec3(4582719.8827300891, -4582719.8827300882, 1725510.4250797231);
     const returnResult = ellipsoid.toCartographic(&spaceCartesian) orelse unreachable;
-    try testing.expect(returnResult.eqlApprox(&spaceCartographic, math.EPSILON7));
+    try testing.expect(returnResult.eqlApprox(&spaceCartographic, math.epsilon7));
 }
 
 test "Ellipsoid.surfaceArea" {
@@ -299,7 +299,7 @@ test "Ellipsoid.surfaceArea" {
     var c2 = ellipsoid.radiiSquared.z();
     var e = math.sqrt(1.0 - c2 / a2);
     var area = math.tau * a2 + math.pi * (c2 / e) * math.log(f64, math.e, (1.0 + e) / (1.0 - e));
-    try testing.expectApproxEqAbs(area, ellipsoid.surfaceArea(&Rectangle.MAX_VALUE), math.EPSILON3);
+    try testing.expectApproxEqAbs(area, ellipsoid.surfaceArea(&Rectangle.MAX_VALUE), math.epsilon3);
 
     ellipsoid = Ellipsoid.new(3, 3, 4);
     a2 = ellipsoid.radiiSquared.x();
@@ -309,7 +309,7 @@ test "Ellipsoid.surfaceArea" {
     const c = ellipsoid.radii.z();
     area =
         math.tau * a2 + math.tau * ((a * c) / e) * math.asin(e);
-    try testing.expectApproxEqAbs(area, ellipsoid.surfaceArea(&Rectangle.MAX_VALUE), math.EPSILON3);
+    try testing.expectApproxEqAbs(area, ellipsoid.surfaceArea(&Rectangle.MAX_VALUE), math.epsilon3);
 }
 
 test "Ellipsoid.getLocalCurvature" {
@@ -320,5 +320,5 @@ test "Ellipsoid.getLocalCurvature" {
     const returedResult = ellipsoid.getLocalCurvature(&cartesianOnTheSurface);
     const expetedResult = math.vec2(1.0 / ellipsoid.maximumRadius, ellipsoid.maximumRadius /
         (ellipsoid.minimumRadius * ellipsoid.minimumRadius));
-    try testing.expect(expetedResult.eqlApprox(&returedResult, math.EPSILON8));
+    try testing.expect(expetedResult.eqlApprox(&returedResult, math.epsilon8));
 }

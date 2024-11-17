@@ -1,12 +1,12 @@
 const math = @import("root.zig");
 const testing = @import("testing.zig");
-const vec = @import("vec.zig");
-const mat = @import("mat.zig");
-const Quat = @import("quat.zig").Quat;
+const vec = @import("Vector.zig");
+const mat = @import("Matrix.zig");
+const Quaternion = @import("Quaternion.zig").Quaternion;
 
 pub fn HeadingPitchRoll(comptime Scalar: type) type {
     return extern struct {
-        pub const Vec = vec.Vec3(Scalar);
+        pub const Vec = vec.Vector3(Scalar);
 
         v: Vec,
 
@@ -28,7 +28,7 @@ pub fn HeadingPitchRoll(comptime Scalar: type) type {
             return a.v.z();
         }
 
-        pub fn fromQuat(quat: *const Quat(T)) HeadingPitchRollN {
+        pub fn fromQuat(quat: *const Quaternion(T)) HeadingPitchRollN {
             const x = quat.v.x();
             const y = quat.v.y();
             const z = quat.v.z();
@@ -82,11 +82,11 @@ test "HeadingPitchRoll_fromQuat" {
         const p = testingTab[i][1];
         const r = testingTab[i][2];
         const hpr = math.hprd(h, p, r);
-        const quat = math.Quatd.fromHpr(&hpr);
-        const result = math.HeadingPitchRolld.fromQuat(&quat);
-        try testing.expect(f64, h).eqlApprox(result.h(), math.EPSILON11);
-        try testing.expect(f64, p).eqlApprox(result.p(), math.EPSILON11);
-        try testing.expect(f64, r).eqlApprox(result.r(), math.EPSILON11);
+        const quat = math.QuaternionD.fromHeadingPitchRoll(&hpr);
+        const result = math.HeadingPitchRollD.fromQuat(&quat);
+        try testing.expect(f64, h).eqlApprox(result.h(), math.epsilon11);
+        try testing.expect(f64, p).eqlApprox(result.p(), math.epsilon11);
+        try testing.expect(f64, r).eqlApprox(result.r(), math.epsilon11);
     }
 }
 
@@ -107,10 +107,10 @@ test "HeadingPitchRoll_fromDegrees" {
         const h = testingTab[i][0];
         const p = testingTab[i][1];
         const r = testingTab[i][2];
-        const hpr = math.HeadingPitchRolld.fromDegrees(h, p, r);
-        try testing.expect(f64, h * deg2rad).eqlApprox(hpr.h(), math.EPSILON11);
-        try testing.expect(f64, p * deg2rad).eqlApprox(hpr.p(), math.EPSILON11);
-        try testing.expect(f64, r * deg2rad).eqlApprox(hpr.r(), math.EPSILON11);
+        const hpr = math.HeadingPitchRollD.fromDegrees(h, p, r);
+        try testing.expect(f64, h * deg2rad).eqlApprox(hpr.h(), math.epsilon11);
+        try testing.expect(f64, p * deg2rad).eqlApprox(hpr.p(), math.epsilon11);
+        try testing.expect(f64, r * deg2rad).eqlApprox(hpr.r(), math.epsilon11);
     }
 }
 

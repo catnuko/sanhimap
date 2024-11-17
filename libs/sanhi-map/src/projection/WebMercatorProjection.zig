@@ -1,8 +1,8 @@
 const std = @import("std");
 const math = @import("../math.zig");
-const Vec3 = math.Vec3;
-const Mat4 = math.Mat4x4;
-const Mat3 = math.Mat3x3;
+const Vector3 = math.Vector3;
+const Mat4 = math.Matrix4;
+const Mat3 = math.Matrix3;
 const Cartographic = @import("../Cartographic.zig").Cartographic;
 const earth = @import("./Earth.zig");
 const ProjectionImpl = @import("./Projection.zig").Projection;
@@ -22,18 +22,18 @@ pub fn new(unitScale: f64) Self {
 }
 pub fn worldExtent(self: *const Self, minElevation: f64, maxElevation: f64) AABB {
     return AABB.new(
-        Vec3.new(0, 0, minElevation),
-        Vec3.new(self.unitScale, self.unitScale, maxElevation),
+        Vector3.new(0, 0, minElevation),
+        Vector3.new(self.unitScale, self.unitScale, maxElevation),
     );
 }
-pub fn project(self: *const Self, geoPoint: *const Cartographic) Vec3 {
+pub fn project(self: *const Self, geoPoint: *const Cartographic) Vector3 {
     const x = ((geoPoint.lon + math.pi) / math.tau) * self.unitScale;
     const sy = math.sin(MercatorProjection.latitudeClamp(geoPoint.lat));
     const y = (0.5 - math.log(f64, math.eps_f64, (1 + sy) / (1 - sy)) / (4 * math.pi)) * self.unitScale;
     const z = geoPoint.height;
-    return Vec3.new(x, y, z);
+    return Vector3.new(x, y, z);
 }
-pub fn unproject(self: *const Self, worldPoint: *const Vec3) Cartographic {
+pub fn unproject(self: *const Self, worldPoint: *const Vector3) Cartographic {
     const x = worldPoint.x() / self.unitScale - 0.5;
     const y = 0.5 - worldPoint.y() / self.unitScale;
     const lon = math.tau * x;
@@ -41,9 +41,9 @@ pub fn unproject(self: *const Self, worldPoint: *const Vec3) Cartographic {
     const lat = math.pi - (math.tau * math.atan(math.exp(-y * 2 * math.pi))) / math.pi;
     return Cartographic.new(lon, lat, worldPoint.z());
 }
-pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P, worldPoint: *const Vec3) Vec3 {
+pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P, worldPoint: *const Vector3) Vector3 {
     if ((sourceProjection != self) and (sourceProjection == webMercatorProjection or sourceProjection == mercatorProjection)) {
-        return Vec3.new(worldPoint.x(), self.unitScale - worldPoint.y(), worldPoint.z());
+        return Vector3.new(worldPoint.x(), self.unitScale - worldPoint.y(), worldPoint.z());
     } else {
         if (self == sourceProjection) {
             return worldPoint.clone();
@@ -73,7 +73,7 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
         slice[6] = 0;
         slice[7] = 0;
         slice[8] = -1;
-        r.halfAxes = Mat3.fromArray(&slice);
+        r.halfAxes = Mat3.fromColumnMajorArray(&slice);
         r.center.setY(self.unitScale - r.center.y());
         return r;
     } else {
@@ -89,23 +89,23 @@ pub fn unprojectBox(self: *const Self, worldBox: *const AABB) GeoBox {
     );
 }
 //same to MercatorProjection
-pub fn unprojectAltitude(_: *const Self, worldPoint: *const Vec3) f64 {
+pub fn unprojectAltitude(_: *const Self, worldPoint: *const Vector3) f64 {
     return worldPoint.z();
 }
 //same to MercatorProjection
-pub fn getScaleFactor(self: *const Self, worldPoint: *const Vec3) f64 {
+pub fn getScaleFactor(self: *const Self, worldPoint: *const Vector3) f64 {
     return math.cosh(2 * math.pi * (worldPoint.y() / self.unitScale - 0.5));
 }
-pub fn surfaceNormal(_: *const Self) Vec3 {
-    return Vec3.new(0.0, 0.0, -1.0);
+pub fn surfaceNormal(_: *const Self) Vector3 {
+    return Vector3.new(0.0, 0.0, -1.0);
 }
 //same to MercatorProjection
-pub fn groundDistance(_: *const Self, worldPoint: *const Vec3) f64 {
+pub fn groundDistance(_: *const Self, worldPoint: *const Vector3) f64 {
     return worldPoint.z();
 }
 //same to MercatorProjection
-pub fn scalePointToSurface(_: *const Self, worldPoint: *const Vec3) Vec3 {
-    return Vec3.new(worldPoint.x(), worldPoint.y(), 0);
+pub fn scalePointToSurface(_: *const Self, worldPoint: *const Vector3) Vector3 {
+    return Vector3.new(worldPoint.x(), worldPoint.y(), 0);
 }
 //same to MercatorProjection
 pub fn localTangentSpace(self: *const Self, geoPoint: *const Cartographic) Mat4 {
@@ -131,7 +131,7 @@ pub fn localTangentSpace(self: *const Self, geoPoint: *const Cartographic) Mat4 
     slice[13] = position.y();
     slice[14] = position.z();
     slice[15] = 1;
-    return Mat4.fromArray(&slice);
+    return Mat4.fromColumnMajorArray(&slice);
 }
 pub const webMercatorProjection = ProjectionImpl(WebMercatorProjection).new(earth.EQUATORIAL_RADIUS);
 test "WebMercatorProjection" {}

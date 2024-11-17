@@ -34,7 +34,7 @@ pub fn Tile(comptime DataSourceImpl: type) type {
             self.updateBoundingBox();
             return self;
         }
-        pub inline fn center(self: *const Self) *const math.Vec3 {
+        pub inline fn center(self: *const Self) *const math.Vector3 {
             return &self.boundingBox.center;
         }
         pub inline fn projection(self: *const Self) *const DataSource.Projection {

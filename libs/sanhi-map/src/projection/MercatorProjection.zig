@@ -1,8 +1,8 @@
 const std = @import("std");
 const math = @import("../math.zig");
-const Vec3 = math.Vec3;
-const Mat4 = math.Mat4x4;
-const Mat3 = math.Mat3x3;
+const Vector3 = math.Vector3;
+const Mat4 = math.Matrix4;
+const Mat3 = math.Matrix3;
 const Cartographic = @import("../Cartographic.zig").Cartographic;
 const earth = @import("./Earth.zig");
 const ProjectionImpl = @import("./Projection.zig").Projection;
@@ -21,27 +21,27 @@ pub fn new(unitScale: f64) Self {
 }
 pub fn worldExtent(self: *const Self, minElevation: f64, maxElevation: f64) AABB {
     return AABB.new(
-        Vec3.new(0, 0, minElevation),
-        Vec3.new(self.unitScale, self.unitScale, maxElevation),
+        Vector3.new(0, 0, minElevation),
+        Vector3.new(self.unitScale, self.unitScale, maxElevation),
     );
 }
-pub fn project(self: *const Self, geoPoint: *const Cartographic) Vec3 {
+pub fn project(self: *const Self, geoPoint: *const Cartographic) Vector3 {
     const x = ((geoPoint.lon + math.pi) / math.tau) * self.unitScale;
     const y = (latitudeClampProject(geoPoint.lat) * 0.5 + 0.5) *
         self.unitScale;
     const z = geoPoint.height;
-    return Vec3.new(x, y, z);
+    return Vector3.new(x, y, z);
 }
-pub fn unproject(self: *const Self, worldPoint: *const Vec3) Cartographic {
+pub fn unproject(self: *const Self, worldPoint: *const Vector3) Cartographic {
     return Cartographic.fromRadians(
         (worldPoint.x() / self.unitScale) * 2 * math.pi - math.pi,
         unprojectLatitude((worldPoint.y() / self.unitScale - 0.5) * 2.0),
         worldPoint.z(),
     );
 }
-pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P, worldPoint: *const Vec3) Vec3 {
+pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P, worldPoint: *const Vector3) Vector3 {
     if ((sourceProjection != self) and (sourceProjection == webMercatorProjection or sourceProjection == mercatorProjection)) {
-        return Vec3.new(worldPoint.x(), self.unitScale - worldPoint.y(), worldPoint.z());
+        return Vector3.new(worldPoint.x(), self.unitScale - worldPoint.y(), worldPoint.z());
     } else {
         if (self == sourceProjection) {
             return worldPoint.clone();
@@ -74,17 +74,17 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
             maxz = 0;
         }
         return AABB.new(
-            Vec3.new(minx, miny, minz),
-            Vec3.new(maxx, maxy, maxz),
+            Vector3.new(minx, miny, minz),
+            Vector3.new(maxx, maxy, maxz),
         );
     } else if (ResultBoxType == OBB) {
         const center = worldCenter.clone();
-        const scale = Vec3.new(
+        const scale = Vector3.new(
             longitudeSpan * 0.5,
             latitudeSpan * 0.5,
             @max(math.eps_f64, geoBox.altitudeSpan() * 0.5),
         );
-        var halfAxes = Mat3.ident.clone();
+        var halfAxes = Mat3.identity.clone();
         halfAxes.setScale(&scale);
         return OBB.new(center, halfAxes);
     } else {
@@ -96,20 +96,20 @@ pub fn unprojectBox(self: *const Self, worldBox: *const AABB) GeoBox {
     const maxGeo = self.unproject(&worldBox.max);
     return GeoBox.new(minGeo, maxGeo);
 }
-pub fn unprojectAltitude(_: *const Self, worldPoint: *const Vec3) f64 {
+pub fn unprojectAltitude(_: *const Self, worldPoint: *const Vector3) f64 {
     return worldPoint.z();
 }
-pub fn getScaleFactor(self: *const Self, worldPoint: *const Vec3) f64 {
+pub fn getScaleFactor(self: *const Self, worldPoint: *const Vector3) f64 {
     return math.cosh(2 * math.pi * (worldPoint.y() / self.unitScale - 0.5));
 }
-pub fn surfaceNormal(_: *const Self) Vec3 {
-    return Vec3.new(0.0, 0.0, 1.0);
+pub fn surfaceNormal(_: *const Self) Vector3 {
+    return Vector3.new(0.0, 0.0, 1.0);
 }
-pub fn groundDistance(_: *const Self, worldPoint: *const Vec3) f64 {
+pub fn groundDistance(_: *const Self, worldPoint: *const Vector3) f64 {
     return worldPoint.z();
 }
-pub fn scalePointToSurface(_: *const Self, worldPoint: *const Vec3) Vec3 {
-    return Vec3.new(worldPoint.x(), worldPoint.y(), 0);
+pub fn scalePointToSurface(_: *const Self, worldPoint: *const Vector3) Vector3 {
+    return Vector3.new(worldPoint.x(), worldPoint.y(), 0);
 }
 pub fn localTangentSpace(self: *const Self, geoPoint: *const Cartographic) Mat4 {
     const position = self.project(geoPoint);
@@ -134,7 +134,7 @@ pub fn localTangentSpace(self: *const Self, geoPoint: *const Cartographic) Mat4 
     slice[13] = position.y();
     slice[14] = position.z();
     slice[15] = 1;
-    return Mat4.fromArray(&slice);
+    return Mat4.fromColumnMajorArray(&slice);
 }
 pub fn unprojectLatitude(y: f64) f64 {
     return 2.0 * math.atan(math.exp(math.pi * y)) - math.pi * 0.5;
@@ -154,16 +154,16 @@ test "MercatorProjection.projectAndunproject" {
     var geoPoint = Cartographic.fromDegrees(13.371806, 52.504951, 100);
     var worldPoint = mercatorProjection.project(&geoPoint);
     var geoPoint2 = mercatorProjection.unproject(&worldPoint);
-    try testing.expectApproxEqAbs(geoPoint.lat, geoPoint2.lat, math.EPSILON10);
-    try testing.expectApproxEqAbs(geoPoint.lon, geoPoint2.lon, math.EPSILON10);
-    try testing.expectApproxEqAbs(geoPoint.height, geoPoint2.height, math.EPSILON10);
+    try testing.expectApproxEqAbs(geoPoint.lat, geoPoint2.lat, math.epsilon10);
+    try testing.expectApproxEqAbs(geoPoint.lon, geoPoint2.lon, math.epsilon10);
+    try testing.expectApproxEqAbs(geoPoint.height, geoPoint2.height, math.epsilon10);
 
     geoPoint = Cartographic.fromDegrees(373.371806, 52.504951, 0);
     worldPoint = mercatorProjection.project(&geoPoint);
     geoPoint2 = mercatorProjection.unproject(&worldPoint);
-    try testing.expectApproxEqAbs(geoPoint.lat, geoPoint2.lat, math.EPSILON10);
-    try testing.expectApproxEqAbs(geoPoint.lon, geoPoint2.lon, math.EPSILON10);
-    try testing.expectApproxEqAbs(geoPoint.height, geoPoint2.height, math.EPSILON10);
+    try testing.expectApproxEqAbs(geoPoint.lat, geoPoint2.lat, math.epsilon10);
+    try testing.expectApproxEqAbs(geoPoint.lon, geoPoint2.lon, math.epsilon10);
+    try testing.expectApproxEqAbs(geoPoint.height, geoPoint2.height, math.epsilon10);
 }
 
 test "MercatorProjection.projectBox" {}

@@ -3,7 +3,7 @@ const math = @import("../math.zig");
 const debug = @import("../debug.zig");
 const mem = @import("../mem.zig");
 
-const Vec2 = math.Vec2;
+const Vector2 = math.Vector2;
 const AnimationHashMap = std.StringHashMap(SpriteAnimation);
 
 /// Keeps track of a sub region of a texture
@@ -30,12 +30,12 @@ pub const TextureRegion = struct {
     }
 
     /// Returns the size of this region
-    pub fn getSize(self: TextureRegion) Vec2 {
-        return Vec2.new(self.u_2 - self.u, self.v_2 - self.v);
+    pub fn getSize(self: TextureRegion) Vector2 {
+        return Vector2.new(self.u_2 - self.u, self.v_2 - self.v);
     }
 
     /// Returns a region that has been offset by a given amount
-    pub fn scroll(self: TextureRegion, amount: Vec2) TextureRegion {
+    pub fn scroll(self: TextureRegion, amount: Vector2) TextureRegion {
         return .{ .u = self.u + amount.x, .v = self.v + amount.y, .u_2 = self.u_2 + amount.x, .v_2 = self.v_2 + amount.y };
     }
 };
@@ -43,9 +43,9 @@ pub const TextureRegion = struct {
 /// A single animation frame in an animated sprite sheeet
 pub const AnimationFrame = struct {
     region: TextureRegion,
-    size: Vec2 = Vec2.new(1, 1),
-    sourceSize: Vec2 = Vec2.new(1, 1),
-    offset: Vec2 = Vec2.zero,
+    size: Vector2 = Vector2.new(1, 1),
+    sourceSize: Vector2 = Vector2.new(1, 1),
+    offset: Vector2 = Vector2.zero,
     duration: f32 = 1.0,
 };
 

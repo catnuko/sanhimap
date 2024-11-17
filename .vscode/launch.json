@@ -4,11 +4,21 @@
         {
             "type": "cppvsdbg",
             "request": "launch",
-            "name": "shanhaimap",
-            "program": "${workspaceFolder}/libs/shanhaimap/zig-out/test.exe",
+            "name": "test",
+            "program": "${workspaceFolder}/libs/sanhi-map/zig-out/test.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "test",
+            "console":"integratedTerminal"
+        },
+        {
+            "type": "cppvsdbg",
+            "request": "launch",
+            "name": "run-basic",
+            "program": "${workspaceFolder}/libs/sanhi/zig-out/bin/basic.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build-sanhi",
             "console":"integratedTerminal"
         }
     ]

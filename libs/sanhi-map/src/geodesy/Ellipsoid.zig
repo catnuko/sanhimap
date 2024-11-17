@@ -17,7 +17,7 @@ pub const Ellipsoid = struct {
     pub fn new(av: f64, bv: f64, fv: f64) Self {
         return .{ .a = av, .b = bv, .f = fv };
     }
-    pub fn toCartesian(self: *const Self, cg: *const Cartographic) math.Vec3 {
+    pub fn toCartesian(self: *const Self, cg: *const Cartographic) math.Vector3 {
         const c = cg.lat;
         const d = cg.lon;
         const h = cg.height;
@@ -39,7 +39,7 @@ pub const Ellipsoid = struct {
 
         return math.vec3(x, y, z);
     }
-    pub fn toCartographic(self: *const Self, vec: *const math.Vec3) Cartographic {
+    pub fn toCartographic(self: *const Self, vec: *const math.Vector3) Cartographic {
         const x = vec.x();
         const y = vec.y();
         const z = vec.z();
@@ -87,9 +87,9 @@ pub const Ellipsoid = struct {
         if (fraction == 0) return p1.clone();
         if (fraction == 1) return p2.clone();
         const res = self.inverse(p1, p2) orelse unreachable;
-        const dist = res.distance;
+        const distance = res.distance;
         const brng = res.initialBearing;
-        return if (math.isNan(brng)) p1.clone() else self.destinationPoint(p1, dist * fraction, brng);
+        return if (math.isNan(brng)) p1.clone() else self.destinationPoint(p1, distance * fraction, brng);
     }
 
     pub fn finalBearingOn(self: *const Self, p: *const Cartographic, distance: f64, initialBearing: f64) f64 {

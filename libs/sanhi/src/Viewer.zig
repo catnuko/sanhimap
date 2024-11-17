@@ -4,9 +4,9 @@ const zgpu = lib.zgpu;
 const zmesh = lib.zmesh;
 const app = lib.app;
 const math = @import("math");
-const Mat4 = math.Mat4x4;
-const Vec3 = math.Vec3;
-const Quat = math.Quat;
+const Mat4 = math.Matrix4;
+const Vector3 = math.Vector3;
+const Quaternion = math.Quaternion;
 const mesh = lib.mesh;
 const Scene = mesh.Scene;
 const Camera = mesh.Camera;
@@ -16,6 +16,7 @@ scene: *Scene,
 camera: *Camera,
 pub fn new() !Self {
     try app.init(.{});
+    try app.addPlugin(lib.input);
     const allocator = lib.mem.getAllocator();
     zmesh.init(allocator);
     const scene = try allocator.create(Scene);
@@ -30,7 +31,7 @@ pub fn new() !Self {
         10000.0,
     );
     mesh.module.init(scene, camera);
-    mesh.Control.set_camera(camera);
+    mesh.Control.setCamera(camera,app.get_app_backend());
     return .{
         .scene = scene,
         .camera = camera,
@@ -38,7 +39,6 @@ pub fn new() !Self {
 }
 pub fn startMainLoop(_: *Self) void {
     try app.addPlugin(mesh.module);
-    try app.addPlugin(lib.input);
     try app.addPlugin(mesh.Control);
     app.startMainLoop();
 }

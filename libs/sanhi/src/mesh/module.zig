@@ -6,8 +6,8 @@ const zgpu = lib.zgpu;
 const wgpu = lib.wgpu;
 const modules = lib.modules;
 const math = @import("math");
-const Mat4 = math.Mat4x4;
-const Vec3 = math.Vec3;
+const Mat4 = math.Matrix4;
+const Vector3 = math.Vector3;
 const mesh = @import("./index.zig");
 const Mesh = mesh.Mesh;
 const Context = mesh.Context;
@@ -39,7 +39,7 @@ fn on_init(appBackend: *backend.AppBackend) !void {
 }
 fn on_draw(appBackend: *backend.AppBackend) void {
     const gctx = appBackend.gctx;
-    state.context.view = state.camera.camera_matrix;
+    state.context.view = state.camera.view_matrix;
     state.context.projection = state.camera.projection_matrix;
     zgui.backend.newFrame(
         gctx.swapchain_descriptor.width,
@@ -159,7 +159,7 @@ fn createDepthTexture(gctx: *zgpu.GraphicsContext) struct {
 }
 
 fn mat4ToGpuMat4(mat4: *const Mat4) [16]f32 {
-    const v = mat4.toArray();
+    const v = mat4.toColumnMajorArray();
     var res: [16]f32 = [1]f32{0} ** 16;
     for (v, 0..) |vv, i| {
         res[i] = @floatCast(@round(vv));

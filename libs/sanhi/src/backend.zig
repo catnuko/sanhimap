@@ -1,10 +1,10 @@
 const std = @import("std");
-const sanhi = @import("./lib.zig");
+const lib = @import("./lib.zig");
 const mem = @import("./mem.zig");
-const zglfw = sanhi.zglfw;
-const zgpu = sanhi.zgpu;
-const wgpu = sanhi.wgpu;
-const zgui = sanhi.zgui;
+const zglfw = lib.zglfw;
+const zgpu = lib.zgpu;
+const wgpu = lib.wgpu;
+const zgui = lib.zgui;
 const window_title = "zig-gamedev: minimal zgpu zgui";
 pub const AppBackend = struct {
     on_init_fn: *const fn () void,
@@ -13,7 +13,6 @@ pub const AppBackend = struct {
     title: [:0]const u8 = "SanHi",
     width: i32 = 900,
     height: i32 = 600,
-
     gctx: *zgpu.GraphicsContext = undefined,
     allocator: std.mem.Allocator = undefined,
     window: *zglfw.Window = undefined,
@@ -69,32 +68,6 @@ pub const AppBackend = struct {
     pub fn startMainLoop(self: *Self) void {
         while (!self.window.shouldClose() and self.window.getKey(.escape) != .press) {
             zglfw.pollEvents();
-
-            // zgui.backend.newFrame(
-            //     self.gctx.swapchain_descriptor.width,
-            //     self.gctx.swapchain_descriptor.height,
-            // );
-
-            // const swapchain_texv = self.gctx.swapchain.getCurrentTextureView();
-            // defer swapchain_texv.release();
-
-            // const commands = commands: {
-            //     const encoder = self.gctx.device.createCommandEncoder(null);
-            //     defer encoder.release();
-
-            //     // GUI pass
-            //     {
-            //         const pass = zgpu.beginRenderPassSimple(encoder, .load, swapchain_texv, null, null, null);
-            //         defer zgpu.endReleasePass(pass);
-            //         zgui.backend.draw(pass);
-            //     }
-
-            //     break :commands encoder.finish(null);
-            // };
-            // defer commands.release();
-
-            // self.gctx.submit(&.{commands});
-            // _ = self.gctx.present();
             self.on_update_fn();
         }
     }

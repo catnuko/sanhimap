@@ -13,9 +13,9 @@ const CameraMatrices = graphics.CameraMatrices;
 const Color = colors.Color;
 const Rect = @import("../spatial/rect.zig").Rect;
 const Frustum = @import("../spatial/frustum.zig").Frustum;
-const Vec3 = math.Vec3;
-const Vec4 = math.Vec4;
-const Vec2 = math.Vec2;
+const Vector3 = math.Vector3;
+const Vector4 = math.Vector4;
+const Vector2 = math.Vector2;
 
 // Default vertex and fragment shader params
 const VSParams = graphics.VSDefaultUniforms;
@@ -217,11 +217,11 @@ pub fn createMeshWithLayout(vertices: []PackedVertex, indices: []u32, normals: [
 }
 
 /// Creates a cube using a mesh builder
-pub fn createCube(pos: Vec3, size: Vec3, color: Color, material: graphics.Material) !Mesh {
+pub fn createCube(pos: Vector3, size: Vector3, color: Color, material: graphics.Material) !Mesh {
     var builder = MeshBuilder.init(mem.getAllocator());
     defer builder.deinit();
 
-    try builder.addCube(pos, size, math.Mat4.identity, color);
+    try builder.addCube(pos, size, math.Mat4.fromIdentity, color);
 
     return builder.buildMesh(material);
 }
@@ -289,7 +289,7 @@ pub const MeshBuilder = struct {
     }
 
     /// Adds a quad to the mesh builder
-    pub fn addQuad(self: *MeshBuilder, v0: Vec2, v1: Vec2, v2: Vec2, v3: Vec2, transform: math.Mat4, color: Color) !void {
+    pub fn addQuad(self: *MeshBuilder, v0: Vector2, v1: Vector2, v2: Vector2, v3: Vector2, transform: math.Mat4, color: Color) !void {
         const u = 0.0;
         const v = 0.0;
         const u_2 = 1.0;
@@ -306,8 +306,8 @@ pub const MeshBuilder = struct {
         const indices = &[_]u32{ 0, 1, 2, 0, 2, 3 };
 
         const v_pos = @as(u32, @intCast(self.vertices.items.len));
-        const normal = Vec3.z_axis.mulMat4(transform).norm().toArray();
-        const tangent = math.Vec4.new(1.0, 0.0, 0.0, 1.0).mulMat4(transform).toArray();
+        const normal = Vector3.z_axis.mulMat4(transform).norm().toArray();
+        const tangent = math.Vector4.new(1.0, 0.0, 0.0, 1.0).mulMat4(transform).toArray();
 
         for (verts) |vert| {
             try self.vertices.append(PackedVertex.mulMat4(vert, transform));
@@ -331,7 +331,7 @@ pub const MeshBuilder = struct {
     }
 
     /// Adds a triangle to the mesh builder
-    pub fn addTriangle(self: *MeshBuilder, v0: Vec3, v1: Vec3, v2: Vec3, transform: math.Mat4, color: Color) !void {
+    pub fn addTriangle(self: *MeshBuilder, v0: Vector3, v1: Vector3, v2: Vector3, transform: math.Mat4, color: Color) !void {
         const u = 0.0;
         const v = 0.0;
         const u_2 = 1.0;
@@ -347,7 +347,7 @@ pub const MeshBuilder = struct {
         const normal = v0.cross(v1).mulMat4(transform).norm().toArray();
 
         // todo: should the tangent get passed in?
-        const tangent = math.Vec4.new(1.0, 0.0, 0.0, 1.0).mulMat4(transform).toArray();
+        const tangent = math.Vector4.new(1.0, 0.0, 0.0, 1.0).mulMat4(transform).toArray();
 
         const indices = &[_]u32{ 0, 1, 2 };
 
@@ -372,7 +372,7 @@ pub const MeshBuilder = struct {
         const normal = v0.getPosition().cross(v1.getPosition()).mulMat4(transform).norm().toArray();
 
         // todo: should the tangent get passed in?
-        const tangent = math.Vec4.new(1.0, 0.0, 0.0, 1.0).mulMat4(transform).toArray();
+        const tangent = math.Vector4.new(1.0, 0.0, 0.0, 1.0).mulMat4(transform).toArray();
 
         const indices = &[_]u32{ 0, 1, 2 };
 
@@ -412,27 +412,27 @@ pub const MeshBuilder = struct {
         try self.addTriangleFromVertices(v0_t, v1_t, v2_t);
     }
 
-    pub fn addCube(self: *MeshBuilder, pos: Vec3, size: Vec3, transform: math.Mat4, color: Color) !void {
-        const rect_west = Rect.newCentered(math.Vec2.zero, math.Vec2.new(size.z, size.y));
-        const rect_east = Rect.newCentered(math.Vec2.zero, math.Vec2.new(size.z, size.y));
-        const rect_north = Rect.newCentered(math.Vec2.zero, math.Vec2.new(size.x, size.y));
-        const rect_south = Rect.newCentered(math.Vec2.zero, math.Vec2.new(size.x, size.y));
-        const rect_top = Rect.newCentered(math.Vec2.zero, math.Vec2.new(size.x, size.z));
-        const rect_bottom = Rect.newCentered(math.Vec2.zero, math.Vec2.new(size.x, size.z));
+    pub fn addCube(self: *MeshBuilder, pos: Vector3, size: Vector3, transform: math.Mat4, color: Color) !void {
+        const rect_west = Rect.newCentered(math.Vector2.zero, math.Vector2.new(size.z, size.y));
+        const rect_east = Rect.newCentered(math.Vector2.zero, math.Vector2.new(size.z, size.y));
+        const rect_north = Rect.newCentered(math.Vector2.zero, math.Vector2.new(size.x, size.y));
+        const rect_south = Rect.newCentered(math.Vector2.zero, math.Vector2.new(size.x, size.y));
+        const rect_top = Rect.newCentered(math.Vector2.zero, math.Vector2.new(size.x, size.z));
+        const rect_bottom = Rect.newCentered(math.Vector2.zero, math.Vector2.new(size.x, size.z));
 
-        const rot_west = math.Mat4.rotate(-90, Vec3.y_axis);
-        const rot_east = math.Mat4.rotate(90, Vec3.y_axis);
-        const rot_north = math.Mat4.rotate(180, Vec3.y_axis);
-        const rot_south = math.Mat4.rotate(0, Vec3.y_axis);
-        const rot_top = math.Mat4.rotate(-90, Vec3.x_axis);
-        const rot_bottom = math.Mat4.rotate(90, Vec3.x_axis);
+        const rot_west = math.Mat4.rotate(-90, Vector3.y_axis);
+        const rot_east = math.Mat4.rotate(90, Vector3.y_axis);
+        const rot_north = math.Mat4.rotate(180, Vector3.y_axis);
+        const rot_south = math.Mat4.rotate(0, Vector3.y_axis);
+        const rot_top = math.Mat4.rotate(-90, Vector3.x_axis);
+        const rot_bottom = math.Mat4.rotate(90, Vector3.x_axis);
 
-        try self.addRect(rect_west, transform.mul(math.Mat4.translate(Vec3.new(pos.x - size.x * 0.5, pos.y, pos.z)).mul(rot_west)), color);
-        try self.addRect(rect_east, transform.mul(math.Mat4.translate(Vec3.new(pos.x + size.x * 0.5, pos.y, pos.z)).mul(rot_east)), color);
-        try self.addRect(rect_north, transform.mul(math.Mat4.translate(Vec3.new(pos.x, pos.y, pos.z - size.z * 0.5)).mul(rot_north)), color);
-        try self.addRect(rect_south, transform.mul(math.Mat4.translate(Vec3.new(pos.x, pos.y, pos.z + size.z * 0.5)).mul(rot_south)), color);
-        try self.addRect(rect_top, transform.mul(math.Mat4.translate(Vec3.new(pos.x, pos.y + size.y * 0.5, pos.z)).mul(rot_top)), color);
-        try self.addRect(rect_bottom, transform.mul(math.Mat4.translate(Vec3.new(pos.x, pos.y - size.y * 0.5, pos.z)).mul(rot_bottom)), color);
+        try self.addRect(rect_west, transform.multiply(math.Mat4.translate(Vector3.new(pos.x - size.x * 0.5, pos.y, pos.z)).multiply(rot_west)), color);
+        try self.addRect(rect_east, transform.multiply(math.Mat4.translate(Vector3.new(pos.x + size.x * 0.5, pos.y, pos.z)).multiply(rot_east)), color);
+        try self.addRect(rect_north, transform.multiply(math.Mat4.translate(Vector3.new(pos.x, pos.y, pos.z - size.z * 0.5)).multiply(rot_north)), color);
+        try self.addRect(rect_south, transform.multiply(math.Mat4.translate(Vector3.new(pos.x, pos.y, pos.z + size.z * 0.5)).multiply(rot_south)), color);
+        try self.addRect(rect_top, transform.multiply(math.Mat4.translate(Vector3.new(pos.x, pos.y + size.y * 0.5, pos.z)).multiply(rot_top)), color);
+        try self.addRect(rect_bottom, transform.multiply(math.Mat4.translate(Vector3.new(pos.x, pos.y - size.y * 0.5, pos.z)).multiply(rot_bottom)), color);
     }
 
     pub fn addFrustum(self: *MeshBuilder, frustum: Frustum, transform: math.Mat4, color: Color) !void {

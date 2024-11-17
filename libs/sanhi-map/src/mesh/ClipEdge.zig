@@ -1,14 +1,14 @@
 const math2d = @import("../math2d/index.zig");
 const math = @import("../math.zig");
-const Vec2 = math.Vec2;
-const Vec3 = math.Vec3;
+const Vector2 = math.Vector2;
+const Vector3 = math.Vector3;
 const ArrayList = @import("std").ArrayList;
 const Allocator = @import("std").mem.Allocator;
-pub const LineString = ArrayList(Vec2);
-pub const LineStrings = ArrayList(ArrayList(Vec2));
+pub const LineString = ArrayList(Vector2);
+pub const LineStrings = ArrayList(ArrayList(Vector2));
 pub const ClipEdge = struct {
-    p0: Vec2,
-    p1: Vec2,
+    p0: Vector2,
+    p1: Vector2,
     insideClosre: InsideClosure,
     const Self = @This();
     pub fn new(
@@ -19,15 +19,15 @@ pub const ClipEdge = struct {
         i: InsideClosure,
     ) Self {
         return Self{
-            .p0 = Vec2.new(x1, y1),
-            .p1 = Vec2.new(x2, y2),
+            .p0 = Vector2.new(x1, y1),
+            .p1 = Vector2.new(x2, y2),
             .insideClosre = i,
         };
     }
-    pub inline fn inside(self: *const Self, p: *const Vec2) bool {
+    pub inline fn inside(self: *const Self, p: *const Vector2) bool {
         return self.insideClosre.inside(p);
     }
-    pub fn computeIntersection(self: *const Self, a: *const Vec2, b: *const Vec2) ?Vec2 {
+    pub fn computeIntersection(self: *const Self, a: *const Vector2, b: *const Vector2) ?Vector2 {
         return math2d.intersectLines(
             a.x(),
             a.y(),
@@ -48,7 +48,7 @@ pub const ClipEdge = struct {
         result.append(lineString) catch unreachable;
         for (0..inputList.items.len) |i| {
             const currentPoint = inputList.items[i];
-            const prevPoint: ?Vec2 = if (i > 0) inputList.items[i - 1] else null;
+            const prevPoint: ?Vector2 = if (i > 0) inputList.items[i - 1] else null;
             if (self.inside(&currentPoint)) {
                 if (prevPoint) |p| {
                     if (!self.inside(&p)) {
@@ -88,7 +88,7 @@ pub const ClipEdge = struct {
         return result;
     }
 };
-fn pushPoint(lineString: *LineString, point: Vec2) void {
+fn pushPoint(lineString: *LineString, point: Vector2) void {
     if (lineString.items.len == 0 or !lineString.getLast().eql(&point)) {
         lineString.append(point) catch unreachable;
     }
@@ -137,7 +137,7 @@ const InsideClosure = struct {
             .v = v,
         };
     }
-    fn inside(self: *const Self, p: *const Vec2) bool {
+    fn inside(self: *const Self, p: *const Vector2) bool {
         const a = switch (self.xy) {
             XY.x => p.x(),
             XY.y => p.y(),
@@ -153,9 +153,9 @@ test "ClipEdge" {
     const testing = @import("std").testing;
     var lineString = LineString.init(testing.allocator);
     defer lineString.deinit();
-    try lineString.append(Vec2.new(0, 0));
-    try lineString.append(Vec2.new(10, 0));
-    try lineString.append(Vec2.new(20, 0));
+    try lineString.append(Vector2.new(0, 0));
+    try lineString.append(Vector2.new(10, 0));
+    try lineString.append(Vector2.new(20, 0));
     const DEFAULT_BORDER: f64 = 100;
     const DEFAULT_EXTENTS: f64 = 4 * 1024;
     const clippedLineStrings = clipLineString(

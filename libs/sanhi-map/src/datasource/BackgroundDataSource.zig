@@ -87,10 +87,10 @@ pub fn createGroundPlaneGeometry(
 ) void {
     const corners = tiling.projectTilePlaneCorners(DefaultBackgroundDataSource.Tile, tile);
     if (useLocalTargetCoords) {
-        corners.sw = corners.sw.sub(tile.center());
-        corners.se = corners.se.sub(tile.center());
-        corners.nw = corners.nw.sub(tile.center());
-        corners.ne = corners.ne.sub(tile.center());
+        corners.sw = corners.sw.subtract(tile.center());
+        corners.se = corners.se.subtract(tile.center());
+        corners.nw = corners.nw.subtract(tile.center());
+        corners.ne = corners.ne.subtract(tile.center());
     }
     if (receiveShadow) {}
     if (createTexCoords) {}

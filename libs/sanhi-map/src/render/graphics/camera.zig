@@ -6,8 +6,8 @@ const math = @import("../math.zig");
 const input = @import("../platform/input.zig");
 const frustum = @import("../spatial/frustum.zig");
 
-const Vec2 = math.Vec2;
-const Vec3 = math.Vec3;
+const Vector2 = math.Vector2;
+const Vector3 = math.Vector3;
 const Mat4 = math.Mat4;
 
 pub const ViewMode = enum(i32) {
@@ -24,9 +24,9 @@ const angle_to_radians: f32 = 57.29578;
 
 /// Basic camera system with support for first and third person modes
 pub const Camera = struct {
-    position: Vec3 = Vec3.zero,
-    direction: Vec3 = Vec3.z_axis,
-    up: Vec3 = Vec3.up,
+    position: Vector3 = Vector3.zero,
+    direction: Vector3 = Vector3.z_axis,
+    up: Vector3 = Vector3.up,
 
     yaw_angle: f32 = 0.0,
     pitch_angle: f32 = 0.0,
@@ -36,8 +36,8 @@ pub const Camera = struct {
     near: f32 = 0.001,
     far: f32 = 100.0,
 
-    projection: Mat4 = Mat4.identity,
-    view: Mat4 = Mat4.identity,
+    projection: Mat4 = Mat4.fromIdentity,
+    view: Mat4 = Mat4.fromIdentity,
     aspect: f32 = undefined,
 
     view_mode: ViewMode = .FIRST_PERSON,
@@ -54,7 +54,7 @@ pub const Camera = struct {
     _viewport_height: f32 = undefined,
 
     /// Create a new camera
-    pub fn init(fov: f32, near: f32, far: f32, up: Vec3) Camera {
+    pub fn init(fov: f32, near: f32, far: f32, up: Vector3) Camera {
         var cam = Camera{};
         cam.setViewport(@floatFromInt(app.getWidth()), @floatFromInt(app.getHeight()));
         cam.fov = fov;
@@ -64,7 +64,7 @@ pub const Camera = struct {
         return cam;
     }
 
-    pub fn initThirdPerson(fov: f32, near: f32, far: f32, cam_distance: f32, up: Vec3) Camera {
+    pub fn initThirdPerson(fov: f32, near: f32, far: f32, cam_distance: f32, up: Vector3) Camera {
         var cam = init(fov, near, far, up);
         cam.view_mode = .THIRD_PERSON;
         cam.boom_arm_length = cam_distance;
@@ -79,7 +79,7 @@ pub const Camera = struct {
     }
 
     /// Get the direction 90 degrees to the right of our direction
-    pub fn getRightDirection(self: *Camera) Vec3 {
+    pub fn getRightDirection(self: *Camera) Vector3 {
         return self.up.cross(self.direction).norm();
     }
 
@@ -105,14 +105,14 @@ pub const Camera = struct {
     }
 
     pub fn updateDirection(self: *Camera) void {
-        var dir = math.Vec3.z_axis;
-        dir = dir.rotate(self.pitch_angle, math.Vec3.x_axis);
-        dir = dir.rotate(self.yaw_angle, math.Vec3.y_axis);
+        var dir = math.Vector3.z_axis;
+        dir = dir.rotate(self.pitch_angle, math.Vector3.x_axis);
+        dir = dir.rotate(self.yaw_angle, math.Vector3.y_axis);
         self.direction = dir;
 
-        var up = math.Vec3.up;
-        up = up.rotate(self.pitch_angle, math.Vec3.x_axis);
-        up = up.rotate(self.yaw_angle, math.Vec3.y_axis);
+        var up = math.Vector3.up;
+        up = up.rotate(self.pitch_angle, math.Vector3.x_axis);
+        up = up.rotate(self.yaw_angle, math.Vector3.y_axis);
         self.up = up;
     }
 
@@ -198,9 +198,9 @@ pub const Camera = struct {
         }
 
         // first person camera
-        self.view = Mat4.lookat(Vec3.zero, Vec3.zero.sub(self.direction), self.up);
-        self.view = self.view.mul(Mat4.rotate(self.roll_angle, self.direction));
-        self.view = self.view.mul(Mat4.translate(self.position.scale(-1)));
+        self.view = Mat4.lookat(Vector3.zero, Vector3.zero.subtract(self.direction), self.up);
+        self.view = self.view.multiply(Mat4.rotate(self.roll_angle, self.direction));
+        self.view = self.view.multiply(Mat4.translate(self.position.scale(-1)));
 
         return self.getViewMatrices();
     }
@@ -213,14 +213,14 @@ pub const Camera = struct {
     /// Applies projection and view, returns a projection * view matrix
     pub fn getProjView(self: *Camera) Mat4 {
         _ = self.update();
-        return self.projection.mul(self.view);
+        return self.projection.multiply(self.view);
     }
 
     pub fn getViewFrustum(self: *Camera) frustum.Frustum {
         return frustum.Frustum.init(self.getProjView());
     }
 
-    pub fn getPosition(self: *Camera) Vec3 {
+    pub fn getPosition(self: *Camera) Vector3 {
         // returns the end position, including the boom arm
         return self.position.add(self.direction.scale(self.boom_arm_length));
     }

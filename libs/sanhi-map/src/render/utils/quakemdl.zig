@@ -352,9 +352,9 @@ fn peek(file: File, buff: []u8) ![]u8 {
     return buff;
 }
 
-fn getNormal(index: u8) math.Vec3 {
+fn getNormal(index: u8) math.Vector3 {
     const n = anorms[index];
-    return math.Vec3.new(n[0], n[1], n[2]);
+    return math.Vector3.new(n[0], n[1], n[2]);
 }
 
 fn makeVertex(triangle: Triangle_, trivertex: TriVertex_, stvertex: STVertex_, skin_width: f32, skin_height: f32) graphics.Vertex {
@@ -370,7 +370,7 @@ fn makeVertex(triangle: Triangle_, trivertex: TriVertex_, stvertex: STVertex_, s
         },
         .normal = getNormal(trivertex.light_index),
         .color = colors.white,
-        .tangent = math.Vec4.zero,
+        .tangent = math.Vector4.zero,
     };
     if (triangle.faces_front == 0 and stvertex.on_seam != 0) {
         vertex.uv.x += 0.5;
@@ -486,9 +486,9 @@ pub fn open(in_allocator: Allocator, path: []const u8) !MDL {
     defer allocator.free(triangles);
 
     // Transform
-    var m = math.Mat4.identity;
-    m = m.mul(math.Mat4.translate(math.vec3(header.origin[0], header.origin[2], header.origin[1])));
-    m = m.mul(math.Mat4.scale(math.vec3(header.scale[0], header.scale[1], header.scale[2])));
+    var m = math.Mat4.fromIdentity;
+    m = m.multiply(math.Mat4.translate(math.vec3(header.origin[0], header.origin[2], header.origin[1])));
+    m = m.multiply(math.Mat4.scale(math.vec3(header.scale[0], header.scale[1], header.scale[2])));
 
     // Swizzle Y/Z axes
     m.m[1][2] = m.m[1][1];

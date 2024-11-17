@@ -1,134 +1,91 @@
 const lib = @import("./lib.zig");
-const mem = @import("./mem.zig");
-const zglfw = lib.zglfw;
 const modules = lib.modules;
-const math = lib.math;
-const backend = lib.backend;
-const std = lib.std;
+const zglfw = lib.zglfw;
+const math = @import("math");
+const Vector2 = math.Vector2;
+const Vector3 = math.Vector3;
+const Mat4 = math.Matrix4;
+const Mat3 = math.Matrix3;
+const Quaternion = math.Quaternion;
+const MouseButton = zglfw.MouseButton;
+const Action = zglfw.Action;
+const Window = zglfw.Window;
+const Mods = zglfw.Mods;
+const Event = lib.Event;
+pub var event: Event = undefined;
 
-const state = struct {
-    var mouse: [2]f64 = .{ 0, 0 };
-    var lastMouse: [2]f64 = .{ 0, 0 };
-    var delta: [2]f64 = .{ 0, 0 };
+pub const MouseEvent = extern struct {
+    button: MouseButton,
+    ctrlKey: bool = false,
+    shiftKey: bool = false,
+    metaKey: bool = false,
+    clientX: f32,
+    clientY: f32,
 };
-const ListenerList = std.ArrayList(*const fn (point: [2]f64) void);
-var leftClickEventListenerList: ListenerList = undefined;
-var middleClickEventListenerList: ListenerList = undefined;
-var rightClickEventListenerList: ListenerList = undefined;
-var mouseMoveEventListenerList: ListenerList = undefined;
-
-pub fn init(_: *backend.AppBackend) !void {
-    const allocator = mem.getAllocator();
-    leftClickEventListenerList = ListenerList.init(allocator);
-    middleClickEventListenerList = ListenerList.init(allocator);
-    rightClickEventListenerList = ListenerList.init(allocator);
-    mouseMoveEventListenerList = ListenerList.init(allocator);
+fn on_mouse_button(window: *Window, button: MouseButton, action: Action, mod: Mods) callconv(.C) void {
+    const cursor_pos = window.getCursorPos();
+    const clientX = @as(f32, @floatCast(cursor_pos[0]));
+    const clientY = @as(f32, @floatCast(cursor_pos[1]));
+    var userData = MouseEvent{
+        .button = button,
+        .ctrlKey = mod.control,
+        .shiftKey = mod.shift,
+        .clientX = clientX,
+        .clientY = clientY,
+    };
+    if (action == Action.press) {
+        // lib.print("mousedown:{},{}\n",.{clientX,clientY});
+        // const size = window.getSize();
+        // lib.print("getSize:{},{}\n",.{size[0],size[1]});
+        // const pos = window.getPos();
+        // lib.print("getPos:{},{}\n",.{pos[0],pos[1]});
+        event.emit("mousedown", &userData);
+    } else if (action == Action.release) {
+        // lib.print("mouseup:{},{}\n",.{clientX,clientY});
+        event.emit("mouseup", &userData);
+    }
+}
+pub const MouseMove = struct {
+    clientX: f32,
+    clientY: f32,
+};
+fn on_mouse_move(_: *Window, xpos: f64, ypos: f64) callconv(.C) void {
+    const clientX = @as(f32, @floatCast(xpos));
+    const clientY = @as(f32, @floatCast(ypos));
+    var userData = MouseMove{
+        .clientX = clientX,
+        .clientY = clientY,
+    };
+    // lib.print("mousemove:{},{}\n",.{clientX,clientY});
+    event.emit("mousemove", &userData);
+}
+pub const ScrollEvent = struct {
+    xoffset: f32,
+    yoffset: f32,
+};
+fn on_scroll(_: *Window, xoffset: f64, yoffset: f64) callconv(.C) void {
+    var userData = ScrollEvent{
+        .xoffset = @as(f32, @floatCast(xoffset)),
+        .yoffset = @as(f32, @floatCast(yoffset)),
+    };
+    // lib.print("wheel:{},{}\n",.{userData.xoffset,userData.yoffset});
+    event.emit("wheel", &userData);
+}
+pub fn init(app_backend: *lib.backend.AppBackend) !void {
+    const alloc = lib.mem.getAllocator();
+    event = Event.new(alloc);
+    _ = app_backend.window.setMouseButtonCallback(on_mouse_button);
+    _ = app_backend.window.setCursorPosCallback(on_mouse_move);
+    _ = app_backend.window.setScrollCallback(on_scroll);
 }
 pub fn deinit() !void {
-    leftClickEventListenerList.deinit();
-    middleClickEventListenerList.deinit();
-    rightClickEventListenerList.deinit();
-    mouseMoveEventListenerList.deinit();
+    event.deinit();
 }
-pub fn addEventListener(ty: []const u8, func: *const fn (point: [2]f64) void) void {
-    if (std.mem.eql(u8, ty, "left")) {
-        leftClickEventListenerList.append(func) catch unreachable;
-    } else if (std.mem.eql(u8, ty, "middle")) {
-        middleClickEventListenerList.append(func) catch unreachable;
-    } else if (std.mem.eql(u8, ty, "right")) {
-        rightClickEventListenerList.append(func) catch unreachable;
-    } else if (std.mem.eql(u8, ty, "mousemove")) {
-        mouseMoveEventListenerList.append(func) catch unreachable;
-    }
-}
-pub fn removeEventListener(ty: []const u8, func: *const fn (point: [2]f64) void) bool {
-    var i: usize = -1;
-    var list: ListenerList = undefined;
-    if (std.mem.eql(u8, ty, "left")) {
-        list = leftClickEventListenerList;
-    } else if (std.mem.eql(u8, ty, "middle")) {
-        list = middleClickEventListenerList;
-    } else if (std.mem.eql(u8, ty, "right")) {
-        list = rightClickEventListenerList;
-    } else if (std.mem.eql(u8, ty, "mousemove")) {
-        list = mouseMoveEventListenerList;
-    }
-
-    for (list.items, 0..) |innerFunc, j| {
-        if (innerFunc == func) {
-            i = j;
-            break;
-        }
-    }
-    if (i != -1) {
-        list.swapRemove(i);
-        return true;
-    }
-    return false;
-}
-/// Registers the input subsystem as a module
 pub fn module() modules.Module {
     const inputSubsystem = modules.Module{
         .name = "input",
-        .pre_draw_fn = on_update,
         .init_fn = init,
         .cleanup_fn = deinit,
     };
     return inputSubsystem;
-}
-var isLeftPress: bool = false;
-var isMiddlePress: bool = false;
-var isRightPress: bool = false;
-var mouseInWindow: bool = false;
-pub fn on_update(appBackend: *backend.AppBackend) void {
-    const window: *zglfw.Window = appBackend.window;
-    const cursor_pos = window.getCursorPos();
-    switch (window.getMouseButton(.left)) {
-        .press => isLeftPress = true,
-        .release => {
-            if (isLeftPress) {
-                for (leftClickEventListenerList.items) |func| {
-                    func(cursor_pos);
-                }
-                isLeftPress = false;
-            }
-        },
-        else => {},
-    }
-    switch (window.getMouseButton(.middle)) {
-        .press => isMiddlePress = true,
-        .release => {
-            if (isMiddlePress) {
-                for (middleClickEventListenerList.items) |func| {
-                    func(cursor_pos);
-                }
-                isMiddlePress = false;
-            }
-        },
-        else => {},
-    }
-    switch (window.getMouseButton(.right)) {
-        .press => isRightPress = true,
-        .release => {
-            if (isRightPress) {
-                for (rightClickEventListenerList.items) |func| {
-                    func(cursor_pos);
-                }
-                isRightPress = false;
-            }
-        },
-        else => {},
-    }
-    if (mouseMoveEventListenerList.items.len == 0) return;
-    const size = window.getSize();
-    const dif_x = cursor_pos[0] - @as(f64, @floatFromInt(size[0]));
-    const dif_y = cursor_pos[1] - @as(f64, @floatFromInt(size[1]));
-    if (dif_x <= 0 and dif_y <= 0) {
-        mouseInWindow = true;
-        for (mouseMoveEventListenerList.items) |func| {
-            func(cursor_pos);
-        }
-    } else {
-        mouseInWindow = false;
-    }
 }

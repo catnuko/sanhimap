@@ -10,19 +10,30 @@
                 "-ODebug",
                 "--dep",
                 "math",
-                "-Mroot=${workspaceFolder}/libs/shanhaimap/src/root.zig",
+                "-Mroot=${workspaceFolder}/libs/sanhi-map/src/root.zig",
                 "-ODebug",
                 "-Mmath=${workspaceFolder}/libs/math/src/root.zig",
                 "--cache-dir",
-                "${workspaceFolder}/libs/shanhaimap/.zig-cache",
+                "${workspaceFolder}/libs/sanhi-map/.zig-cache",
                 "--global-cache-dir",
                 "C:/Users/catnuko/AppData/Local/zig",
                 "--name",
                 "test",
-                "-femit-bin=${workspaceFolder}/libs/shanhaimap/zig-out/test.exe",
+                "-femit-bin=${workspaceFolder}/libs/sanhi-map/zig-out/test.exe",
                 "--test-no-exec",
                 // "--test-filter",
                 // "SphereProjection.projectAndunproject"
+            ]
+        },
+        {
+            "label": "build-sanhi",
+            "type": "shell",
+            "command":"zig",
+            "options": {
+                "cwd": "${workspaceFolder}/libs/sanhi" // 设置工作目录
+            },
+            "args": [
+                "build",
             ]
         }
     ]

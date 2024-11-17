@@ -255,7 +255,7 @@ pub fn trackCommand(command: [:0]const u8) void {
 }
 
 pub fn scrollCommandFromHistory(direction: i32) void {
-    if (cmd_history_list.len() == 0)
+    if (cmd_history_list.length() == 0)
         return;
 
     // Keep track of this direction for the next scroll

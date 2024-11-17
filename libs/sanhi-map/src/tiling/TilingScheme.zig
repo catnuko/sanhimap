@@ -6,7 +6,7 @@ const GeoBox = shm.GeoBox;
 const Cartographic = shm.Cartographic;
 const TileKey = shm.tiling.TileKey;
 const ArrayList = std.ArrayList;
-const Vec3 = math.Vec3;
+const Vector3 = math.Vector3;
 const TileKeyUtils = shm.tiling.TileKeyUtils;
 const SubdivisionScheme = shm.tiling.SubdivisionScheme;
 const proj = shm.projection;
@@ -20,7 +20,7 @@ pub fn TilingScheme(comptime P: type) type {
         subdivisionScheme: SubdivisionScheme,
         projection: Projection,
         m_world_box: AABB,
-        m_world_dimensions: Vec3,
+        m_world_dimensions: Vector3,
         pub fn new(subdivisionScheme: SubdivisionScheme, projection: Projection) Self {
             const m_world_box = projection.worldExtent(0.0, 0.0);
             const min = m_world_box.min;
@@ -29,7 +29,7 @@ pub fn TilingScheme(comptime P: type) type {
                 .subdivisionScheme = subdivisionScheme,
                 .projection = projection,
                 .m_world_box = m_world_box,
-                .m_world_dimensions = max.sub(&min),
+                .m_world_dimensions = max.subtract(&min),
             };
         }
         pub fn getSubTileKeys(this: Self, tile_key: *const TileKey) []TileKey {
@@ -56,7 +56,7 @@ pub fn TilingScheme(comptime P: type) type {
             const sizeY = this.m_world_dimensions.y / levelDimensionY;
             const originX = this.m_worldBox.min.x + sizeX * tile_key.column;
             const originY = this.m_worldBox.min.y + sizeY * tile_key.row;
-            return AABB.new(Vec3.new(originX, originY, this.m_world_box.min.z()), Vec3.new(originX + sizeX, originY + sizeY, this.m_world_box.z()));
+            return AABB.new(Vector3.new(originX, originY, this.m_world_box.min.z()), Vector3.new(originX + sizeX, originY + sizeY, this.m_world_box.z()));
         }
     };
 }

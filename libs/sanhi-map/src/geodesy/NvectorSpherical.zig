@@ -1,7 +1,7 @@
 const math = @import("../math.zig");
 const Cartographic = @import("Cartographic.zig").Cartographic;
 pub const NvectorEllipsoidal = struct {
-    v: math.Vec3d,
+    v: math.Vector3D,
     h: f64,
     const Self = @This();
     pub fn new(x: f64, y: f64, z: f64, hv: f64) Self {

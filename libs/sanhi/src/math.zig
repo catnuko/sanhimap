@@ -1,24 +1,24 @@
 const stdmath = @import("std").math;
 pub const math = @import("math");
-pub const Vec2 = math.Vec2d;
-pub const Vec3 = math.Vec3d;
-pub const Vec4 = math.Vec4d;
-pub const Mat2 = math.Mat2x2d;
-pub const Mat3 = math.Mat3x3d;
-pub const Mat4 = math.Mat4x4d;
-pub const Quat = math.Quatd;
-pub const HeadingPitchRoll = math.HeadingPitchRolld;
-pub const vec2 = math.Vec2d.new;
-pub const vec3 = math.Vec3d.new;
-pub const vec4 = math.Vec4d.new;
-pub const quat = math.Quatd.new;
-pub const mat2x2 = math.Mat2x2d.new;
-pub const mat3x3 = math.Mat3x3d.new;
-pub const mat4x4 = math.Mat4x4d.new;
-pub const hpr = math.HeadingPitchRolld.new;
-pub const vec2FromInt = math.Vec2d.fromInt;
-pub const vec3FromInt = math.Vec3d.fromInt;
-pub const vec4FromInt = math.Vec4d.fromInt;
+pub const Vector2 = math.Vector2D;
+pub const Vector3 = math.Vector3D;
+pub const Vector4 = math.Vector4D;
+pub const Mat2 = math.Matrix2D;
+pub const Mat3 = math.Matrix3D;
+pub const Mat4 = math.Matrix4D;
+pub const Quaternion = math.QuaternionD;
+pub const HeadingPitchRoll = math.HeadingPitchRollD;
+pub const vec2 = math.Vector2D.new;
+pub const vec3 = math.Vector3D.new;
+pub const vec4 = math.Vector4D.new;
+pub const quat = math.QuaternionD.new;
+pub const mat2 = math.Matrix2D.new;
+pub const mat3 = math.Matrix3D.new;
+pub const mat4 = math.Matrix4D.new;
+pub const hpr = math.HeadingPitchRollD.new;
+pub const vec2FromInt = math.Vector2D.fromInt;
+pub const vec3FromInt = math.Vector3D.fromInt;
+pub const vec4FromInt = math.Vector4D.fromInt;
 
 pub const epsilon = math.epsilon;
 pub usingnamespace epsilon;
@@ -34,7 +34,7 @@ pub fn zeroToTwoPi(angle: f64) f64 {
         return angle;
     }
     const modv = stdmath.mod(f64, angle, stdmath.tau) catch unreachable;
-    if (abs(modv) < epsilon.EPSILON14 and abs(angle) > epsilon.EPSILON14) {
+    if (abs(modv) < epsilon.epsilon14 and abs(angle) > epsilon.epsilon14) {
         return stdmath.tau;
     }
     return modv;

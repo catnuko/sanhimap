@@ -1,10 +1,10 @@
 const math = @import("./math.zig");
 pub const AABB = struct {
-    min: math.Vec3,
-    max: math.Vec3,
+    min: math.Vector3,
+    max: math.Vector3,
     const Self = @This();
-    pub const ZERO = new(math.Vec3.ZERO.clone(), math.Vec3.ZERO.clone());
-    pub fn new(minv: math.Vec3, maxv: math.Vec3) Self {
+    pub const ZERO = new(math.Vector3.zero.clone(), math.Vector3.zero.clone());
+    pub fn new(minv: math.Vector3, maxv: math.Vector3) Self {
         return .{ .min = minv, .max = maxv };
     }
     pub fn clone(self: *const Self) Self {

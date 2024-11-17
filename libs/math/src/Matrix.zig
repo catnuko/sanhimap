@@ -1,12 +1,12 @@
 const testing = @import("testing.zig");
 const math = @import("root.zig");
-const vec = @import("vec.zig");
-const Quat = @import("./quat.zig").Quat;
-const HeadingPitchRoll = @import("./hpr.zig").HeadingPitchRoll;
+const vec = @import("Vector.zig");
+const Quaternion = @import("./Quaternion.zig").Quaternion;
+const HeadingPitchRoll = @import("./HeadingPitchRoll.zig").HeadingPitchRoll;
 const stdmath = @import("std").math;
 const debug = @import("std").debug;
 
-pub fn Mat2x2(
+pub fn Matrix2(
     comptime Scalar: type,
 ) type {
     return extern struct {
@@ -16,7 +16,7 @@ pub fn Mat2x2(
         /// The translation vector is stored in contiguous memory elements 12, 13, 14:
         ///
         /// ```
-        /// [4]Vec4{
+        /// [4]Vector4{
         ///     vec4( 1,  0,  0,  0),
         ///     vec4( 0,  1,  0,  0),
         ///     vec4( 0,  0,  1,  0),
@@ -34,16 +34,16 @@ pub fn Mat2x2(
         /// The number of rows, e.g. Mat3x4.rows == 4
         pub const rows = 2;
 
-        /// The scalar type of this matrix, e.g. Mat3x3.T == f32
+        /// The scalar type of this matrix, e.g. Matrix3.T == f32
         pub const T = Scalar;
 
-        /// The underlying Vec type, e.g. Mat3x3.Vec == Vec3
-        pub const Vec = vec.Vec2(Scalar);
+        /// The underlying Vec type, e.g. Matrix3.Vec == Vector3
+        pub const Vec = vec.Vector2(Scalar);
 
-        /// The Vec type corresponding to the number of rows, e.g. Mat3x3.RowVec == Vec3
+        /// The Vec type corresponding to the number of rows, e.g. Matrix3.RowVec == Vector3
         pub const RowVec = Vec;
 
-        /// The Vec type corresponding to the numebr of cols, e.g. Mat3x4.ColVec = Vec4
+        /// The Vec type corresponding to the numebr of cols, e.g. Mat3x4.ColVec = Vector4
         pub const ColVec = Vec;
 
         const Matrix = @This();
@@ -51,17 +51,7 @@ pub fn Mat2x2(
         const Shared = MatShared(RowVec, ColVec, Matrix);
 
         /// Identity matrix
-        pub const ident = Matrix.new(
-            &RowVec.new(1, 0),
-            &RowVec.new(0, 1),
-        );
-        pub fn identity() Matrix {
-            return Matrix.new(
-                &RowVec.new(1, 0),
-                &RowVec.new(0, 1),
-            );
-        }
-
+        pub const identity = Matrix.fromIdentity();
         /// Constructs a 2x2 matrix with the given rows. For example to write a translation
         /// matrix like in the left part of this equation:
         ///
@@ -73,7 +63,7 @@ pub fn Mat2x2(
         /// You would write it with the same visual layout:
         ///
         /// ```
-        /// const m = Mat2x2.new(
+        /// const m = Matrix2.new(
         ///     vec3(1, tx),
         ///     vec3(0, ty),
         /// );
@@ -143,7 +133,7 @@ pub fn Mat2x2(
     };
 }
 
-pub fn Mat3x3(
+pub fn Matrix3(
     comptime Scalar: type,
 ) type {
     return extern struct {
@@ -153,7 +143,7 @@ pub fn Mat3x3(
         /// The translation vector is stored in contiguous memory elements 12, 13, 14:
         ///
         /// ```
-        /// [4]Vec4{
+        /// [4]Vector4{
         ///     vec4( 1,  0,  0,  0),
         ///     vec4( 0,  1,  0,  0),
         ///     vec4( 0,  0,  1,  0),
@@ -171,17 +161,17 @@ pub fn Mat3x3(
         /// The number of rows, e.g. Mat3x4.rows == 4
         pub const rows = 3;
 
-        /// The scalar type of this matrix, e.g. Mat3x3.T == f32
+        /// The scalar type of this matrix, e.g. Matrix3.T == f32
         pub const T = Scalar;
 
-        /// The underlying Vec type, e.g. Mat3x3.Vec == Vec3
-        pub const Vec = vec.Vec3(Scalar);
-        pub const Vec2 = vec.Vec2(Scalar);
+        /// The underlying Vec type, e.g. Matrix3.Vec == Vector3
+        pub const Vec = vec.Vector3(Scalar);
+        pub const Vector2 = vec.Vector2(Scalar);
 
-        /// The Vec type corresponding to the number of rows, e.g. Mat3x3.RowVec == Vec3
+        /// The Vec type corresponding to the number of rows, e.g. Matrix3.RowVec == Vector3
         pub const RowVec = Vec;
 
-        /// The Vec type corresponding to the numebr of cols, e.g. Mat3x4.ColVec = Vec4
+        /// The Vec type corresponding to the numebr of cols, e.g. Mat3x4.ColVec = Vector4
         pub const ColVec = Vec;
 
         const Matrix = @This();
@@ -189,18 +179,7 @@ pub fn Mat3x3(
         const Shared = MatShared(RowVec, ColVec, Matrix);
 
         /// Identity matrix
-        pub const ident = Matrix.new(
-            &RowVec.new(1, 0, 0),
-            &RowVec.new(0, 1, 0),
-            &RowVec.new(0, 0, 1),
-        );
-        pub fn identity() Matrix {
-            return Matrix.new(
-                &RowVec.new(1, 0, 0),
-                &RowVec.new(0, 1, 0),
-                &RowVec.new(0, 0, 1),
-            );
-        }
+        pub const identity = Matrix.fromIdentity();
         /// Constructs a 3x3 matrix with the given rows. For example to write a translation
         /// matrix like in the left part of this equation:
         ///
@@ -213,7 +192,7 @@ pub fn Mat3x3(
         /// You would write it with the same visual layout:
         ///
         /// ```
-        /// const m = Mat3x3.new(
+        /// const m = Matrix3.new(
         ///     vec3(1, 0, tx),
         ///     vec3(0, 1, ty),
         ///     vec3(0, 0, tz),
@@ -228,7 +207,7 @@ pub fn Mat3x3(
                 Vec.new(r0.z(), r1.z(), r2.z()),
             } };
         }
-        pub fn fromQuaternion(q: *const Quat(T)) Matrix {
+        pub fn fromQuaternion(q: *const Quaternion(T)) Matrix {
             const x2 = q.x() * q.x();
             const xy = q.x() * q.y();
             const xz = q.x() * q.z();
@@ -303,7 +282,7 @@ pub fn Mat3x3(
             } };
         }
         /// Constructs a 2D matrix which translates coordinates by the given vector.
-        pub fn fromTranslation(t: *const Vec2) Matrix {
+        pub fn fromTranslation(t: *const Vector2) Matrix {
             return new(
                 &RowVec.new(1, 0, t.x()),
                 &RowVec.new(0, 1, t.y()),
@@ -312,12 +291,12 @@ pub fn Mat3x3(
         }
         /// Constructs a 2D matrix which translates coordinates by the given scalar.
         pub fn fromTranslationScalar(t: T) Matrix {
-            return fromTranslation(&Vec2.splat(t));
+            return fromTranslation(&Vector2.splat(t));
         }
 
         /// Returns the translation component of the matrix.
-        pub fn getTranslation(t: Matrix) Vec2 {
-            return Vec2.new(t.v[2].x(), t.v[2].y());
+        pub fn getTranslation(t: *const Matrix) Vector2 {
+            return Vector2.new(t.v[2].x(), t.v[2].y());
         }
 
         /// Constructs a 3D matrix which rotates around the X axis by `angle_radians`.
@@ -390,11 +369,29 @@ pub fn Mat3x3(
             res.v[2].v[2] = (a11 * a00 - a01 * a10) * det;
             return res;
         }
+        pub fn lookAt(eye: *const Vec, target: *const Vec, updir: *const Vec)Matrix {
+            const zAxis = eye.subtract(target).normalize();
+            const xAxis = updir.cross(&zAxis).normalize();
+            const yAxis = zAxis.cross(&xAxis).normalize();
+            var m = Matrix.fromIdentity();
+            m.v[0].v[0] = xAxis.x();
+            m.v[0].v[1] = yAxis.x();
+            m.v[0].v[2] = zAxis.x();
+
+            m.v[1].v[0] = xAxis.y();
+            m.v[1].v[1] = yAxis.y();
+            m.v[1].v[2] = zAxis.y();
+
+            m.v[2].v[0] = xAxis.z();
+            m.v[2].v[1] = yAxis.z();
+            m.v[2].v[2] = zAxis.z();
+            return m;
+        }
         pub usingnamespace Shared;
     };
 }
 
-pub fn Mat4x4(
+pub fn Matrix4(
     comptime Scalar: type,
 ) type {
     return extern struct {
@@ -404,7 +401,7 @@ pub fn Mat4x4(
         /// The translation vector is stored in contiguous memory elements 12, 13, 14:
         ///
         /// ```
-        /// [4]Vec4{
+        /// [4]Vector4{
         ///     vec4( 1,  0,  0,  0),
         ///     vec4( 0,  1,  0,  0),
         ///     vec4( 0,  0,  1,  0),
@@ -422,17 +419,17 @@ pub fn Mat4x4(
         /// The number of rows, e.g. Mat3x4.rows == 4
         pub const rows = 4;
 
-        /// The scalar type of this matrix, e.g. Mat3x3.T == f32
+        /// The scalar type of this matrix, e.g. Matrix3.T == f32
         pub const T = Scalar;
 
-        /// The underlying Vec type, e.g. Mat3x3.Vec == Vec3
-        pub const Vec = vec.Vec4(Scalar);
-        pub const Vec3 = vec.Vec3(T);
+        /// The underlying Vec type, e.g. Matrix3.Vec == Vector3
+        pub const Vec = vec.Vector4(Scalar);
+        pub const Vector3 = vec.Vector3(T);
 
-        /// The Vec type corresponding to the number of rows, e.g. Mat3x3.RowVec == Vec3
+        /// The Vec type corresponding to the number of rows, e.g. Matrix3.RowVec == Vector3
         pub const RowVec = Vec;
 
-        /// The Vec type corresponding to the numebr of cols, e.g. Mat3x4.ColVec = Vec4
+        /// The Vec type corresponding to the numebr of cols, e.g. Mat3x4.ColVec = Vector4
         pub const ColVec = Vec;
 
         const Matrix = @This();
@@ -440,20 +437,7 @@ pub fn Mat4x4(
         const Shared = MatShared(RowVec, ColVec, Matrix);
 
         /// Identity matrix
-        pub const ident = Matrix.new(
-            &Vec.new(1, 0, 0, 0),
-            &Vec.new(0, 1, 0, 0),
-            &Vec.new(0, 0, 1, 0),
-            &Vec.new(0, 0, 0, 1),
-        );
-        pub fn identity() Matrix {
-            return Matrix.new(
-                &Vec.new(1, 0, 0, 0),
-                &Vec.new(0, 1, 0, 0),
-                &Vec.new(0, 0, 1, 0),
-                &Vec.new(0, 0, 0, 1),
-            );
-        }
+        pub const identity = Matrix.fromIdentity();
         /// Constructs a 4x4 matrix with the given rows. For example to write a translation
         /// matrix like in the left part of this equation:
         ///
@@ -467,7 +451,7 @@ pub fn Mat4x4(
         /// You would write it with the same visual layout:
         ///
         /// ```
-        /// const m = Mat4x4.new(
+        /// const m = Matrix4.new(
         ///     &vec4(1, 0, 0, tx),
         ///     &vec4(0, 1, 0, ty),
         ///     &vec4(0, 0, 1, tz),
@@ -484,14 +468,49 @@ pub fn Mat4x4(
                 Vec.new(r0.w(), r1.w(), r2.w(), r3.w()),
             } };
         }
-        pub fn mulPoint(m: *const Matrix, point: *const Vec3) Vec3 {
-            const vX = point.x();
-            const vY = point.y();
-            const vZ = point.z();
-            const x = m.v[0].v[1][0] * vX + m.v[1].v[0][4] * vY + m.v[2].v[0][8] * vZ + m.v[3].v[0];
-            const y = m.v[0].v[2][1] * vX + m.v[1].v[1][5] * vY + m.v[2].v[1][9] * vZ + m.v[3].v[1];
-            const z = m.v[0].v[3][2] * vX + m.v[1].v[2][6] * vY + m.v[2].v[2][10] * vZ + m.v[3].v[2];
-            return Vec3.new(x, y, z);
+        pub inline fn multiplyByPoint(m: *const Matrix, point: *const Vector3) Vector3 {
+            const col0 = m.v[0].multiplyByScalar(point.x());
+            const col1 = m.v[1].multiplyByScalar(point.y());
+            const col2 = m.v[2].multiplyByScalar(point.z());
+            const res = col0.add(&col1).add(&col2).add(&m.v[3]);
+            return Vector3.new(res.x(), res.y(), res.z());
+        }
+        pub fn multiplyByPointAsVector(m: *const Matrix, point: *const Vector3) Vector3 {
+            const col0 = m.v[0].multiplyByScalar(point.x());
+            const col1 = m.v[1].multiplyByScalar(point.y());
+            const col2 = m.v[2].multiplyByScalar(point.z());
+            const res = col0.add(&col1).add(&col2);
+            return Vector3.new(res.x(), res.y(), res.z());
+        }
+        pub fn multiplyByScale(m: *const Matrix, scale: *const Vector3) Matrix {
+            var res: Matrix = undefined;
+            res.v[0].v[0] = m.v[0].v[0] * scale.x();
+            res.v[0].v[1] = m.v[0].v[1] * scale.x();
+            res.v[0].v[2] = m.v[0].v[2] * scale.x();
+            res.v[0].v[3] = m.v[0].v[3];
+
+            res.v[1].v[0] = m.v[1].v[0] * scale.y();
+            res.v[1].v[1] = m.v[1].v[1] * scale.y();
+            res.v[1].v[2] = m.v[1].v[2] * scale.y();
+            res.v[1].v[3] = m.v[1].v[3];
+
+            res.v[2].v[0] = m.v[2].v[0] * scale.z();
+            res.v[2].v[1] = m.v[2].v[1] * scale.z();
+            res.v[2].v[2] = m.v[2].v[2] * scale.z();
+            res.v[2].v[3] = m.v[2].v[3];
+
+            res.v[3].v[0] = m.v[3].v[0];
+            res.v[3].v[1] = m.v[3].v[1];
+            res.v[3].v[2] = m.v[3].v[2];
+            res.v[3].v[3] = m.v[3].v[3];
+            return res;
+        }
+        pub inline fn multiplyByUniformScale(m: *const Matrix, scale: T) Matrix {
+            return multiplyByScale(m, &Vector3.splat(scale));
+        }
+        pub fn transformDirection(m: *const Matrix, point: *const Vector3) Vector3 {
+            const res = multiplyByPointAsVector(m, point);
+            return res.normalize();
         }
         /// Transposes the matrix.
         pub fn transpose(m: *const Matrix) Matrix {
@@ -503,7 +522,7 @@ pub fn Mat4x4(
             } };
         }
 
-        pub fn fromTranslation(t: *const Vec3) Matrix {
+        pub fn fromTranslation(t: *const Vector3) Matrix {
             return new(
                 &RowVec.new(1, 0, 0, t.x()),
                 &RowVec.new(0, 1, 0, t.y()),
@@ -512,9 +531,9 @@ pub fn Mat4x4(
             );
         }
         pub fn fromTranslationScalar(t: T) Matrix {
-            return fromTranslation(&Vec3.splat(t));
+            return fromTranslation(&Vector3.splat(t));
         }
-        pub fn fromRotation(rotation: *const Mat3x3(T)) Matrix {
+        pub fn fromRotation(rotation: *const Matrix3(T)) Matrix {
             return new(
                 &RowVec.new(rotation.v[0].v[0], rotation.v[1].v[0], rotation.v[2].v[0], 0),
                 &RowVec.new(rotation.v[0].v[1], rotation.v[1].v[1], rotation.v[2].v[1], 0),
@@ -522,7 +541,7 @@ pub fn Mat4x4(
                 &RowVec.new(0, 0, 0, 1),
             );
         }
-        pub fn fromRotationTranslation(rotation: *const Mat3x3(T), t: Vec3) Matrix {
+        pub fn fromRotationTranslation(rotation: *const Matrix3(T), t: Vector3) Matrix {
             return new(
                 &RowVec.new(rotation.v[0].v[0], rotation.v[1].v[0], rotation.v[2].v[0], t.x()),
                 &RowVec.new(rotation.v[0].v[1], rotation.v[1].v[1], rotation.v[2].v[1], t.y()),
@@ -532,18 +551,33 @@ pub fn Mat4x4(
         }
 
         /// Returns the translation component of the matrix.
-        pub fn getTranslation(t: *const Matrix) Vec3 {
-            return Vec3.new(t.v[3].x(), t.v[3].y(), t.v[3].z());
+        pub fn getTranslation(t: *const Matrix) Vector3 {
+            return Vector3.new(t.v[3].x(), t.v[3].y(), t.v[3].z());
         }
-        pub fn getRotation(t: *const Matrix) Mat3x3(T) {
+        pub fn getMatrix3(m: *const Matrix) Matrix3(T) {
+            var result: Matrix3(T) = undefined;
+            result.v[0].v[0] = m.v[0].v[0];
+            result.v[0].v[1] = m.v[0].v[1];
+            result.v[0].v[2] = m.v[0].v[2];
+
+            result.v[1].v[0] = m.v[1].v[0];
+            result.v[1].v[1] = m.v[1].v[1];
+            result.v[1].v[2] = m.v[1].v[2];
+
+            result.v[2].v[0] = m.v[2].v[0];
+            result.v[2].v[1] = m.v[2].v[1];
+            result.v[2].v[2] = m.v[2].v[2];
+            return result;
+        }
+        pub fn getRotation(t: *const Matrix) Matrix3(T) {
             const scale = t.getScale();
-            return Mat3x3(T).new(
-                &Mat3x3(T).RowVec.new(t.v[0].v[0] / scale.x(), t.v[1].v[0] / scale.y(), t.v[2].v[0] / scale.z()),
-                &Mat3x3(T).RowVec.new(t.v[0].v[1] / scale.x(), t.v[1].v[1] / scale.y(), t.v[2].v[1] / scale.z()),
-                &Mat3x3(T).RowVec.new(t.v[0].v[2] / scale.x(), t.v[1].v[2] / scale.y(), t.v[2].v[2] / scale.z()),
+            return Matrix3(T).new(
+                &Matrix3(T).RowVec.new(t.v[0].v[0] / scale.x(), t.v[1].v[0] / scale.y(), t.v[2].v[0] / scale.z()),
+                &Matrix3(T).RowVec.new(t.v[0].v[1] / scale.x(), t.v[1].v[1] / scale.y(), t.v[2].v[1] / scale.z()),
+                &Matrix3(T).RowVec.new(t.v[0].v[2] / scale.x(), t.v[1].v[2] / scale.y(), t.v[2].v[2] / scale.z()),
             );
         }
-        pub fn setRotation(t: *Matrix, r: *const Mat3x3(T)) void {
+        pub fn setRotation(t: *Matrix, r: *const Matrix3(T)) void {
             const scale = t.getScale();
             t.v[0].v[0] = r.v[0].v[0] * scale.x();
             t.v[0].v[1] = r.v[0].v[1] * scale.x();
@@ -557,7 +591,7 @@ pub fn Mat4x4(
             t.v[2].v[1] = r.v[2].v[1] * scale.z();
             t.v[2].v[2] = r.v[2].v[2] * scale.z();
         }
-        pub fn fromScale(s: *const Vec3) Matrix {
+        pub fn fromScale(s: *const Vector3) Matrix {
             return new(
                 &RowVec.new(s.x(), 0, 0, 0),
                 &RowVec.new(0, s.y(), 0, 0),
@@ -565,45 +599,27 @@ pub fn Mat4x4(
                 &RowVec.new(0, 0, 0, 1),
             );
         }
-        pub fn fromScaleScalar(s: T) Matrix {
-            return fromScale(&Vec3.splat(s));
+        pub inline fn fromScaleScalar(s: T) Matrix {
+            return fromScale(&Vector3.splat(s));
         }
-        pub fn getScale(m: *const Matrix) Vec3 {
-            var col: Vec3 = undefined;
-            col.v[0] = Vec3.new(m.v[0].v[0], m.v[0].v[1], m.v[0].v[2]).len();
-            col.v[1] = Vec3.new(m.v[1].v[0], m.v[1].v[1], m.v[1].v[2]).len();
-            col.v[2] = Vec3.new(m.v[2].v[0], m.v[2].v[1], m.v[2].v[2]).len();
+        pub fn getScale(m: *const Matrix) Vector3 {
+            var col: Vector3 = undefined;
+            col.v[0] = Vector3.new(m.v[0].v[0], m.v[0].v[1], m.v[0].v[2]).length();
+            col.v[1] = Vector3.new(m.v[1].v[0], m.v[1].v[1], m.v[1].v[2]).length();
+            col.v[2] = Vector3.new(m.v[2].v[0], m.v[2].v[1], m.v[2].v[2]).length();
             return col;
         }
-        pub fn setScaleScalar(m: *Matrix, t: T) void {
-            return setScale(m, &Vec3.splat(t));
+        pub inline fn setScaleScalar(m: *Matrix, t: T) void {
+            return setScale(m, &Vector3.splat(t));
         }
-        pub fn setScale(m: *Matrix, s: *const Vec3) void {
+        pub inline fn setScale(m: *Matrix, s: *const Vector3) void {
             const existingScale = m.getScale();
-            const scaleRatio = s.div(&existingScale);
-            m.v[0].v[0] = m.v[0].v[0] * scaleRatio.x();
-            m.v[0].v[1] = m.v[0].v[1] * scaleRatio.x();
-            m.v[0].v[2] = m.v[0].v[2] * scaleRatio.x();
-            m.v[0].v[3] = m.v[0].v[3];
-
-            m.v[1].v[0] = m.v[1].v[0] * scaleRatio.y();
-            m.v[1].v[1] = m.v[1].v[1] * scaleRatio.y();
-            m.v[1].v[2] = m.v[1].v[2] * scaleRatio.y();
-            m.v[1].v[3] = m.v[1].v[3];
-
-            m.v[2].v[0] = m.v[2].v[0] * scaleRatio.z();
-            m.v[2].v[1] = m.v[2].v[1] * scaleRatio.z();
-            m.v[2].v[2] = m.v[2].v[2] * scaleRatio.z();
-            m.v[2].v[3] = m.v[2].v[3];
-
-            m.v[3].v[0] = m.v[3].v[0];
-            m.v[3].v[1] = m.v[3].v[1];
-            m.v[3].v[2] = m.v[3].v[2];
-            m.v[3].v[3] = m.v[3].v[3];
+            const scaleRatio = s.divide(&existingScale);
+            m.* = multiplyByScale(m, &scaleRatio);
         }
 
-        pub fn lookAt(eye: *const Vec3, focuspos: *const Vec3, updir: *const Vec3) Matrix {
-            const zAxis = eye.sub(focuspos).normalize();
+        pub fn lookAt(eye: *const Vector3, target: *const Vector3, updir: *const Vector3) Matrix {
+            const zAxis = eye.subtract(target).normalize();
             const xAxis = updir.cross(&zAxis).normalize();
             const yAxis = zAxis.cross(&xAxis).normalize();
             var res: Matrix = undefined;
@@ -716,7 +732,7 @@ pub fn Mat4x4(
 
             return res;
         }
-        pub fn fromTranslationQuaternionRotationScale(translationv: *const Vec3, rotation: *const Quat(T), scalev: *const Vec3) Matrix {
+        pub fn fromTranslationQuaternionScale(translationv: *const Vector3, rotation: *const Quaternion(T), scalev: *const Vector3) Matrix {
             const scaleX = scalev.x();
             const scaleY = scalev.y();
             const scaleZ = scalev.z();
@@ -763,18 +779,24 @@ pub fn Mat4x4(
             res.v[3].v[3] = 1.0;
             return res;
         }
+        pub fn getColVector3(m: *const Matrix, i: usize) Vector3 {
+            return Vector3.new(m.v[i].v[0], m.v[i].v[1], m.v[i].v[2]);
+        }
 
+        pub const fromIdentity = Shared.fromIdentity;
         pub const getRow = Shared.getRow;
         pub const getCol = Shared.getCol;
         pub const setRow = Shared.setRow;
         pub const setCol = Shared.setCol;
-        pub const mul = Shared.mul;
-        pub const mulVec = Shared.mulVec;
+        pub const multiply = Shared.multiply;
+        pub const multiplyByVector = Shared.multiplyByVector;
+        pub const multiplyByScalar = Shared.multiplyByScalar;
+        pub const negate = Shared.negate;
         pub const eql = Shared.eql;
         pub const eqlApprox = Shared.eqlApprox;
         pub const clone = Shared.clone;
-        pub const fromArray = Shared.fromArray;
-        pub const toArray = Shared.toArray;
+        pub const fromColumnMajorArray = Shared.fromColumnMajorArray;
+        pub const toColumnMajorArray = Shared.toColumnMajorArray;
         pub const print = Shared.print;
     };
 }
@@ -782,7 +804,7 @@ pub fn Mat4x4(
 pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: type) type {
     return struct {
         /// Matrix multiplication a*b
-        pub fn mul(a: *const Matrix, b: *const Matrix) Matrix {
+        pub fn multiply(a: *const Matrix, b: *const Matrix) Matrix {
             @setEvalBranchQuota(10000);
             var result: Matrix = undefined;
             inline for (0..Matrix.rows) |rowi| {
@@ -792,7 +814,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
                         // Note: we directly access rows/columns below as it is much faster **in
                         // debug builds**, instead of using these helpers:
                         //
-                        // sum += a.rowi(rowi).mul(&b.coli(coli)).v[i];
+                        // sum += a.rowi(rowi).multiply(&b.coli(coli)).v[i];
                         sum += a.v[i].v[rowi] * b.v[coli].v[i];
                     }
                     result.v[coli].v[rowi] = sum;
@@ -801,8 +823,18 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             return result;
         }
 
+        pub fn fromIdentity() Matrix {
+            var result: Matrix = undefined;
+            inline for (0..Matrix.cols) |coli| {
+                inline for (0..Matrix.rows) |rowi| {
+                    result.v[coli].v[rowi] = if (rowi == coli) 1 else 0;
+                }
+            }
+            return result;
+        }
+
         /// Matrix * Vector multiplication
-        pub fn mulVec(matrix: *const Matrix, vector: *const ColVec) ColVec {
+        pub fn multiplyByVector(matrix: *const Matrix, vector: *const ColVec) ColVec {
             var result = [_]ColVec.T{0} ** ColVec.n;
             inline for (0..Matrix.rows) |rowi| {
                 inline for (0..ColVec.n) |i| {
@@ -812,7 +844,33 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             return ColVec{ .v = result };
         }
 
-        pub fn fromArray(slice: *const [Matrix.cols * Matrix.rows]Matrix.T) Matrix {
+        pub fn multiplyByScalar(matrix: *const Matrix, scalar: Matrix.T) Matrix {
+            var result: Matrix = undefined;
+            inline for (0..Matrix.cols) |coli| {
+                inline for (0..Matrix.rows) |rowi| {
+                    result.v[coli].v[rowi] = matrix.v[coli].v[rowi] * scalar;
+                }
+            }
+            return result;
+        }
+
+        pub fn multiplyByScale(matrix: *const Matrix, scale: *const ColVec) Matrix {
+            var result: Matrix = undefined;
+            inline for (0..Matrix.cols) |coli| {
+                inline for (0..Matrix.rows) |rowi| {
+                    result.v[coli].v[rowi] = matrix.v[coli].v[rowi] * scale.v[coli];
+                }
+            }
+            return result;
+        }
+        pub inline fn multiplyByUniformScale(m: *const Matrix, scale: Matrix.T) Matrix {
+            return multiplyByScale(m, &ColVec.splat(scale));
+        }
+        pub inline fn negate(matrix: *const Matrix) Matrix {
+            return multiplyByScalar(matrix, -1);
+        }
+
+        pub fn fromColumnMajorArray(slice: *const [Matrix.cols * Matrix.rows]Matrix.T) Matrix {
             var result: Matrix = undefined;
             var i: usize = 0;
             inline for (0..Matrix.rows) |rowi| {
@@ -824,7 +882,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             return result;
         }
 
-        pub fn toArray(a: *const Matrix) [Matrix.cols * Matrix.rows]Matrix.T {
+        pub fn toColumnMajorArray(a: *const Matrix) [Matrix.cols * Matrix.rows]Matrix.T {
             var slice = [1]Matrix.T{0} ** (Matrix.cols * Matrix.rows);
             var i: usize = 0;
             inline for (0..Matrix.rows) |rowi| {
@@ -887,7 +945,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
         }
 
         pub fn fromScale(o: *const ColVec) Matrix {
-            var result = Matrix.identity();
+            var result = Matrix.fromIdentity();
             inline for (0..Matrix.rows) |rowi| {
                 inline for (0..Matrix.cols) |coli| {
                     if (rowi == coli) {
@@ -904,16 +962,16 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
         pub fn getScale(m: *const Matrix) ColVec {
             var result = [_]ColVec.T{0} ** ColVec.n;
             inline for (0..Matrix.rows) |rowi| {
-                result[rowi] = m.getCol(rowi).len();
+                result[rowi] = m.getCol(rowi).length();
             }
             return ColVec{ .v = result };
         }
         pub fn setScale(m: *Matrix, s: *const ColVec) void {
             const existingScale = m.getScale();
-            const scaleRatio = s.div(&existingScale);
+            const scaleRatio = s.divide(&existingScale);
 
             inline for (0..Matrix.cols) |coli| {
-                m.v[coli] = m.v[coli].mulScalar(scaleRatio.v[coli]);
+                m.v[coli] = m.v[coli].multiplyByScalar(scaleRatio.v[coli]);
             }
         }
         pub fn setScaleScalar(m: *Matrix, s: Matrix.T) void {
@@ -923,6 +981,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             return Matrix{ .v = m.v };
         }
         pub fn print(m: *const Matrix) void {
+            debug.print("\n", .{});
             inline for (0..Matrix.rows) |rowi| {
                 inline for (0..ColVec.n) |coli| {
                     const colv = m.v[coli].v[rowi];
@@ -934,7 +993,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
     };
 }
 
-test "Mat4x4_fromArray_toArray" {
+test "Matrix4_fromArray_toArray" {
     const std = @import("std");
     var slice = [1]f64{0} ** 16;
     //x axis
@@ -957,188 +1016,188 @@ test "Mat4x4_fromArray_toArray" {
     slice[13] = 14;
     slice[14] = 15;
     slice[15] = 16;
-    const actual = Mat4x4(f64).fromArray(&slice);
-    const expect = Mat4x4(f64).new(
+    const actual = Matrix4(f64).fromColumnMajorArray(&slice);
+    const expect = Matrix4(f64).new(
         &math.vec4d(1, 5, 9, 13),
         &math.vec4d(2, 6, 10, 14),
         &math.vec4d(3, 7, 11, 15),
         &math.vec4d(4, 8, 12, 16),
     );
-    try testing.expect(Mat4x4(f64), expect).eql(actual);
-    const actualSlice = actual.toArray();
+    try testing.expect(Matrix4(f64), expect).eql(actual);
+    const actualSlice = actual.toColumnMajorArray();
     try std.testing.expect(std.mem.eql(f64, &slice, &actualSlice));
 }
 
 test "gpu_compatibility" {
     // https://www.w3.org/TR/WGSL/#alignment-and-size
-    try testing.expect(usize, 16).eql(@sizeOf(math.Mat2x2));
-    try testing.expect(usize, 48).eql(@sizeOf(math.Mat3x3));
-    try testing.expect(usize, 64).eql(@sizeOf(math.Mat4x4));
+    try testing.expect(usize, 16).eql(@sizeOf(math.Matrix2));
+    try testing.expect(usize, 48).eql(@sizeOf(math.Matrix3));
+    try testing.expect(usize, 64).eql(@sizeOf(math.Matrix4));
 
-    try testing.expect(usize, 32).eql(@sizeOf(math.Mat2x2d)); // speculative
-    try testing.expect(usize, 96).eql(@sizeOf(math.Mat3x3d)); // speculative
-    try testing.expect(usize, 128).eql(@sizeOf(math.Mat4x4d)); // speculative
+    try testing.expect(usize, 32).eql(@sizeOf(math.Matrix2D)); // speculative
+    try testing.expect(usize, 96).eql(@sizeOf(math.Matrix3D)); // speculative
+    try testing.expect(usize, 128).eql(@sizeOf(math.Matrix4D)); // speculative
 }
 
 test "zero_struct_overhead" {
-    // Proof that using e.g. [3]Vec3 is equal to [3]@Vector(3, f32)
-    try testing.expect(usize, @alignOf([2]@Vector(2, f32))).eql(@alignOf(math.Mat2x2));
-    try testing.expect(usize, @alignOf([3]@Vector(3, f32))).eql(@alignOf(math.Mat3x3));
-    try testing.expect(usize, @alignOf([4]@Vector(4, f32))).eql(@alignOf(math.Mat4x4));
-    try testing.expect(usize, @sizeOf([2]@Vector(2, f32))).eql(@sizeOf(math.Mat2x2));
-    try testing.expect(usize, @sizeOf([3]@Vector(3, f32))).eql(@sizeOf(math.Mat3x3));
-    try testing.expect(usize, @sizeOf([4]@Vector(4, f32))).eql(@sizeOf(math.Mat4x4));
+    // Proof that using e.g. [3]Vector3 is equal to [3]@Vector(3, f32)
+    try testing.expect(usize, @alignOf([2]@Vector(2, f32))).eql(@alignOf(math.Matrix2));
+    try testing.expect(usize, @alignOf([3]@Vector(3, f32))).eql(@alignOf(math.Matrix3));
+    try testing.expect(usize, @alignOf([4]@Vector(4, f32))).eql(@alignOf(math.Matrix4));
+    try testing.expect(usize, @sizeOf([2]@Vector(2, f32))).eql(@sizeOf(math.Matrix2));
+    try testing.expect(usize, @sizeOf([3]@Vector(3, f32))).eql(@sizeOf(math.Matrix3));
+    try testing.expect(usize, @sizeOf([4]@Vector(4, f32))).eql(@sizeOf(math.Matrix4));
 }
 
 test "n" {
-    try testing.expect(usize, 3).eql(math.Mat3x3.rows);
-    try testing.expect(usize, 3).eql(math.Mat3x3.rows);
-    try testing.expect(type, math.Vec3).eql(math.Mat3x3.Vec);
-    try testing.expect(usize, 3).eql(math.Mat3x3.Vec.n);
+    try testing.expect(usize, 3).eql(math.Matrix3.rows);
+    try testing.expect(usize, 3).eql(math.Matrix3.rows);
+    try testing.expect(type, math.Vector3).eql(math.Matrix3.Vec);
+    try testing.expect(usize, 3).eql(math.Matrix3.Vec.n);
 }
 
 test "new" {
-    try testing.expect(math.Mat3x3, math.mat3x3(
+    try testing.expect(math.Matrix3, math.mat3(
         &math.vec3(1, 0, 1337),
         &math.vec3(0, 1, 7331),
         &math.vec3(0, 0, 1),
-    )).eql(math.Mat3x3{
-        .v = [_]math.Vec3{
-            math.Vec3.new(1, 0, 0),
-            math.Vec3.new(0, 1, 0),
-            math.Vec3.new(1337, 7331, 1),
+    )).eql(math.Matrix3{
+        .v = [_]math.Vector3{
+            math.Vector3.new(1, 0, 0),
+            math.Vector3.new(0, 1, 0),
+            math.Vector3.new(1337, 7331, 1),
         },
     });
 }
 
-test "Mat2x2_ident" {
-    try testing.expect(math.Mat2x2, math.Mat2x2.ident).eql(math.Mat2x2{
-        .v = [_]math.Vec2{
-            math.Vec2.new(1, 0),
-            math.Vec2.new(0, 1),
+test "Matrix2_ident" {
+    try testing.expect(math.Matrix2, math.Matrix2.identity).eql(math.Matrix2{
+        .v = [_]math.Vector2{
+            math.Vector2.new(1, 0),
+            math.Vector2.new(0, 1),
         },
     });
 }
 
-test "Mat3x3_ident" {
-    try testing.expect(math.Mat3x3, math.Mat3x3.ident).eql(math.Mat3x3{
-        .v = [_]math.Vec3{
-            math.Vec3.new(1, 0, 0),
-            math.Vec3.new(0, 1, 0),
-            math.Vec3.new(0, 0, 1),
+test "Matrix3_ident" {
+    try testing.expect(math.Matrix3, math.Matrix3.identity).eql(math.Matrix3{
+        .v = [_]math.Vector3{
+            math.Vector3.new(1, 0, 0),
+            math.Vector3.new(0, 1, 0),
+            math.Vector3.new(0, 0, 1),
         },
     });
 }
 
-test "Mat4x4_ident" {
-    try testing.expect(math.Mat4x4, math.Mat4x4.ident).eql(math.Mat4x4{
-        .v = [_]math.Vec4{
-            math.Vec4.new(1, 0, 0, 0),
-            math.Vec4.new(0, 1, 0, 0),
-            math.Vec4.new(0, 0, 1, 0),
-            math.Vec4.new(0, 0, 0, 1),
+test "Matrix4_ident" {
+    try testing.expect(math.Matrix4, math.Matrix4.identity).eql(math.Matrix4{
+        .v = [_]math.Vector4{
+            math.Vector4.new(1, 0, 0, 0),
+            math.Vector4.new(0, 1, 0, 0),
+            math.Vector4.new(0, 0, 1, 0),
+            math.Vector4.new(0, 0, 0, 1),
         },
     });
 }
 
-test "Mat2x2_row" {
-    const m = math.Mat2x2.new(
+test "Matrix2_row" {
+    const m = math.Matrix2.new(
         &math.vec2(0, 1),
         &math.vec2(2, 3),
     );
-    try testing.expect(math.Vec2, math.vec2(0, 1)).eql(m.getRow(0));
-    try testing.expect(math.Vec2, math.vec2(2, 3)).eql(m.getRow(@TypeOf(m).rows - 1));
+    try testing.expect(math.Vector2, math.vec2(0, 1)).eql(m.getRow(0));
+    try testing.expect(math.Vector2, math.vec2(2, 3)).eql(m.getRow(@TypeOf(m).rows - 1));
 }
 
-test "Mat2x2_col" {
-    const m = math.Mat2x2.new(
+test "Matrix2_col" {
+    const m = math.Matrix2.new(
         &math.vec2(0, 1),
         &math.vec2(2, 3),
     );
-    try testing.expect(math.Vec2, math.vec2(0, 2)).eql(m.getCol(0));
-    try testing.expect(math.Vec2, math.vec2(1, 3)).eql(m.getCol(@TypeOf(m).cols - 1));
+    try testing.expect(math.Vector2, math.vec2(0, 2)).eql(m.getCol(0));
+    try testing.expect(math.Vector2, math.vec2(1, 3)).eql(m.getCol(@TypeOf(m).cols - 1));
 }
 
-test "Mat3x3_row" {
-    const m = math.Mat3x3.new(
+test "Matrix3_row" {
+    const m = math.Matrix3.new(
         &math.vec3(0, 1, 2),
         &math.vec3(3, 4, 5),
         &math.vec3(6, 7, 8),
     );
-    try testing.expect(math.Vec3, math.vec3(0, 1, 2)).eql(m.getRow(0));
-    try testing.expect(math.Vec3, math.vec3(3, 4, 5)).eql(m.getRow(1));
-    try testing.expect(math.Vec3, math.vec3(6, 7, 8)).eql(m.getRow(@TypeOf(m).rows - 1));
+    try testing.expect(math.Vector3, math.vec3(0, 1, 2)).eql(m.getRow(0));
+    try testing.expect(math.Vector3, math.vec3(3, 4, 5)).eql(m.getRow(1));
+    try testing.expect(math.Vector3, math.vec3(6, 7, 8)).eql(m.getRow(@TypeOf(m).rows - 1));
 }
 
-test "Mat3x3_col" {
-    const m = math.Mat3x3.new(
+test "Matrix3_col" {
+    const m = math.Matrix3.new(
         &math.vec3(0, 1, 2),
         &math.vec3(3, 4, 5),
         &math.vec3(6, 7, 8),
     );
-    try testing.expect(math.Vec3, math.vec3(0, 3, 6)).eql(m.getCol(0));
-    try testing.expect(math.Vec3, math.vec3(1, 4, 7)).eql(m.getCol(1));
-    try testing.expect(math.Vec3, math.vec3(2, 5, 8)).eql(m.getCol(@TypeOf(m).cols - 1));
+    try testing.expect(math.Vector3, math.vec3(0, 3, 6)).eql(m.getCol(0));
+    try testing.expect(math.Vector3, math.vec3(1, 4, 7)).eql(m.getCol(1));
+    try testing.expect(math.Vector3, math.vec3(2, 5, 8)).eql(m.getCol(@TypeOf(m).cols - 1));
 }
 
-test "Mat4x4_row" {
-    const m = math.Mat4x4.new(
+test "Matrix4_row" {
+    const m = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    try testing.expect(math.Vec4, math.vec4(0, 1, 2, 3)).eql(m.getRow(0));
-    try testing.expect(math.Vec4, math.vec4(4, 5, 6, 7)).eql(m.getRow(1));
-    try testing.expect(math.Vec4, math.vec4(8, 9, 10, 11)).eql(m.getRow(2));
-    try testing.expect(math.Vec4, math.vec4(12, 13, 14, 15)).eql(m.getRow(@TypeOf(m).rows - 1));
+    try testing.expect(math.Vector4, math.vec4(0, 1, 2, 3)).eql(m.getRow(0));
+    try testing.expect(math.Vector4, math.vec4(4, 5, 6, 7)).eql(m.getRow(1));
+    try testing.expect(math.Vector4, math.vec4(8, 9, 10, 11)).eql(m.getRow(2));
+    try testing.expect(math.Vector4, math.vec4(12, 13, 14, 15)).eql(m.getRow(@TypeOf(m).rows - 1));
 }
 
-test "Mat4x4_col" {
-    const m = math.Mat4x4.new(
+test "Matrix4_col" {
+    const m = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    try testing.expect(math.Vec4, math.vec4(0, 4, 8, 12)).eql(m.getCol(0));
-    try testing.expect(math.Vec4, math.vec4(1, 5, 9, 13)).eql(m.getCol(1));
-    try testing.expect(math.Vec4, math.vec4(2, 6, 10, 14)).eql(m.getCol(2));
-    try testing.expect(math.Vec4, math.vec4(3, 7, 11, 15)).eql(m.getCol(@TypeOf(m).cols - 1));
+    try testing.expect(math.Vector4, math.vec4(0, 4, 8, 12)).eql(m.getCol(0));
+    try testing.expect(math.Vector4, math.vec4(1, 5, 9, 13)).eql(m.getCol(1));
+    try testing.expect(math.Vector4, math.vec4(2, 6, 10, 14)).eql(m.getCol(2));
+    try testing.expect(math.Vector4, math.vec4(3, 7, 11, 15)).eql(m.getCol(@TypeOf(m).cols - 1));
 }
 
-test "Mat2x2_transpose" {
-    const m = math.Mat2x2.new(
+test "Matrix2_transpose" {
+    const m = math.Matrix2.new(
         &math.vec2(0, 1),
         &math.vec2(2, 3),
     );
-    try testing.expect(math.Mat2x2, math.Mat2x2.new(
+    try testing.expect(math.Matrix2, math.Matrix2.new(
         &math.vec2(0, 2),
         &math.vec2(1, 3),
     )).eql(m.transpose());
 }
 
-test "Mat3x3_transpose" {
-    const m = math.Mat3x3.new(
+test "Matrix3_transpose" {
+    const m = math.Matrix3.new(
         &math.vec3(0, 1, 2),
         &math.vec3(3, 4, 5),
         &math.vec3(6, 7, 8),
     );
-    try testing.expect(math.Mat3x3, math.Mat3x3.new(
+    try testing.expect(math.Matrix3, math.Matrix3.new(
         &math.vec3(0, 3, 6),
         &math.vec3(1, 4, 7),
         &math.vec3(2, 5, 8),
     )).eql(m.transpose());
 }
 
-test "Mat4x4_transpose" {
-    const m = math.Mat4x4.new(
+test "Matrix4_transpose" {
+    const m = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    try testing.expect(math.Mat4x4, math.Mat4x4.new(
+    try testing.expect(math.Matrix4, math.Matrix4.new(
         &math.vec4(0, 4, 8, 12),
         &math.vec4(1, 5, 9, 13),
         &math.vec4(2, 6, 10, 14),
@@ -1146,35 +1205,35 @@ test "Mat4x4_transpose" {
     )).eql(m.transpose());
 }
 
-test "Mat2x2_fromScaleScalar" {
-    const m = math.Mat2x2.fromScaleScalar(2);
-    try testing.expect(math.Mat2x2, math.Mat2x2.new(
+test "Matrix2_fromScaleScalar" {
+    const m = math.Matrix2.fromScaleScalar(2);
+    try testing.expect(math.Matrix2, math.Matrix2.new(
         &math.vec2(2, 0),
         &math.vec2(0, 2),
     )).eql(m);
 }
 
-test "Mat3x3_fromScale" {
-    const m = math.Mat3x3.fromScale(&math.vec3(2, 3, 1));
-    try testing.expect(math.Mat3x3, math.Mat3x3.new(
+test "Matrix3_fromScale" {
+    const m = math.Matrix3.fromScale(&math.vec3(2, 3, 1));
+    try testing.expect(math.Matrix3, math.Matrix3.new(
         &math.vec3(2, 0, 0),
         &math.vec3(0, 3, 0),
         &math.vec3(0, 0, 1),
     )).eql(m);
 }
 
-test "Mat3x3_fromScaleScalar" {
-    const m = math.Mat3x3.fromScaleScalar(2);
-    try testing.expect(math.Mat3x3, math.Mat3x3.new(
+test "Matrix3_fromScaleScalar" {
+    const m = math.Matrix3.fromScaleScalar(2);
+    try testing.expect(math.Matrix3, math.Matrix3.new(
         &math.vec3(2, 0, 0),
         &math.vec3(0, 2, 0),
         &math.vec3(0, 0, 2),
     )).eql(m);
 }
 
-test "Mat4x4_fromScale" {
-    const m = math.Mat4x4.fromScale(&math.vec3(2, 3, 4));
-    try testing.expect(math.Mat4x4, math.Mat4x4.new(
+test "Matrix4_fromScale" {
+    const m = math.Matrix4.fromScale(&math.vec3(2, 3, 4));
+    try testing.expect(math.Matrix4, math.Matrix4.new(
         &math.vec4(2, 0, 0, 0),
         &math.vec4(0, 3, 0, 0),
         &math.vec4(0, 0, 4, 0),
@@ -1182,9 +1241,9 @@ test "Mat4x4_fromScale" {
     )).eql(m);
 }
 
-test "Mat4x4_fromScaleScalar" {
-    const m = math.Mat4x4.fromScaleScalar(2);
-    try testing.expect(math.Mat4x4, math.Mat4x4.new(
+test "Matrix4_fromScaleScalar" {
+    const m = math.Matrix4.fromScaleScalar(2);
+    try testing.expect(math.Matrix4, math.Matrix4.new(
         &math.vec4(2, 0, 0, 0),
         &math.vec4(0, 2, 0, 0),
         &math.vec4(0, 0, 2, 0),
@@ -1192,18 +1251,18 @@ test "Mat4x4_fromScaleScalar" {
     )).eql(m);
 }
 
-test "Mat3x3_fromTranslation" {
-    const m = math.Mat3x3.fromTranslation(&math.vec2(2, 3));
-    try testing.expect(math.Mat3x3, math.Mat3x3.new(
+test "Matrix3_fromTranslation" {
+    const m = math.Matrix3.fromTranslation(&math.vec2(2, 3));
+    try testing.expect(math.Matrix3, math.Matrix3.new(
         &math.vec3(1, 0, 2),
         &math.vec3(0, 1, 3),
         &math.vec3(0, 0, 1),
     )).eql(m);
 }
 
-test "Mat4x4_fromTranslation" {
-    const m = math.Mat4x4.fromTranslation(&math.vec3(2, 3, 4));
-    try testing.expect(math.Mat4x4, math.Mat4x4.new(
+test "Matrix4_fromTranslation" {
+    const m = math.Matrix4.fromTranslation(&math.vec3(2, 3, 4));
+    try testing.expect(math.Matrix4, math.Matrix4.new(
         &math.vec4(1, 0, 0, 2),
         &math.vec4(0, 1, 0, 3),
         &math.vec4(0, 0, 1, 4),
@@ -1211,26 +1270,26 @@ test "Mat4x4_fromTranslation" {
     )).eql(m);
 }
 
-test "Mat3x3_fromTranslationScalar" {
-    const m = math.Mat3x3.fromTranslationScalar(2);
-    try testing.expect(math.Mat3x3, math.Mat3x3.new(
+test "Matrix3_fromTranslationScalar" {
+    const m = math.Matrix3.fromTranslationScalar(2);
+    try testing.expect(math.Matrix3, math.Matrix3.new(
         &math.vec3(1, 0, 2),
         &math.vec3(0, 1, 2),
         &math.vec3(0, 0, 1),
     )).eql(m);
 }
 
-test "Mat2x2_fromTranslationScalar" {
-    const m = math.Mat2x2.fromTranslationScalar(2);
-    try testing.expect(math.Mat2x2, math.Mat2x2.new(
+test "Matrix2_fromTranslationScalar" {
+    const m = math.Matrix2.fromTranslationScalar(2);
+    try testing.expect(math.Matrix2, math.Matrix2.new(
         &math.vec2(1, 2),
         &math.vec2(0, 1),
     )).eql(m);
 }
 
-test "Mat4x4_fromTranslationScalar" {
-    const m = math.Mat4x4.fromTranslationScalar(2);
-    try testing.expect(math.Mat4x4, math.Mat4x4.new(
+test "Matrix4_fromTranslationScalar" {
+    const m = math.Matrix4.fromTranslationScalar(2);
+    try testing.expect(math.Matrix4, math.Matrix4.new(
         &math.vec4(1, 0, 0, 2),
         &math.vec4(0, 1, 0, 2),
         &math.vec4(0, 0, 1, 2),
@@ -1238,223 +1297,303 @@ test "Mat4x4_fromTranslationScalar" {
     )).eql(m);
 }
 
-test "Mat3x3_getTranslation" {
-    const m = math.Mat3x3.fromTranslation(&math.vec2(2, 3));
-    try testing.expect(math.Vec2, math.vec2(2, 3)).eql(m.getTranslation());
+test "Matrix3_getTranslation" {
+    const m = math.Matrix3.fromTranslation(&math.vec2(2, 3));
+    try testing.expect(math.Vector2, math.vec2(2, 3)).eql(m.getTranslation());
 }
 
-test "Mat4x4_getTranslation" {
-    const m = math.Mat4x4.fromTranslation(&math.vec3(2, 3, 4));
-    try testing.expect(math.Vec3, math.vec3(2, 3, 4)).eql(m.getTranslation());
+test "Matrix4_getTranslation" {
+    const m = math.Matrix4.fromTranslation(&math.vec3(2, 3, 4));
+    try testing.expect(math.Vector3, math.vec3(2, 3, 4)).eql(m.getTranslation());
 }
 
-test "Mat2x2_mulVec_vec2_ident" {
-    const v = math.Vec2.splat(1);
-    const ident = math.Mat2x2.ident;
+test "Matrix2_mulVec_vec2_ident" {
+    const v = math.Vector2.splat(1);
+    const identity = math.Matrix2.identity;
     const expected = v;
-    const m = math.Mat2x2.mulVec(&ident, &v);
+    const m = math.Matrix2.multiplyByVector(&identity, &v);
 
-    try testing.expect(math.Vec2, expected).eql(m);
+    try testing.expect(math.Vector2, expected).eql(m);
 }
 
-test "Mat2x2_mulVec_vec2" {
-    const v = math.Vec2.splat(1);
-    const mat = math.Mat2x2.new(
+test "Matrix2_mulVec_vec2" {
+    const v = math.Vector2.splat(1);
+    const mat = math.Matrix2.new(
         &math.vec2(2, 0),
         &math.vec2(0, 2),
     );
 
-    const m = math.Mat2x2.mulVec(&mat, &v);
+    const m = math.Matrix2.multiplyByVector(&mat, &v);
     const expected = math.vec2(2, 2);
-    try testing.expect(math.Vec2, expected).eql(m);
+    try testing.expect(math.Vector2, expected).eql(m);
 }
 
-test "Mat3x3_mulVec_vec3_ident" {
-    const v = math.Vec3.splat(1);
-    const ident = math.Mat3x3.ident;
+test "Matrix3_mulVec_vec3_ident" {
+    const v = math.Vector3.splat(1);
+    const identity = math.Matrix3.identity;
     const expected = v;
-    const m = math.Mat3x3.mulVec(&ident, &v);
+    const m = math.Matrix3.multiplyByVector(&identity, &v);
 
-    try testing.expect(math.Vec3, expected).eql(m);
+    try testing.expect(math.Vector3, expected).eql(m);
 }
 
-test "Mat3x3_mulVec_vec3" {
-    const v = math.Vec3.splat(1);
-    const mat = math.Mat3x3.new(
+test "Matrix3_mulVec_vec3" {
+    const v = math.Vector3.splat(1);
+    const mat = math.Matrix3.new(
         &math.vec3(2, 0, 0),
         &math.vec3(0, 2, 0),
         &math.vec3(0, 0, 3),
     );
 
-    const m = math.Mat3x3.mulVec(&mat, &v);
+    const m = math.Matrix3.multiplyByVector(&mat, &v);
     const expected = math.vec3(2, 2, 3);
-    try testing.expect(math.Vec3, expected).eql(m);
+    try testing.expect(math.Vector3, expected).eql(m);
 }
 
-test "Mat4x4_mulVec_vec4" {
+test "Matrix4_mulVec_vec4" {
     const v = math.vec4(2, 5, 1, 8);
-    const mat = math.Mat4x4.new(
+    const mat = math.Matrix4.new(
         &math.vec4(1, 0, 2, 0),
         &math.vec4(0, 3, 0, 4),
         &math.vec4(0, 0, 5, 0),
         &math.vec4(6, 0, 0, 7),
     );
 
-    const m = math.Mat4x4.mulVec(&mat, &v);
+    const m = math.Matrix4.multiplyByVector(&mat, &v);
     const expected = math.vec4(4, 47, 5, 68);
-    try testing.expect(math.Vec4, expected).eql(m);
+    try testing.expect(math.Vector4, expected).eql(m);
 }
 
-test "Mat2x2_mul" {
-    const a = math.Mat2x2.new(
+test "Matrix2_multiply" {
+    const a = math.Matrix2.new(
         &math.vec2(4, 2),
         &math.vec2(7, 9),
     );
-    const b = math.Mat2x2.new(
+    const b = math.Matrix2.new(
         &math.vec2(5, -7),
         &math.vec2(6, -3),
     );
-    const c = math.Mat2x2.mul(&a, &b);
+    const c = math.Matrix2.multiply(&a, &b);
 
-    const expected = math.Mat2x2.new(
+    const expected = math.Matrix2.new(
         &math.vec2(32, -34),
         &math.vec2(89, -76),
     );
-    try testing.expect(math.Mat2x2, expected).eql(c);
+    try testing.expect(math.Matrix2, expected).eql(c);
 }
 
-test "Mat3x3_mul" {
-    const a = math.Mat3x3.new(
+test "Matrix3_multiply" {
+    const a = math.Matrix3.new(
         &math.vec3(4, 2, -3),
         &math.vec3(7, 9, -8),
         &math.vec3(-1, 8, -8),
     );
-    const b = math.Mat3x3.new(
+    const b = math.Matrix3.new(
         &math.vec3(5, -7, -8),
         &math.vec3(6, -3, 2),
         &math.vec3(-3, -4, 4),
     );
-    const c = math.Mat3x3.mul(&a, &b);
+    const c = math.Matrix3.multiply(&a, &b);
 
-    const expected = math.Mat3x3.new(
+    const expected = math.Matrix3.new(
         &math.vec3(41, -22, -40),
         &math.vec3(113, -44, -70),
         &math.vec3(67, 15, -8),
     );
-    try testing.expect(math.Mat3x3, expected).eql(c);
+    try testing.expect(math.Matrix3, expected).eql(c);
 }
 
-test "Mat4x4_mul" {
-    const a = math.Mat4x4.new(
+test "Matrix4_multiply" {
+    const a = math.Matrix4.new(
         &math.vec4(10, -5, 6, -2),
         &math.vec4(0, -1, 0, 9),
         &math.vec4(-1, 6, -4, 8),
         &math.vec4(9, -8, -6, -10),
     );
-    const b = math.Mat4x4.new(
+    const b = math.Matrix4.new(
         &math.vec4(7, -7, -3, -8),
         &math.vec4(1, -1, -7, -2),
         &math.vec4(-10, 2, 2, -2),
         &math.vec4(10, -7, 7, 1),
     );
-    const c = math.Mat4x4.mul(&a, &b);
+    const c = math.Matrix4.multiply(&a, &b);
 
-    const expected = math.Mat4x4.new(
+    const expected = math.Matrix4.new(
         &math.vec4(-15, -39, 3, -84),
         &math.vec4(89, -62, 70, 11),
         &math.vec4(119, -63, 9, 12),
         &math.vec4(15, 3, -53, -54),
     );
-    try testing.expect(math.Mat4x4, expected).eql(c);
+    try testing.expect(math.Matrix4, expected).eql(c);
 }
 
-test "Mat4x4_eql_not_ident" {
-    const m1 = math.Mat4x4.new(
+test "Matrix4_eql_not_ident" {
+    const m1 = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    const m2 = math.Mat4x4.new(
+    const m2 = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4.5, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    try testing.expect(bool, math.Mat4x4.eql(&m1, &m2)).eql(false);
+    try testing.expect(bool, math.Matrix4.eql(&m1, &m2)).eql(false);
 }
 
-test "Mat4x4_eql_ident" {
-    const m1 = math.Mat4x4.new(
+test "Matrix4_eql_ident" {
+    const m1 = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    const m2 = math.Mat4x4.new(
+    const m2 = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    try testing.expect(bool, math.Mat4x4.eql(&m1, &m2)).eql(true);
+    try testing.expect(bool, math.Matrix4.eql(&m1, &m2)).eql(true);
 }
 
-test "Mat4x4_eqlApprox_not_ident" {
-    const m1 = math.Mat4x4.new(
+test "Matrix4_eqlApprox_not_ident" {
+    const m1 = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    const m2 = math.Mat4x4.new(
+    const m2 = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4.11, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    try testing.expect(bool, math.Mat4x4.eqlApprox(&m1, &m2, 0.1)).eql(false);
+    try testing.expect(bool, math.Matrix4.eqlApprox(&m1, &m2, 0.1)).eql(false);
 }
 
-test "Mat4x4_eqlApprox_ident" {
-    const m1 = math.Mat4x4.new(
+test "Matrix4_eqlApprox_ident" {
+    const m1 = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    const m2 = math.Mat4x4.new(
+    const m2 = math.Matrix4.new(
         &math.vec4(0, 1, 2, 3),
         &math.vec4(4.09, 5, 6, 7),
         &math.vec4(8, 9, 10, 11),
         &math.vec4(12, 13, 14, 15),
     );
-    try testing.expect(bool, math.Mat4x4.eqlApprox(&m1, &m2, 0.1)).eql(true);
+    try testing.expect(bool, math.Matrix4.eqlApprox(&m1, &m2, 0.1)).eql(true);
 }
 
-test "Mat2x2_setScale" {
-    const oldScale = math.Vec2.new(2, 3);
-    const newScale = math.Vec2.new(4, 5);
-    var matrix = math.Mat2x2.fromScale(&oldScale);
-    try testing.expect(math.Vec2, oldScale).eql(matrix.getScale());
+test "Matrix2_setScale" {
+    const oldScale = math.Vector2.new(2, 3);
+    const newScale = math.Vector2.new(4, 5);
+    var matrix = math.Matrix2.fromScale(&oldScale);
+    try testing.expect(math.Vector2, oldScale).eql(matrix.getScale());
     matrix.setScale(&newScale);
-    try testing.expect(math.Vec2, newScale).eql(matrix.getScale());
+    try testing.expect(math.Vector2, newScale).eql(matrix.getScale());
 }
 
-test "Mat3x3_setScale" {
-    const oldScale = math.Vec3.new(2, 3, 4);
-    const newScale = math.Vec3.new(5, 6, 7);
-    var matrix = math.Mat3x3.fromScale(&oldScale);
-    try testing.expect(math.Vec3, oldScale).eql(matrix.getScale());
+test "Matrix3_setScale" {
+    const oldScale = math.Vector3.new(2, 3, 4);
+    const newScale = math.Vector3.new(5, 6, 7);
+    var matrix = math.Matrix3.fromScale(&oldScale);
+    try testing.expect(math.Vector3, oldScale).eql(matrix.getScale());
     matrix.setScale(&newScale);
-    try testing.expect(math.Vec3, newScale).eql(matrix.getScale());
+    try testing.expect(math.Vector3, newScale).eql(matrix.getScale());
 }
 
-test "Mat4x4_setScale" {
-    const oldScale = math.Vec3.new(2, 3, 4);
-    const newScale = math.Vec3.new(5, 6, 7);
-    var matrix = math.Mat3x3.fromScale(&oldScale);
-    try testing.expect(math.Vec3, oldScale).eql(matrix.getScale());
+test "Matrix4_setScale" {
+    const oldScale = math.Vector3.new(2, 3, 4);
+    const newScale = math.Vector3.new(5, 6, 7);
+    var matrix = math.Matrix3.fromScale(&oldScale);
+    try testing.expect(math.Vector3, oldScale).eql(matrix.getScale());
     matrix.setScale(&newScale);
-    try testing.expect(math.Vec3, newScale).eql(matrix.getScale());
+    try testing.expect(math.Vector3, newScale).eql(matrix.getScale());
+}
+
+test "Matrix4_multiplyByPoint" {
+    const array = [_]f64{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    const left = math.Matrix4D.fromColumnMajorArray(&array).transpose();
+    const right = math.vec3d(17, 18, 19);
+    const expected = math.vec3d(114, 334, 554);
+    try testing.expect(math.Vector3D, expected).eql(left.multiplyByPoint(&right));
+}
+
+test "Matrix4_multiplyByPointAsVector" {
+    const array = [_]f64{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    const left = math.Matrix4D.fromColumnMajorArray(&array).transpose();
+    const right = math.vec3d(17, 18, 19);
+    const expected = math.vec3d(110, 326, 542);
+    try testing.expect(math.Vector3D, expected).eql(left.multiplyByPointAsVector(&right));
+}
+
+test "Matrix4_multiplyByScalar" {
+    const array = [_]f64{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    const left = math.Matrix4D.fromColumnMajorArray(&array).transpose();
+    const array2 = [_]f64{ 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32 };
+    const expected = math.Matrix4D.fromColumnMajorArray(&array2).transpose();
+    try testing.expect(math.Matrix4D, expected).eql(left.multiplyByScalar(2));
+}
+
+test "Matrix4_negate" {
+    const array = [_]f64{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    const left = math.Matrix4D.fromColumnMajorArray(&array).transpose();
+    const array2 = [_]f64{ -1.0, -2.0, -3.0, -4.0, -5.0, -6.0, -7.0, -8.0, -9.0, -10.0, -11.0, -12.0, -13.0, -14.0, -15.0, -16.0 };
+    const expected = math.Matrix4D.fromColumnMajorArray(&array2).transpose();
+    try testing.expect(math.Matrix4D, expected).eql(left.negate());
+}
+
+test "Matrix4_multiplyByScale" {
+    {
+        const left = math.Matrix4D.fromColumnMajorArray(&.{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 0, 1 }).transpose();
+        const scale = math.vec3d(1, 1, 1);
+        const expected = left.multiply(&math.Matrix4D.fromScale(&scale));
+        try testing.expect(math.Matrix4D, expected).eql(left.multiplyByScale(&scale));
+    }
+    {
+        const left = math.Matrix4D.fromColumnMajorArray(&.{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 0, 0, 1 }).transpose();
+        const scale = math.vec3d(2, 3, 4);
+        const expected = left.multiply(&math.Matrix4D.fromScale(&scale));
+        try testing.expect(math.Matrix4D, expected).eql(left.multiplyByScale(&scale));
+    }
+}
+
+test "Matrix4_multiplyByUniformScale" {
+    const left = math.Matrix4D.fromColumnMajorArray(&.{ 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }).transpose();
+    const scale: f64 = 2;
+    const expected = math.Matrix4D.fromColumnMajorArray(&.{ 2 * scale, 3 * scale, 4 * scale, 5, 6 * scale, 7 * scale, 8 * scale, 9, 10 * scale, 11 * scale, 12 * scale, 13, 14, 15, 16, 17 }).transpose();
+    try testing.expect(math.Matrix4D, expected).eql(left.multiplyByUniformScale(scale));
+}
+
+test "Matrix4_inverse" {
+    const left = math.Matrix4D.fromColumnMajorArray(&.{ 0.72, 0.7, 0.0, 0.0, -0.4, 0.41, 0.82, 0.0, 0.57, -0.59, 0.57, -3.86, 0.0, 0.0, 0.0, 1.0 }).transpose();
+    const expected = math.Matrix4D.fromColumnMajorArray(&.{ 0.7150830193944467, -0.3976559229803265, 0.5720664155155574, 2.2081763638900513, 0.6930574657657118, 0.40901752077976433, -0.5884111702445733, -2.271267117144053, 0.0022922521876059163, 0.8210249357172755, 0.5732623731786561, 2.2127927604696125, 0.0, 0.0, 0.0, 1.0 }).transpose();
+    try testing.expect(math.Matrix4D, expected).eql(left.inverse());
+}
+
+test "Matrix4_fromTranslationQuaternionScale" {
+    const expected = math.Matrix4D.fromColumnMajorArray(&.{ 7.0, 0.0, 0.0, 1.0, 0.0, 0.0, 9.0, 2.0, 0.0, -8.0, 0.0, 3.0, 0.0, 0.0, 0.0, 1.0 }).transpose();
+    const returnedResult = math.Matrix4D.fromTranslationQuaternionScale(
+        &math.vec3d(1.0, 2.0, 3.0), // translation
+        &math.QuaternionD.fromAxisAngle(&math.Vector3D.unit_x, math.degreesToRadians(-90.0)), // rotation
+        &math.vec3d(7.0, 8.0, 9.0),
+    ); // scale
+    try testing.expect(bool, true).eql(expected.eqlApprox(&returnedResult, math.epsilon14));
+}
+
+test "Matrix4_lookAt" {
+    const position = math.vec3d(0.13089289583616875, 0.6058574068283575, 2.7756337072375956);
+    const target = math.Vector3D.fromZero();
+    const up = math.Vector3D.unit_y.clone();
+    const m = math.Matrix3D.lookAt(&position, &target, &up);
+    const mm = math.Matrix4D.fromRotation(&m);
+    const expect = math.Matrix4D.fromColumnMajorArray(&.{ 0.9988899201242548, 0, -0.04710549303594798, 0, -0.010034882991636218, 0.9770456595353209, -0.2127935156590389, 0, 0.04602421751104426, 0.21302999597049582, 0.9759610608109867, 0, 0, 0, 0, 1 }).transpose();
+    try testing.expect(bool,true).eql(expect.eqlApprox(&mm, math.epsilon11));
 }

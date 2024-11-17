@@ -2,9 +2,9 @@ const lib = @import("../lib.zig");
 const wgpu = lib.wgpu;
 const zgpu = lib.zgpu;
 const math = @import("math");
-const Mat4 = math.Mat4x4;
-const Vec3 = math.Vec3;
-const Quat = math.Quat;
+const Mat4 = math.Matrix4;
+const Vector3 = math.Vector3;
+const Quaternion = math.Quaternion;
 const mesh = @import("./index.zig");
 const Geometry = mesh.Geometry;
 const Material = mesh.Material;
@@ -15,9 +15,9 @@ pub const MeshUniforms = struct {
     projection: Mat4,
     pub fn new() MeshUniforms {
         return .{
-            .model = Mat4.identity(),
-            .view = Mat4.identity(),
-            .projection = Mat4.identity(),
+            .model = Mat4.fromIdentity(),
+            .view = Mat4.fromIdentity(),
+            .projection = Mat4.fromIdentity(),
         };
     }
 };
@@ -30,8 +30,8 @@ geometry: ?Geometry = null,
 material: ?Material = null,
 state: ?State = null,
 is_upload: bool = false,
-matrix: Mat4 = Mat4.identity(),
-matrixWorld: Mat4 = Mat4.identity(),
+matrix: Mat4 = Mat4.fromIdentity(),
+matrixWorld: Mat4 = Mat4.fromIdentity(),
 parent: ?*Self = null,
 children: lib.ArrayList(*Self),
 pub fn empty() *Self {
@@ -78,7 +78,7 @@ pub fn upload(self: *Self, ctx: *Context) void {
 }
 pub fn updateMatrixWorld(self: *Self) void {
     if (self.parent) |parent| {
-        self.matrixWorld = parent.matrixWorld.mul(&self.matrix);
+        self.matrixWorld = parent.matrixWorld.multiply(&self.matrix);
     } else {
         self.matrixWorld = self.matrix.clone();
     }

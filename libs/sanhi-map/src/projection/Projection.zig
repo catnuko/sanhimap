@@ -1,7 +1,7 @@
 const std = @import("std");
 const math = @import("../math.zig");
-const Vec3 = math.Vec3;
-const Mat4 = math.Mat4x4;
+const Vector3 = math.Vector3;
+const Mat4 = math.Matrix4;
 const Cartographic = @import("../Cartographic.zig").Cartographic;
 const AABB = @import("../AABB.zig").AABB;
 const GeoBox = @import("../GeoBox.zig").GeoBox;
@@ -21,14 +21,14 @@ pub fn Projection(comptime Impl: type) type {
             return this.impl.worldExtent(minElevation, maxElevation);
         }
 
-        pub fn project(this: This, geoPoint: *const Cartographic) Vec3 {
+        pub fn project(this: This, geoPoint: *const Cartographic) Vector3 {
             return this.impl.project(geoPoint);
         }
-        pub fn unproject(this: This, worldPoint: *const Vec3) Cartographic {
+        pub fn unproject(this: This, worldPoint: *const Vector3) Cartographic {
             return this.impl.unproject(worldPoint);
         }
 
-        pub fn reproject(this: This, comptime P: type, sourceProjection: *const P, geoPoint: *const Vec3) Vec3 {
+        pub fn reproject(this: This, comptime P: type, sourceProjection: *const P, geoPoint: *const Vector3) Vector3 {
             return this.impl.reproject(sourceProjection, geoPoint);
         }
 
@@ -39,20 +39,20 @@ pub fn Projection(comptime Impl: type) type {
             return this.impl.unprojectBox(worldBox);
         }
 
-        pub fn unprojectAltitude(this: This, worldPoint: *const Vec3) f64 {
+        pub fn unprojectAltitude(this: This, worldPoint: *const Vector3) f64 {
             return this.impl.unprojectAltitude(worldPoint);
         }
 
-        pub fn getScaleFactor(this: This, worldPoint: *const Vec3) f64 {
+        pub fn getScaleFactor(this: This, worldPoint: *const Vector3) f64 {
             return this.impl.getScaleFactor(worldPoint);
         }
-        pub fn surfaceNormal(this: This, worldPoint: *const Vec3) f64 {
+        pub fn surfaceNormal(this: This, worldPoint: *const Vector3) f64 {
             return this.impl.surfaceNormal(worldPoint);
         }
-        pub fn groundDistance(this: This, worldPoint: *const Vec3) f64 {
+        pub fn groundDistance(this: This, worldPoint: *const Vector3) f64 {
             return this.impl.groundDistance(worldPoint);
         }
-        pub fn scalePointToSurface(this: This, worldPoint: *const Vec3) Vec3 {
+        pub fn scalePointToSurface(this: This, worldPoint: *const Vector3) Vector3 {
             return this.impl.scalePointToSurface(worldPoint);
         }
         pub fn localTangentSpace(this: This, geoPoint: *const Cartographic) Mat4 {

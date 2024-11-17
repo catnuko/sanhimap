@@ -88,9 +88,9 @@ pub const Rectangle = struct {
             }
         }
         return ((longitude > west or
-            math.eql(f64, longitude, west, math.EPSILON14)) and
+            math.eql(f64, longitude, west, math.epsilon14)) and
             (longitude < east or
-            math.eql(f64, longitude, east, math.EPSILON14)) and
+            math.eql(f64, longitude, east, math.epsilon14)) and
             latitude >= self.south and
             latitude <= self.north);
     }

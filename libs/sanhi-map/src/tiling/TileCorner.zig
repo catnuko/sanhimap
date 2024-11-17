@@ -1,10 +1,10 @@
 const math = @import("../math.zig");
 const shm = @import("../lib.zig");
 pub const TileCorner = struct {
-    se: math.Vec3,
-    sw: math.Vec3,
-    ne: math.Vec3,
-    nw: math.Vec3,
+    se: math.Vector3,
+    sw: math.Vector3,
+    ne: math.Vector3,
+    nw: math.Vector3,
     const Self = @This();
 };
 

@@ -6,13 +6,13 @@ const Mesh = mesh.Mesh;
 const Geometry = mesh.Geometry;
 const Material = mesh.Material;
 const math = @import("math");
-const Mat4 = math.Mat4x4;
-const Vec3 = math.Vec3;
+const Mat4 = math.Matrix4;
+const Vector3 = math.Vector3;
 const wgsl_vs =
     \\  struct MeshUniforms {
-    \\      model: mat4x4<f32>,
-    \\      view: mat4x4<f32>,
-    \\      projection: mat4x4<f32>,
+    \\      model: mat4<f32>,
+    \\      view: mat4<f32>,
+    \\      projection: mat4<f32>,
     \\  }
     \\  @group(0) @binding(0) var<uniform> uniforms: MeshUniforms;
     \\  struct VertexOut {

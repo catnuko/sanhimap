@@ -168,7 +168,7 @@ pub const GeoBox = struct {
         }
     }
 };
-const GEOCOORDS_EPSILON = 0.000001;
+const GEOCOORDS_epsilon = 0.000001;
 test "GeoBox.center" {
     const testing = @import("std").testing;
     const t = std.math.degreesToRadians;
@@ -178,10 +178,10 @@ test "GeoBox.center" {
     try testing.expectEqual(g.north(), t(10));
     try testing.expectEqual(g.south(), t(-10));
     const center = g.center();
-    try testing.expectApproxEqAbs(center.lon, t(185), GEOCOORDS_EPSILON);
-    try testing.expectApproxEqAbs(center.lat, t(0), GEOCOORDS_EPSILON);
-    try testing.expectApproxEqAbs(g.longitudeSpan(), t(30), GEOCOORDS_EPSILON);
-    try testing.expectApproxEqAbs(g.latitudeSpan(), t(20), GEOCOORDS_EPSILON);
+    try testing.expectApproxEqAbs(center.lon, t(185), GEOCOORDS_epsilon);
+    try testing.expectApproxEqAbs(center.lat, t(0), GEOCOORDS_epsilon);
+    try testing.expectApproxEqAbs(g.longitudeSpan(), t(30), GEOCOORDS_epsilon);
+    try testing.expectApproxEqAbs(g.latitudeSpan(), t(20), GEOCOORDS_epsilon);
 
     try testing.expect(g.contains(Cartographic.fromDegrees(180, 0, 0)));
     try testing.expect(g.contains(Cartographic.fromDegrees(190, 0, 0)));

@@ -85,7 +85,7 @@ pub const String = struct {
 
     /// Appends a character onto the end of the String
     pub fn concat(self: *String, char: []const u8) Error!void {
-        try self.insert(char, self.len());
+        try self.insert(char, self.length());
     }
 
     /// Inserts a string literal into the String at an index
@@ -103,7 +103,7 @@ pub const String = struct {
 
         // If the index is >= len, then simply push to the end.
         // If not, then copy contents over and insert literal.
-        if (index == self.len()) {
+        if (index == self.length()) {
             var i: usize = 0;
             while (i < literal.len) : (i += 1) {
                 buffer[self.size + i] = literal[i];
@@ -245,7 +245,7 @@ pub const String = struct {
     /// Removes a range of character from the String
     /// Start (inclusive) - End (Exclusive)
     pub fn removeRange(self: *String, start: usize, end: usize) Error!void {
-        const length = self.len();
+        const length = self.length();
         if (end < start or end > length) return Error.InvalidRange;
 
         if (self.buffer) |buffer| {
@@ -594,11 +594,11 @@ test "String Tests" {
     assert(myStr.size == 17);
 
     // pop & length
-    assert(myStr.len() == 9);
+    assert(myStr.length() == 9);
     assert(eql(u8, myStr.pop().?, "🔥"));
-    assert(myStr.len() == 8);
+    assert(myStr.length() == 8);
     assert(eql(u8, myStr.pop().?, "o"));
-    assert(myStr.len() == 7);
+    assert(myStr.length() == 7);
 
     // str & cmp
     assert(myStr.cmp("A\u{5360}💯Hell"));
@@ -622,7 +622,7 @@ test "String Tests" {
     // remove & removeRange
     try myStr.removeRange(0, 3);
     assert(myStr.cmp("💯Hell"));
-    try myStr.remove(myStr.len() - 1);
+    try myStr.remove(myStr.length() - 1);
     assert(myStr.cmp("💯Hel"));
 
     const whitelist = [_]u8{ ' ', '\t', '\n', '\r' };
@@ -690,7 +690,7 @@ test "String Tests" {
 
     // clear
     myStr.clear();
-    assert(myStr.len() == 0);
+    assert(myStr.length() == 0);
     assert(myStr.size == 0);
 
     // writer
@@ -713,7 +713,7 @@ test "String Tests" {
         i += 1;
     }
 
-    assert(i == myStr.len());
+    assert(i == myStr.length());
 
     // setStr
     const contents = "setStr Test!";

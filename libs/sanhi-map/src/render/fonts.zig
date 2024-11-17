@@ -56,7 +56,7 @@ pub fn getCharQuad(font: *LoadedFont, char_index: usize, x_pos: *f32, y_pos: *f3
 
     var char_quad: CharQuad = .{
         .tex_region = sprites.TextureRegion.default(),
-        .rect = Rect.fromSize(math.Vec2.new(1.0, 1.0)),
+        .rect = Rect.fromSize(math.Vector2.new(1.0, 1.0)),
     };
 
     // tex region
@@ -192,10 +192,10 @@ pub fn getStringBoundsWithKerning(font: *LoadedFont, string: []const u8, x: f32,
     const orig_x: f32 = x_pos;
 
     var set_min: bool = false;
-    var rect_min: math.Vec2 = math.Vec2.zero;
+    var rect_min: math.Vector2 = math.Vector2.zero;
 
     var set_max: bool = false;
-    var rect_max: math.Vec2 = math.Vec2.zero;
+    var rect_max: math.Vector2 = math.Vector2.zero;
 
     for (string) |char| {
         if (char == '\n') {
@@ -232,5 +232,5 @@ pub fn getStringBoundsWithKerning(font: *LoadedFont, string: []const u8, x: f32,
         }
     }
 
-    return Rect.new(rect_min, rect_max.sub(rect_min));
+    return Rect.new(rect_min, rect_max.subtract(rect_min));
 }

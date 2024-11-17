@@ -2,7 +2,7 @@ const std = @import("std");
 const math = @import("../math.zig");
 const debug = @import("../debug.zig");
 
-const Vec2 = math.Vec2;
+const Vector2 = math.Vector2;
 
 pub const Rect = struct {
     x: f32,
@@ -11,10 +11,10 @@ pub const Rect = struct {
     height: f32,
 
     // positioning
-    origin: ?Vec2 = null,
+    origin: ?Vector2 = null,
 
     /// Creates a new rectangle, where pos is the bottom-left
-    pub fn new(pos: Vec2, size: Vec2) Rect {
+    pub fn new(pos: Vector2, size: Vector2) Rect {
         return Rect{
             .x = pos.x,
             .y = pos.y,
@@ -24,7 +24,7 @@ pub const Rect = struct {
     }
 
     /// Creates a new rectangle, where pos is the center
-    pub fn newCentered(pos: Vec2, size: Vec2) Rect {
+    pub fn newCentered(pos: Vector2, size: Vector2) Rect {
         return Rect{
             .x = pos.x - (size.x * 0.5),
             .y = pos.y - (size.y * 0.5),
@@ -35,7 +35,7 @@ pub const Rect = struct {
     }
 
     /// Creates a new rectangle, where the position is zero
-    pub fn fromSize(size: Vec2) Rect {
+    pub fn fromSize(size: Vector2) Rect {
         return Rect{
             .x = 0.0,
             .y = 0.0,
@@ -45,66 +45,66 @@ pub const Rect = struct {
     }
 
     /// Applys an origin to a rectangle by offsetting it, and the origin will end up being 0,0.
-    pub fn applyOrigin(self: *const Rect, origin: Vec2) Rect {
+    pub fn applyOrigin(self: *const Rect, origin: Vector2) Rect {
         var rect = self.*;
         rect.origin = origin;
 
-        const diff = if (self.origin != null) self.origin.?.sub(origin) else origin.scale(-1);
+        const diff = if (self.origin != null) self.origin.?.subtract(origin) else origin.scale(-1);
         return rect.translate(diff);
     }
 
     /// Creates a new rectangle, where the center is zero
-    pub fn fromSizeCentered(size: Vec2) Rect {
+    pub fn fromSizeCentered(size: Vector2) Rect {
         return Rect{
             .x = -size.x * 0.5,
             .y = -size.y * 0.5,
             .width = size.x,
             .height = size.y,
-            .origin = Vec2.zero(),
+            .origin = Vector2.fromZero(),
         };
     }
 
     /// Gets the rect position, which will be the origin if given or the bottom left if not
-    pub fn getPosition(self: *const Rect) Vec2 {
+    pub fn getPosition(self: *const Rect) Vector2 {
         if (self.origin != null)
             return self.origin.?;
 
-        return Vec2.new(self.x, self.y);
+        return Vector2.new(self.x, self.y);
     }
 
     /// Returns a Rect with an updated position and origin
-    pub fn setPosition(self: *const Rect, new_pos: Vec2) Rect {
+    pub fn setPosition(self: *const Rect, new_pos: Vector2) Rect {
         const pos = self.getPosition();
-        const diff = new_pos.sub(pos);
+        const diff = new_pos.subtract(pos);
         return self.*.translate(diff);
     }
 
-    pub fn getSize(self: *const Rect) Vec2 {
-        return Vec2.new(self.width, self.height);
+    pub fn getSize(self: *const Rect) Vector2 {
+        return Vector2.new(self.width, self.height);
     }
 
-    pub fn getCenter(self: *const Rect) Vec2 {
-        return Vec2.new(self.x + self.width * 0.5, self.y + self.height * 0.5);
+    pub fn getCenter(self: *const Rect) Vector2 {
+        return Vector2.new(self.x + self.width * 0.5, self.y + self.height * 0.5);
     }
 
-    pub fn getBottomLeft(self: *const Rect) Vec2 {
-        return Vec2.new(self.x, self.y);
+    pub fn getBottomLeft(self: *const Rect) Vector2 {
+        return Vector2.new(self.x, self.y);
     }
 
-    pub fn getTopLeft(self: *const Rect) Vec2 {
-        return Vec2.new(self.x, self.y + self.height);
+    pub fn getTopLeft(self: *const Rect) Vector2 {
+        return Vector2.new(self.x, self.y + self.height);
     }
 
-    pub fn getBottomRight(self: *const Rect) Vec2 {
-        return Vec2.new(self.x + self.width, self.y);
+    pub fn getBottomRight(self: *const Rect) Vector2 {
+        return Vector2.new(self.x + self.width, self.y);
     }
 
-    pub fn getTopRight(self: *const Rect) Vec2 {
-        return Vec2.new(self.x + self.width, self.y + self.height);
+    pub fn getTopRight(self: *const Rect) Vector2 {
+        return Vector2.new(self.x + self.width, self.y + self.height);
     }
 
     /// Check if this rectangle contains a point
-    pub fn containsPoint(self: *const Rect, point: Vec2) bool {
+    pub fn containsPoint(self: *const Rect, point: Vector2) bool {
         return (point.x >= self.x and
             point.y >= self.y and
             point.x < self.x + self.width and
@@ -160,7 +160,7 @@ pub const Rect = struct {
         return rect;
     }
 
-    pub fn translate(self: *const Rect, move_by: Vec2) Rect {
+    pub fn translate(self: *const Rect, move_by: Vector2) Rect {
         // make a copy!
         var rect = self.*;
         rect.x += move_by.x;

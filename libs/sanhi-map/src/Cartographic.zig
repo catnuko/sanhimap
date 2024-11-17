@@ -1,5 +1,5 @@
 const math = @import("./math.zig");
-const Vec3 = math.Vec3;
+const Vector3 = math.Vector3;
 
 pub const pi = math.pi;
 pub const MAX_LATITUDE = math.pi_over_two;
@@ -58,11 +58,11 @@ pub const Cartographic = struct {
         return @min(maxLongitude - minLongitude, pi + minLongitude - maxLongitude);
     }
 
-    pub fn fromVec3(vec3: Vec3) Self {
+    pub fn fromVec3(vec3: Vector3) Self {
         return Self.new(vec3.x(), vec3.y(), vec3.z());
     }
-    pub fn toVec3(self: *const Self) Vec3 {
-        return Vec3.new(self.lon, self.lat, self.height);
+    pub fn toVec3(self: *const Self) Vector3 {
+        return Vector3.new(self.lon, self.lat, self.height);
     }
     pub fn normalize(self: *const Self) Self {
         var lng = self.lon;

@@ -13,8 +13,8 @@ const autoHash = std.hash.autoHash;
 const Wyhash = std.hash.Wyhash;
 
 const Vertex = graphics.PackedVertex;
-const Vec2 = math.Vec2;
-const Vec3 = math.Vec3;
+const Vector2 = math.Vector2;
+const Vector3 = math.Vector3;
 const Mat4 = math.Mat4;
 const Color = colors.Color;
 const TextureRegion = sprites.TextureRegion;
@@ -41,7 +41,7 @@ const BatcherConfig = struct {
 pub const SpriteBatcher = struct {
     allocator: std.mem.Allocator,
     batches: std.AutoArrayHashMap(u64, Batcher) = undefined,
-    transform: Mat4 = Mat4.identity,
+    transform: Mat4 = Mat4.fromIdentity,
     draw_color: colors.Color = colors.white,
     config: BatcherConfig = BatcherConfig{},
     current_batch_key: u64 = 0,
@@ -120,7 +120,7 @@ pub const SpriteBatcher = struct {
     }
 
     /// Add an equilateral triangle to the current batch
-    pub fn addTriangle(self: *SpriteBatcher, pos: Vec2, size: Vec2, region: TextureRegion, color: Color) void {
+    pub fn addTriangle(self: *SpriteBatcher, pos: Vector2, size: Vector2, region: TextureRegion, color: Color) void {
         var batcher: ?*Batcher = self.getCurrentBatcher();
         if (batcher == null)
             return;
@@ -130,7 +130,7 @@ pub const SpriteBatcher = struct {
     }
 
     /// Adds a freeform triangle to the current batch
-    pub fn addTriangleFromVecs(self: *SpriteBatcher, v0: Vec2, v1: Vec2, v2: Vec2, uv0: Vec2, uv1: Vec2, uv2: Vec2, color: Color) void {
+    pub fn addTriangleFromVecs(self: *SpriteBatcher, v0: Vector2, v1: Vector2, v2: Vector2, uv0: Vector2, uv1: Vector2, uv2: Vector2, color: Color) void {
         var batcher: ?*Batcher = self.getCurrentBatcher();
         if (batcher == null)
             return;
@@ -140,7 +140,7 @@ pub const SpriteBatcher = struct {
     }
 
     /// Adds a textured line to the current batch
-    pub fn addLine(self: *SpriteBatcher, from: Vec2, to: Vec2, width: f32, region: TextureRegion, color: Color) void {
+    pub fn addLine(self: *SpriteBatcher, from: Vector2, to: Vector2, width: f32, region: TextureRegion, color: Color) void {
         var batcher: ?*Batcher = self.getCurrentBatcher();
         if (batcher == null)
             return;
@@ -239,7 +239,7 @@ pub const Batcher = struct {
     bindings: graphics.Bindings,
     shader: graphics.Shader,
     material: ?graphics.Material = null,
-    transform: Mat4 = Mat4.identity,
+    transform: Mat4 = Mat4.fromIdentity,
     flip_tex_y: bool = false,
 
     /// Setup and return a new Batcher
@@ -291,7 +291,7 @@ pub const Batcher = struct {
     }
 
     /// Add a four sided quad shape to the batch
-    pub fn addQuad(self: *Batcher, v0: Vec2, v1: Vec2, v2: Vec2, v3: Vec2, tex_region: TextureRegion, color: Color) void {
+    pub fn addQuad(self: *Batcher, v0: Vector2, v1: Vector2, v2: Vector2, v3: Vector2, tex_region: TextureRegion, color: Color) void {
         self.growBuffersToFit(self.vertex_pos + 4, self.index_pos + 6) catch {
             return;
         };
@@ -337,12 +337,12 @@ pub const Batcher = struct {
     }
 
     /// Add a line to the batch
-    pub fn addLine(self: *Batcher, from: Vec2, to: Vec2, width: f32, region: TextureRegion, color: Color) void {
-        const normal = to.sub(from).norm();
-        const right = Vec2.scale(&Vec2{ .x = -normal.y, .y = normal.x }, width * 0.5);
+    pub fn addLine(self: *Batcher, from: Vector2, to: Vector2, width: f32, region: TextureRegion, color: Color) void {
+        const normal = to.subtract(from).norm();
+        const right = Vector2.scale(&Vector2{ .x = -normal.y, .y = normal.x }, width * 0.5);
 
-        const v0 = from.sub(right);
-        const v1 = to.sub(right);
+        const v0 = from.subtract(right);
+        const v1 = to.subtract(right);
         const v2 = to.add(right);
         const v3 = from.add(right);
 
@@ -358,33 +358,33 @@ pub const Batcher = struct {
         const size = rect.getSize();
 
         // top and bottom
-        self.addLine(Vec2.new(pos.x - w, pos.y), Vec2.new(pos.x + size.x + w, pos.y), line_width, region, color);
-        self.addLine(Vec2.new(pos.x - w, pos.y + size.y), Vec2.new(pos.x + size.x + w, pos.y + size.y), line_width, region, color);
+        self.addLine(Vector2.new(pos.x - w, pos.y), Vector2.new(pos.x + size.x + w, pos.y), line_width, region, color);
+        self.addLine(Vector2.new(pos.x - w, pos.y + size.y), Vector2.new(pos.x + size.x + w, pos.y + size.y), line_width, region, color);
 
         // sides
-        self.addLine(Vec2.new(pos.x, pos.y), Vec2.new(pos.x, pos.y + size.y), line_width, region, color);
-        self.addLine(Vec2.new(pos.x + size.x, pos.y), Vec2.new(pos.x + size.x, pos.y + size.y), line_width, region, color);
+        self.addLine(Vector2.new(pos.x, pos.y), Vector2.new(pos.x, pos.y + size.y), line_width, region, color);
+        self.addLine(Vector2.new(pos.x + size.x, pos.y), Vector2.new(pos.x + size.x, pos.y + size.y), line_width, region, color);
     }
 
     /// Adds an equilateral triangle to the batch
-    pub fn addTriangle(self: *Batcher, pos: Vec2, size: Vec2, tex_region: TextureRegion, color: Color) void {
+    pub fn addTriangle(self: *Batcher, pos: Vector2, size: Vector2, tex_region: TextureRegion, color: Color) void {
         const region = if (self.flip_tex_y) tex_region.flipY() else tex_region;
 
-        const v0: Vec2 = Vec2{ .x = pos.x + size.x / 2.0, .y = pos.y + size.y };
-        const v1: Vec2 = pos;
-        const v2: Vec2 = Vec2{ .x = pos.x + size.x, .y = pos.y };
+        const v0: Vector2 = Vector2{ .x = pos.x + size.x / 2.0, .y = pos.y + size.y };
+        const v1: Vector2 = pos;
+        const v2: Vector2 = Vector2{ .x = pos.x + size.x, .y = pos.y };
 
         const u_mid = (region.u + region.u_2) / 2.0;
 
-        const uv0: Vec2 = Vec2.new(u_mid, region.v);
-        const uv1: Vec2 = Vec2.new(region.u, region.v_2);
-        const uv2: Vec2 = Vec2.new(region.u_2, region.v_2);
+        const uv0: Vector2 = Vector2.new(u_mid, region.v);
+        const uv1: Vector2 = Vector2.new(region.u, region.v_2);
+        const uv2: Vector2 = Vector2.new(region.u_2, region.v_2);
 
         self.addTriangleFromVecs(v0, v1, v2, uv0, uv1, uv2, color);
     }
 
     /// Add a freeform triangle to the batch
-    pub fn addTriangleFromVecs(self: *Batcher, v0: Vec2, v1: Vec2, v2: Vec2, uv0: Vec2, uv1: Vec2, uv2: Vec2, color: Color) void {
+    pub fn addTriangleFromVecs(self: *Batcher, v0: Vector2, v1: Vector2, v2: Vector2, uv0: Vector2, uv1: Vector2, uv2: Vector2, color: Color) void {
         self.growBuffersToFit(self.vertex_pos + 3, self.index_pos + 3) catch {
             return;
         };
@@ -413,16 +413,16 @@ pub const Batcher = struct {
     }
 
     /// Adds a circle to the batch
-    pub fn addCircle(self: *Batcher, center: Vec2, radius: f32, steps: i32, region: TextureRegion, color: Color) void {
+    pub fn addCircle(self: *Batcher, center: Vector2, radius: f32, steps: i32, region: TextureRegion, color: Color) void {
         var last = angleToVector(0, radius);
 
         const tau = std.math.pi * 2.0;
 
         _ = region;
 
-        const uv0 = Vec2.zero;
-        const uv1 = Vec2.zero;
-        const uv2 = Vec2.zero;
+        const uv0 = Vector2.zero;
+        const uv1 = Vector2.zero;
+        const uv2 = Vector2.zero;
 
         for (0..@intCast(steps + 1)) |i| {
             const if32: f32 = @floatFromInt(i);
@@ -434,7 +434,7 @@ pub const Batcher = struct {
     }
 
     /// Adds an outlined circle to the batch
-    pub fn addLineCircle(self: *Batcher, center: Vec2, radius: f32, steps: i32, line_width: f32, region: TextureRegion, color: Color) void {
+    pub fn addLineCircle(self: *Batcher, center: Vector2, radius: f32, steps: i32, line_width: f32, region: TextureRegion, color: Color) void {
         var last = angleToVector(0, radius);
 
         for (0..@intCast(steps + 1)) |i| {
@@ -476,7 +476,7 @@ pub const Batcher = struct {
 
         // Make our default uniform blocks
         const vs_params = VSParams{
-            .projViewMatrix = cam_matrices.proj.mul(cam_matrices.view),
+            .projViewMatrix = cam_matrices.proj.multiply(cam_matrices.view),
             .modelMatrix = model_matrix,
             .in_color = .{ 1.0, 1.0, 1.0, 1.0 },
             .texture_pan = .{ 0.0, 0.0, 0.0, 0.0 },
@@ -535,6 +535,6 @@ pub const Batcher = struct {
     }
 };
 
-fn angleToVector(angle: f32, length: f32) Vec2 {
-    return Vec2{ .x = std.math.cos(angle) * length, .y = std.math.sin(angle) * length };
+fn angleToVector(angle: f32, length: f32) Vector2 {
+    return Vector2{ .x = std.math.cos(angle) * length, .y = std.math.sin(angle) * length };
 }

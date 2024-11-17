@@ -14,134 +14,134 @@ fn radians(deg: f32) f32 {
     return deg * (math.pi / 180.0);
 }
 
-pub fn vec2(x: f32, y: f32) Vec2 {
-    return Vec2{ .x = x, .y = y };
+pub fn vec2(x: f32, y: f32) Vector2 {
+    return Vector2{ .x = x, .y = y };
 }
 
-pub const Vec2 = extern struct {
+pub const Vector2 = extern struct {
     x: f32,
     y: f32,
 
-    pub fn fromArray(val: [2]f32) Vec2 {
-        return Vec2{ .x = val[0], .y = val[1] };
+    pub fn fromArray(val: [2]f32) Vector2 {
+        return Vector2{ .x = val[0], .y = val[1] };
     }
 
-    pub fn new(x: f32, y: f32) Vec2 {
-        return Vec2{ .x = x, .y = y };
+    pub fn new(x: f32, y: f32) Vector2 {
+        return Vector2{ .x = x, .y = y };
     }
 
-    pub fn len(v: *const Vec2) f32 {
-        return math.sqrt(v.dot(Vec2.new(v.x, v.y)));
+    pub fn len(v: *const Vector2) f32 {
+        return math.sqrt(v.dot(Vector2.new(v.x, v.y)));
     }
 
-    pub fn add(left: *const Vec2, right: Vec2) Vec2 {
-        return Vec2{ .x = left.x + right.x, .y = left.y + right.y };
+    pub fn add(left: *const Vector2, right: Vector2) Vector2 {
+        return Vector2{ .x = left.x + right.x, .y = left.y + right.y };
     }
 
-    pub fn sub(left: *const Vec2, right: Vec2) Vec2 {
-        return Vec2{ .x = left.x - right.x, .y = left.y - right.y };
+    pub fn sub(left: *const Vector2, right: Vector2) Vector2 {
+        return Vector2{ .x = left.x - right.x, .y = left.y - right.y };
     }
 
-    pub fn scale(v: *const Vec2, s: f32) Vec2 {
-        return Vec2{ .x = v.x * s, .y = v.y * s };
+    pub fn scale(v: *const Vector2, s: f32) Vector2 {
+        return Vector2{ .x = v.x * s, .y = v.y * s };
     }
 
-    pub fn mul(left: *const Vec2, right: Vec2) Vec2 {
-        return Vec2{ .x = left.x * right.x, .y = left.y * right.y };
+    pub fn mul(left: *const Vector2, right: Vector2) Vector2 {
+        return Vector2{ .x = left.x * right.x, .y = left.y * right.y };
     }
 
-    pub fn norm(v: *const Vec2) Vec2 {
-        const l = Vec2.len(v);
+    pub fn norm(v: *const Vector2) Vector2 {
+        const l = Vector2.length(v);
         if (l != 0.0) {
-            return Vec2{ .x = v.x / l, .y = v.y / l };
+            return Vector2{ .x = v.x / l, .y = v.y / l };
         } else {
-            return Vec2.zero;
+            return Vector2.zero;
         }
     }
 
-    pub fn dot(v0: *const Vec2, v1: Vec2) f32 {
+    pub fn dot(v0: *const Vector2, v1: Vector2) f32 {
         return v0.x * v1.x + v0.y * v1.y;
     }
 
-    pub fn angleRadians(self: *const Vec2) f32 {
+    pub fn angleRadians(self: *const Vector2) f32 {
         return std.math.atan2(f32, self.y, self.x);
     }
 
-    pub fn angleDegrees(self: *const Vec2) f32 {
+    pub fn angleDegrees(self: *const Vector2) f32 {
         return std.math.atan2(f32, self.y, self.x) * (360.0 / (std.math.tau));
     }
 
-    pub const zero = Vec2.new(0.0, 0.0);
-    pub const one = Vec2.new(1.0, 1.0);
-    pub const x_axis = Vec2.new(1.0, 0.0);
-    pub const y_axis = Vec2.new(0.0, 1.0);
+    pub const zero = Vector2.new(0.0, 0.0);
+    pub const one = Vector2.new(1.0, 1.0);
+    pub const x_axis = Vector2.new(1.0, 0.0);
+    pub const y_axis = Vector2.new(0.0, 1.0);
 };
 
-pub fn vec3(x: f32, y: f32, z: f32) Vec3 {
-    return Vec3{ .x = x, .y = y, .z = z };
+pub fn vec3(x: f32, y: f32, z: f32) Vector3 {
+    return Vector3{ .x = x, .y = y, .z = z };
 }
 
-pub const Vec3 = extern struct {
+pub const Vector3 = extern struct {
     x: f32,
     y: f32,
     z: f32,
 
-    pub fn fromArray(val: [3]f32) Vec3 {
-        return Vec3{ .x = val[0], .y = val[1], .z = val[2] };
+    pub fn fromArray(val: [3]f32) Vector3 {
+        return Vector3{ .x = val[0], .y = val[1], .z = val[2] };
     }
 
-    pub fn toArray(self: Vec3) [3]f32 {
+    pub fn toArray(self: Vector3) [3]f32 {
         return [_]f32{ self.x, self.y, self.z };
     }
 
-    pub fn new(x: f32, y: f32, z: f32) Vec3 {
-        return Vec3{ .x = x, .y = y, .z = z };
+    pub fn new(x: f32, y: f32, z: f32) Vector3 {
+        return Vector3{ .x = x, .y = y, .z = z };
     }
 
-    pub fn lerp(start: Vec3, end: Vec3, alpha: f32) Vec3 {
+    pub fn lerp(start: Vector3, end: Vector3, alpha: f32) Vector3 {
         const t = std.math.clamp(alpha, 0.0, 1.0);
-        return start.add((end.sub(start)).scale(t));
+        return start.add((end.subtract(start)).scale(t));
     }
 
-    pub fn len(v: *const Vec3) f32 {
-        return math.sqrt(v.dot(Vec3.new(v.x, v.y, v.z)));
+    pub fn len(v: *const Vector3) f32 {
+        return math.sqrt(v.dot(Vector3.new(v.x, v.y, v.z)));
     }
 
-    pub fn add(left: *const Vec3, right: Vec3) Vec3 {
-        return Vec3{ .x = left.x + right.x, .y = left.y + right.y, .z = left.z + right.z };
+    pub fn add(left: *const Vector3, right: Vector3) Vector3 {
+        return Vector3{ .x = left.x + right.x, .y = left.y + right.y, .z = left.z + right.z };
     }
 
-    pub fn sub(left: *const Vec3, right: Vec3) Vec3 {
-        return Vec3{ .x = left.x - right.x, .y = left.y - right.y, .z = left.z - right.z };
+    pub fn sub(left: *const Vector3, right: Vector3) Vector3 {
+        return Vector3{ .x = left.x - right.x, .y = left.y - right.y, .z = left.z - right.z };
     }
 
-    pub fn scale(v: *const Vec3, s: f32) Vec3 {
-        return Vec3{ .x = v.x * s, .y = v.y * s, .z = v.z * s };
+    pub fn scale(v: *const Vector3, s: f32) Vector3 {
+        return Vector3{ .x = v.x * s, .y = v.y * s, .z = v.z * s };
     }
 
-    pub fn mul(left: *const Vec3, right: Vec3) Vec3 {
-        return Vec3{ .x = left.x * right.x, .y = left.y * right.y, .z = left.z * right.z };
+    pub fn mul(left: *const Vector3, right: Vector3) Vector3 {
+        return Vector3{ .x = left.x * right.x, .y = left.y * right.y, .z = left.z * right.z };
     }
 
-    pub fn norm(v: *const Vec3) Vec3 {
-        const l = Vec3.len(v);
+    pub fn norm(v: *const Vector3) Vector3 {
+        const l = Vector3.length(v);
         if (l != 0.0) {
-            return Vec3{ .x = v.x / l, .y = v.y / l, .z = v.z / l };
+            return Vector3{ .x = v.x / l, .y = v.y / l, .z = v.z / l };
         } else {
-            return Vec3.zero;
+            return Vector3.zero;
         }
     }
 
-    pub fn cross(v0: *const Vec3, v1: Vec3) Vec3 {
-        return Vec3{ .x = (v0.y * v1.z) - (v0.z * v1.y), .y = (v0.z * v1.x) - (v0.x * v1.z), .z = (v0.x * v1.y) - (v0.y * v1.x) };
+    pub fn cross(v0: *const Vector3, v1: Vector3) Vector3 {
+        return Vector3{ .x = (v0.y * v1.z) - (v0.z * v1.y), .y = (v0.z * v1.x) - (v0.x * v1.z), .z = (v0.x * v1.y) - (v0.y * v1.x) };
     }
 
-    pub fn dot(v0: *const Vec3, v1: Vec3) f32 {
+    pub fn dot(v0: *const Vector3, v1: Vector3) f32 {
         return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z;
     }
 
-    pub fn mulMat4(left: *const Vec3, right: Mat4) Vec3 {
-        var res = Vec3.zero;
+    pub fn mulMat4(left: *const Vector3, right: Mat4) Vector3 {
+        var res = Vector3.zero;
         res.x += left.x * right.m[0][0];
         res.y += left.x * right.m[0][1];
         res.z += left.x * right.m[0][2];
@@ -157,7 +157,7 @@ pub const Vec3 = extern struct {
         return res;
     }
 
-    pub fn rotate(left: *const Vec3, angle: f32, axis: Vec3) Vec3 {
+    pub fn rotate(left: *const Vector3, angle: f32, axis: Vector3) Vector3 {
         // Using the Euler–Rodrigues formula
         const axis_norm = axis.norm();
 
@@ -175,62 +175,62 @@ pub const Vec3 = extern struct {
         return left.add(swv).add(swwv);
     }
 
-    pub fn min(left: Vec3, right: Vec3) Vec3 {
-        return Vec3.new(@min(left.x, right.x), @min(left.y, right.y), @min(left.z, right.z));
+    pub fn min(left: Vector3, right: Vector3) Vector3 {
+        return Vector3.new(@min(left.x, right.x), @min(left.y, right.y), @min(left.z, right.z));
     }
 
-    pub fn max(left: Vec3, right: Vec3) Vec3 {
-        return Vec3.new(@max(left.x, right.x), @max(left.y, right.y), @max(left.z, right.z));
+    pub fn max(left: Vector3, right: Vector3) Vector3 {
+        return Vector3.new(@max(left.x, right.x), @max(left.y, right.y), @max(left.z, right.z));
     }
 
-    pub fn toVec4(v: *const Vec3) Vec4 {
-        return Vec4.new(v.x, v.y, v.z, 0.0);
+    pub fn toVec4(v: *const Vector3) Vector4 {
+        return Vector4.new(v.x, v.y, v.z, 0.0);
     }
 
-    pub const zero = Vec3.new(0.0, 0.0, 0.0);
-    pub const one = Vec3.new(1.0, 1.0, 1.0);
-    pub const x_axis = Vec3.new(1.0, 0.0, 0.0);
-    pub const y_axis = Vec3.new(0.0, 1.0, 0.0);
-    pub const z_axis = Vec3.new(0.0, 0.0, 1.0);
-    pub const up = Vec3.new(0.0, 1.0, 0.0);
-    pub const down = Vec3.new(0.0, -1.0, 0.0);
+    pub const zero = Vector3.new(0.0, 0.0, 0.0);
+    pub const one = Vector3.new(1.0, 1.0, 1.0);
+    pub const x_axis = Vector3.new(1.0, 0.0, 0.0);
+    pub const y_axis = Vector3.new(0.0, 1.0, 0.0);
+    pub const z_axis = Vector3.new(0.0, 0.0, 1.0);
+    pub const up = Vector3.new(0.0, 1.0, 0.0);
+    pub const down = Vector3.new(0.0, -1.0, 0.0);
 };
 
-pub const Vec4 = extern struct {
+pub const Vector4 = extern struct {
     x: f32,
     y: f32,
     z: f32,
     w: f32,
 
-    pub fn fromArray(val: [4]f32) Vec4 {
-        return Vec4{ .x = val[0], .y = val[1], .z = val[2], .w = val[3] };
+    pub fn fromArray(val: [4]f32) Vector4 {
+        return Vector4{ .x = val[0], .y = val[1], .z = val[2], .w = val[3] };
     }
 
-    pub fn toArray(self: Vec4) [4]f32 {
+    pub fn toArray(self: Vector4) [4]f32 {
         return [_]f32{ self.x, self.y, self.z, self.w };
     }
 
-    pub fn new(x: f32, y: f32, z: f32, w: f32) Vec4 {
-        return Vec4{ .x = x, .y = y, .z = z, .w = w };
+    pub fn new(x: f32, y: f32, z: f32, w: f32) Vector4 {
+        return Vector4{ .x = x, .y = y, .z = z, .w = w };
     }
 
-    pub fn add(left: *const Vec4, right: Vec4) Vec3 {
-        return Vec4{ .x = left.x + right.x, .y = left.y + right.y, .z = left.z + right.z, .w = left.w + right.w };
+    pub fn add(left: *const Vector4, right: Vector4) Vector3 {
+        return Vector4{ .x = left.x + right.x, .y = left.y + right.y, .z = left.z + right.z, .w = left.w + right.w };
     }
 
-    pub fn sub(left: *const Vec4, right: Vec4) Vec3 {
-        return Vec4{ .x = left.x - right.x, .y = left.y - right.y, .z = left.z - right.z, .w = left.w - right.w };
+    pub fn sub(left: *const Vector4, right: Vector4) Vector3 {
+        return Vector4{ .x = left.x - right.x, .y = left.y - right.y, .z = left.z - right.z, .w = left.w - right.w };
     }
 
-    pub fn scale(v: *const Vec4, s: f32) Vec4 {
-        return Vec4{ .x = v.x * s, .y = v.y * s, .z = v.z * s, .w = v.w * s };
+    pub fn scale(v: *const Vector4, s: f32) Vector4 {
+        return Vector4{ .x = v.x * s, .y = v.y * s, .z = v.z * s, .w = v.w * s };
     }
 
-    pub fn mul(left: *const Vec4, right: Vec4) Vec4 {
-        return Vec4{ .x = left.x * right.x, .y = left.y * right.y, .z = left.z * right.z, .w = left.w * right.w };
+    pub fn mul(left: *const Vector4, right: Vector4) Vector4 {
+        return Vector4{ .x = left.x * right.x, .y = left.y * right.y, .z = left.z * right.z, .w = left.w * right.w };
     }
 
-    pub fn projMat4(v: *const Vec4, self: Mat4) Vec4 {
+    pub fn projMat4(v: *const Vector4, self: Mat4) Vector4 {
         const inv_w = 1.0 / (v.x * self.m[0][3] + v.y * self.m[1][3] + v.z * self.m[2][3] + self.m[3][3]);
 
         const x = (self.m[0][0] * v.x) + (self.m[1][0] * v.y) + (self.m[2][0] * v.z) + (self.m[3][0] * v.w);
@@ -238,11 +238,11 @@ pub const Vec4 = extern struct {
         const z = (self.m[0][2] * v.x) + (self.m[1][2] * v.y) + (self.m[2][2] * v.z) + (self.m[3][2] * v.w);
         const w = (self.m[0][3] * v.x) + (self.m[1][3] * v.y) + (self.m[2][3] * v.z) + (self.m[3][3] * v.w);
 
-        return Vec4.new(x * inv_w, y * inv_w, z * inv_w, w);
+        return Vector4.new(x * inv_w, y * inv_w, z * inv_w, w);
     }
 
-    pub fn mulMat4(left: *const Vec4, right: Mat4) Vec4 {
-        var res = Vec4.zero;
+    pub fn mulMat4(left: *const Vector4, right: Mat4) Vector4 {
+        var res = Vector4.zero;
         res.x += left.x * right.m[0][0];
         res.y += left.x * right.m[0][1];
         res.z += left.x * right.m[0][2];
@@ -262,25 +262,25 @@ pub const Vec4 = extern struct {
         return res;
     }
 
-    pub fn len(self: *const Vec4) f32 {
-        const v = Vec3.new(self.x, self.y, self.z);
-        return math.sqrt(v.dot(Vec3.new(v.x, v.y, v.z)));
+    pub fn len(self: *const Vector4) f32 {
+        const v = Vector3.new(self.x, self.y, self.z);
+        return math.sqrt(v.dot(Vector3.new(v.x, v.y, v.z)));
     }
 
-    pub fn norm(v: *const Vec4) Vec4 {
-        const l = Vec4.len(v);
+    pub fn norm(v: *const Vector4) Vector4 {
+        const l = Vector4.length(v);
         if (l != 0.0) {
-            return Vec4{ .x = v.x / l, .y = v.y / l, .z = v.z / l, .w = v.w / l };
+            return Vector4{ .x = v.x / l, .y = v.y / l, .z = v.z / l, .w = v.w / l };
         } else {
-            return Vec4.new(0, 0, 0, 0);
+            return Vector4.new(0, 0, 0, 0);
         }
     }
 
-    pub fn toVec3(v: *const Vec4) Vec3 {
-        return Vec3.new(v.x, v.y, v.z);
+    pub fn toVec3(v: *const Vector4) Vector3 {
+        return Vector3.new(v.x, v.y, v.z);
     }
 
-    pub const zero = Vec4.new(0.0, 0.0, 0.0, 1.0);
+    pub const zero = Vector4.new(0.0, 0.0, 0.0, 1.0);
 };
 
 pub const Mat4 = extern struct {
@@ -348,7 +348,7 @@ pub const Mat4 = extern struct {
     }
 
     // Create a Mat4 out of a translation, rotation, and scale
-    pub fn recompose(translation: Vec3, rotation: Quaternion, scalar: Vec3) Mat4 {
+    pub fn recompose(translation: Vector3, rotation: Quaternion, scalar: Vector3) Mat4 {
         var r = rotation.toMat4();
 
         r.m[0][0] *= scalar.x;
@@ -417,8 +417,8 @@ pub const Mat4 = extern struct {
         return inv_mat;
     }
 
-    pub fn scale(scaleVec3: Vec3) Mat4 {
-        var res = Mat4.identity;
+    pub fn scale(scaleVec3: Vector3) Mat4 {
+        var res = Mat4.fromIdentity;
         res.m[0][0] = scaleVec3.x;
         res.m[1][1] = scaleVec3.y;
         res.m[2][2] = scaleVec3.z;
@@ -426,7 +426,7 @@ pub const Mat4 = extern struct {
     }
 
     pub fn persp(fov: f32, aspect: f32, near: f32, far: f32) Mat4 {
-        var res = Mat4.identity;
+        var res = Mat4.fromIdentity;
         const t = math.tan(fov * (math.pi / 360.0));
         res.m[0][0] = 1.0 / t;
         res.m[1][1] = aspect / t;
@@ -451,10 +451,10 @@ pub const Mat4 = extern struct {
         return res;
     }
 
-    pub fn lookat(eye: Vec3, center: Vec3, up: Vec3) Mat4 {
+    pub fn lookat(eye: Vector3, center: Vector3, up: Vector3) Mat4 {
         var res = Mat4.zero;
 
-        const f = center.sub(eye).norm();
+        const f = center.subtract(eye).norm();
         const s = f.cross(up).norm();
         const u = s.cross(f);
 
@@ -478,8 +478,8 @@ pub const Mat4 = extern struct {
         return res;
     }
 
-    pub fn rotate(angle: f32, axis_unorm: Vec3) Mat4 {
-        var res = Mat4.identity;
+    pub fn rotate(angle: f32, axis_unorm: Vector3) Mat4 {
+        var res = Mat4.fromIdentity;
 
         const axis = axis_unorm.norm();
         const sin_theta = math.sin(radians(angle));
@@ -500,15 +500,15 @@ pub const Mat4 = extern struct {
     }
 
     /// Points in the direction of a vector
-    pub fn direction(dir: Vec3, axis: Vec3) Mat4 {
-        var res = Mat4.identity;
+    pub fn direction(dir: Vector3, axis: Vector3) Mat4 {
+        var res = Mat4.fromIdentity;
         const dir_norm = dir.norm();
         const axis_norm = axis.norm();
 
-        var xaxis: Vec3 = axis_norm.cross(dir_norm);
+        var xaxis: Vector3 = axis_norm.cross(dir_norm);
         xaxis = xaxis.norm();
 
-        var yaxis: Vec3 = dir_norm.cross(xaxis);
+        var yaxis: Vector3 = dir_norm.cross(xaxis);
         yaxis = yaxis.norm();
 
         res.m[0][0] = xaxis.x;
@@ -525,25 +525,25 @@ pub const Mat4 = extern struct {
     }
 
     /// Points in a direction, and flips if upside down. Useful for billboard sprites!
-    pub fn billboard(dir: Vec3, up: Vec3) Mat4 {
+    pub fn billboard(dir: Vector3, up: Vector3) Mat4 {
         var rot_matrix = Mat4.direction(dir, up);
 
         // need to flip things if we're upside down
         if (up.y < 0 and dir.y == 0)
-            rot_matrix = rot_matrix.mul(Mat4.scale(Vec3.new(1, -1, 1)));
+            rot_matrix = rot_matrix.multiply(Mat4.scale(Vector3.new(1, -1, 1)));
 
         return rot_matrix;
     }
 
-    pub fn translate(translation: Vec3) Mat4 {
-        var res = Mat4.identity;
+    pub fn translate(translation: Vector3) Mat4 {
+        var res = Mat4.fromIdentity;
         res.m[3][0] = translation.x;
         res.m[3][1] = translation.y;
         res.m[3][2] = translation.z;
         return res;
     }
 
-    pub const identity = Mat4{
+    pub const fromIdentity = Mat4{
         .m = [_][4]f32{ .{ 1.0, 0.0, 0.0, 0.0 }, .{ 0.0, 1.0, 0.0, 0.0 }, .{ 0.0, 0.0, 1.0, 0.0 }, .{ 0.0, 0.0, 0.0, 1.0 } },
     };
 
@@ -559,7 +559,7 @@ pub const Quaternion = struct {
     w: f32,
 
     pub const zero = Quaternion{ .x = 0.0, .y = 0.0, .z = 0.0, .w = 0.0 };
-    pub const identity = Quaternion{ .x = 0.0, .y = 0.0, .z = 0.0, .w = 1.0 };
+    pub const fromIdentity = Quaternion{ .x = 0.0, .y = 0.0, .z = 0.0, .w = 1.0 };
 
     pub fn new(x: f32, y: f32, z: f32, w: f32) Quaternion {
         return Quaternion{ .x = x, .y = y, .z = z, .w = w };
@@ -624,7 +624,7 @@ pub const Quaternion = struct {
 
     pub fn inv(self: *const Quaternion) Quaternion {
         const result = Quaternion.new(-self.x, -self.y, -self.z, self.w);
-        return result.div(self.dot(self));
+        return result.divide(self.dot(self));
     }
 
     pub fn lerp(left: Quaternion, right: Quaternion, alpha: f32) Quaternion {
@@ -658,7 +658,7 @@ pub const Quaternion = struct {
     }
 
     pub fn toMat4(self: *const Quaternion) Mat4 {
-        var result: Mat4 = Mat4.identity;
+        var result: Mat4 = Mat4.fromIdentity;
 
         const normalized = self.norm();
 
@@ -740,11 +740,11 @@ pub const Quaternion = struct {
         return result.scale(0.5 / @sqrt(t));
     }
 
-    pub fn fromAxisAndAngle(angle: f32, axis: Vec3) Quaternion {
+    pub fn fromAxisAndAngle(angle: f32, axis: Vector3) Quaternion {
         const angle_rad = radians(angle);
 
         var result = Quaternion.zero;
-        const axis_normalized: Vec3 = axis.norm();
+        const axis_normalized: Vector3 = axis.norm();
         const sin_of_rotation = std.math.sin(angle_rad / 2.0);
 
         const r = axis_normalized.scale(sin_of_rotation);
@@ -757,62 +757,62 @@ pub const Quaternion = struct {
         return result;
     }
 
-    pub fn rotateVec3(left: Quaternion, right: Vec3) Vec3 {
-        const quat_vec = Vec3.new(left.x, left.y, left.z);
+    pub fn rotateVec3(left: Quaternion, right: Vector3) Vector3 {
+        const quat_vec = Vector3.new(left.x, left.y, left.z);
         const t = quat_vec.cross(right).scale(2.0);
         return right.add(t.scale(left.w).add(quat_vec.cross(t)));
     }
 
-    pub fn fromAxisAndAngleLH(angle: f32, axis: Vec3) Quaternion {
+    pub fn fromAxisAndAngleLH(angle: f32, axis: Vector3) Quaternion {
         return Quaternion.fromAxisAngle(-angle, axis);
     }
 };
 
-test "Vec3.zero" {
-    const v = Vec3.zero;
+test "Vector3.zero" {
+    const v = Vector3.zero;
     assert(v.x == 0.0 and v.y == 0.0 and v.z == 0.0);
 }
 
-test "Vec3.new" {
-    const v = Vec3.new(1.0, 2.0, 3.0);
+test "Vector3.new" {
+    const v = Vector3.new(1.0, 2.0, 3.0);
     assert(v.x == 1.0 and v.y == 2.0 and v.z == 3.0);
 }
 
-test "Vec3.fromArray" {
-    const v = Vec3.fromArray(.{ 1.0, 2.0, 3.0 });
+test "Vector3.fromArray" {
+    const v = Vector3.fromArray(.{ 1.0, 2.0, 3.0 });
     assert(v.x == 1.0 and v.y == 2.0 and v.z == 3.0);
 }
 
-test "Vec2.zero" {
-    const v = Vec2.zero;
+test "Vector2.zero" {
+    const v = Vector2.zero;
     assert(v.x == 0.0 and v.y == 0.0);
 }
 
-test "Vec2.fromArray" {
-    const v = Vec2.fromArray(.{ 1.0, 2.0 });
+test "Vector2.fromArray" {
+    const v = Vector2.fromArray(.{ 1.0, 2.0 });
     assert(v.x == 1.0 and v.y == 2.0);
 }
 
-test "Vec2.new" {
-    const v = Vec2.new(1.0, 2.0);
+test "Vector2.new" {
+    const v = Vector2.new(1.0, 2.0);
     assert(v.x == 1.0 and v.y == 2.0);
 }
 
-test "Vec2.len" {
-    const v = Vec2.new(2.0, 0.0).len();
+test "Vector2.len" {
+    const v = Vector2.new(2.0, 0.0).length();
     assert(v == 2.0);
 
-    const v2 = Vec2.new(0.0, 1.0).len();
+    const v2 = Vector2.new(0.0, 1.0).length();
     assert(v2 == 1.0);
 }
 
-test "Vec2.norm" {
-    const v = Vec2.new(2.0, 0.0).norm();
+test "Vector2.norm" {
+    const v = Vector2.new(2.0, 0.0).norm();
     assert(v.x == 1.0 and v.y == 0.0);
 }
 
-test "Mat4.ident" {
-    const m = Mat4.identity;
+test "Mat4.identity" {
+    const m = Mat4.fromIdentity;
     for (m.m, 0..) |row, y| {
         for (row, 0..) |val, x| {
             if (x == y) {
@@ -825,9 +825,9 @@ test "Mat4.ident" {
 }
 
 test "Mat4.mul" {
-    const l = Mat4.identity;
-    const r = Mat4.identity;
-    const m = l.mul(r);
+    const l = Mat4.fromIdentity;
+    const r = Mat4.fromIdentity;
+    const m = l.multiply(r);
     for (m.m, 0..) |row, y| {
         for (row, 0..) |val, x| {
             if (x == y) {
@@ -869,7 +869,7 @@ test "Mat4.persp" {
 }
 
 test "Mat4.lookat" {
-    const m = Mat4.lookat(.{ .x = 0.0, .y = 1.5, .z = 6.0 }, Vec3.zero, Vec3.up);
+    const m = Mat4.lookat(.{ .x = 0.0, .y = 1.5, .z = 6.0 }, Vector3.zero, Vector3.up);
 
     assert(eq(m.m[0][0], 1.0));
     assert(eq(m.m[0][1], 0.0));
@@ -916,16 +916,16 @@ test "Mat4.rotate" {
     assert(eq(m.m[3][3], 1.0));
 }
 
-test "Vec3.mulMat4" {
-    var l = Vec3{ .x = 1.0, .y = 2.0, .z = 3.0 };
-    var r = Mat4.identity;
+test "Vector3.mulMat4" {
+    var l = Vector3{ .x = 1.0, .y = 2.0, .z = 3.0 };
+    var r = Mat4.fromIdentity;
     var v = l.mulMat4(r);
     assert(v.x == 1.0);
     assert(v.y == 2.0);
     assert(v.z == 3.0);
 
-    l = Vec3{ .x = 1.0, .y = 2.0, .z = 3.0 };
-    r = Mat4.translate(Vec3{ .x = 2.0, .y = 0.0, .z = -3.0 });
+    l = Vector3{ .x = 1.0, .y = 2.0, .z = 3.0 };
+    r = Mat4.translate(Vector3{ .x = 2.0, .y = 0.0, .z = -3.0 });
     v = l.mulMat4(r);
     assert(v.x == 3.0);
     assert(v.y == 2.0);
@@ -936,7 +936,7 @@ test "Mat4.invert" {
     const m = Mat4.persp(60.0, 1.33333337, 0.01, 10.0);
     const inverted = m.invert();
 
-    const before = Vec3.new(1, 10, -1);
+    const before = Vector3.new(1, 10, -1);
     const transformed = before.mulMat4(m);
     const after = transformed.mulMat4(inverted);
 

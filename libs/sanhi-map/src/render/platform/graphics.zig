@@ -22,9 +22,9 @@ pub var allocator: std.mem.Allocator = undefined;
 // ./sokol-shdc -i assets/shaders/default.glsl -o src/graphics/shaders/default.glsl.zig -l glsl300es:glsl330:wgsl:metal_macos:metal_ios:metal_sim:hlsl4 -f sokol_zig
 pub const shader_default = @import("../graphics/shaders/default.glsl.zig");
 
-const Vec2 = math.Vec2;
-const Vec3 = math.Vec3;
-const Vec4 = math.Vec4;
+const Vector2 = math.Vector2;
+const Vector3 = math.Vector3;
+const Vector4 = math.Vector4;
 const Mat4 = math.Mat4;
 pub const Color = colors.Color;
 
@@ -157,25 +157,25 @@ pub const PackedVertex = struct {
 
     pub fn mulMat4(left: PackedVertex, right: Mat4) PackedVertex {
         var ret = left;
-        const vec = Vec3.new(left.x, left.y, left.z).mulMat4(right);
+        const vec = Vector3.new(left.x, left.y, left.z).mulMat4(right);
         ret.x = vec.x;
         ret.y = vec.y;
         ret.z = vec.z;
         return ret;
     }
 
-    pub fn getPosition(self: *const PackedVertex) Vec3 {
-        return Vec3.new(self.x, self.y, self.z);
+    pub fn getPosition(self: *const PackedVertex) Vector3 {
+        return Vector3.new(self.x, self.y, self.z);
     }
 };
 
 // An unpacked mesh vertex. Will need to be turned into a packed mesh vertex for rendering
 pub const Vertex = struct {
-    pos: Vec3 = Vec3.zero,
-    uv: Vec2 = Vec2.zero,
+    pos: Vector3 = Vector3.zero,
+    uv: Vector2 = Vector2.zero,
     color: colors.Color = colors.white,
-    normal: Vec3 = Vec3.y_axis,
-    tangent: Vec4 = Vec4.new(1.0, 0.0, 0.0, 1.0),
+    normal: Vector3 = Vector3.y_axis,
+    tangent: Vector4 = Vector4.new(1.0, 0.0, 0.0, 1.0),
 
     pub fn mulMat4(left: Vertex, right: Mat4) Vertex {
         var ret = left;
@@ -192,7 +192,7 @@ pub const Vertex = struct {
 };
 
 pub const PointLight = struct {
-    pos: Vec3 = Vec3.zero,
+    pos: Vector3 = Vector3.zero,
     color: Color = colors.white,
     radius: f32 = 1.0,
     falloff: f32 = 1.0,
@@ -205,7 +205,7 @@ pub const PointLight = struct {
 };
 
 pub const DirectionalLight = struct {
-    dir: Vec3 = Vec3.y_axis,
+    dir: Vector3 = Vector3.y_axis,
     brightness: f32 = 1.0,
     color: Color = colors.white,
 
@@ -662,7 +662,7 @@ pub const MaterialParams = struct {
     draw_color: Color = colors.white, // base color tint
     color_override: Color = colors.transparent, // flash color, but alpha is preserved
     alpha_cutoff: f32 = 0.0, // the alpha value to use as the opaque discard cutoff
-    texture_pan: Vec4 = Vec4.zero, // how much to pan the texture
+    texture_pan: Vector4 = Vector4.zero, // how much to pan the texture
     joints: []Mat4 = undefined, // joints to use for skinned meshes
     lighting: MaterialLightParams = .{}, // light properties
     fog: MaterialFogParams = .{}, // fog properties
@@ -756,20 +756,20 @@ pub const MaterialUniformBlock = struct {
         self.addBytesFrom(&val, UniformBlockType.MAT4);
     }
 
-    /// Adds a Vec2 to the uniform block
-    pub fn addVec2(self: *MaterialUniformBlock, name: [:0]const u8, val: Vec2) void {
+    /// Adds a Vector2 to the uniform block
+    pub fn addVec2(self: *MaterialUniformBlock, name: [:0]const u8, val: Vector2) void {
         _ = name;
         self.addBytesFrom(&val, UniformBlockType.VEC2);
     }
 
-    /// Adds a Vec3 to the uniform block
-    pub fn addVec3(self: *MaterialUniformBlock, name: [:0]const u8, val: Vec3) void {
+    /// Adds a Vector3 to the uniform block
+    pub fn addVec3(self: *MaterialUniformBlock, name: [:0]const u8, val: Vector3) void {
         _ = name;
         self.addBytesFrom(&val.toArray(), UniformBlockType.VEC3);
     }
 
-    /// Adds a Vec4 to the uniform block
-    pub fn addVec4(self: *MaterialUniformBlock, name: [:0]const u8, val: Vec4) void {
+    /// Adds a Vector4 to the uniform block
+    pub fn addVec4(self: *MaterialUniformBlock, name: [:0]const u8, val: Vector4) void {
         _ = name;
         self.addBytesFrom(&val.toArray(), UniformBlockType.VEC4);
     }
@@ -930,7 +930,7 @@ pub const Material = struct {
         for (layout) |item| {
             switch (item) {
                 .PROJECTION_VIEW_MATRIX => {
-                    u_block.addMatrix("u_projViewMatrix", proj_matrix.mul(view_matrix));
+                    u_block.addMatrix("u_projViewMatrix", proj_matrix.multiply(view_matrix));
                 },
                 .MODEL_MATRIX => {
                     u_block.addMatrix("u_modelMatrix", model_matrix);
@@ -994,8 +994,8 @@ pub const Material = struct {
             if (i < num_lights) {
                 u_block.addBytesFrom(&self.state.params.lighting.point_lights[i].toArray(), UniformBlockType.VEC4);
             } else {
-                u_block.addVec4("u_point_light_data", Vec4.new(0, 0, 0, 0));
-                u_block.addVec4("u_point_light_data", Vec4.new(0, 0, 0, 0));
+                u_block.addVec4("u_point_light_data", Vector4.new(0, 0, 0, 0));
+                u_block.addVec4("u_point_light_data", Vector4.new(0, 0, 0, 0));
             }
         }
     }
@@ -1208,21 +1208,21 @@ pub fn drawDebugRectangle(tex: Texture, x: f32, y: f32, width: f32, height: f32,
 
     // create a view state
     var proj = getProjectionOrtho(0.001, 10.0, false);
-    const view = Mat4.lookat(.{ .x = 0.0, .y = 0.0, .z = 5.0 }, Vec3.zero, Vec3.up);
+    const view = Mat4.lookat(.{ .x = 0.0, .y = 0.0, .z = 5.0 }, Vector3.zero, Vector3.up);
 
-    const translate_vec: Vec3 = Vec3{ .x = x, .y = @as(f32, @floatFromInt(getDisplayHeight())) - (y + height), .z = -2.5 };
-    const scale_vec: Vec3 = Vec3{ .x = width, .y = height, .z = 1.0 };
+    const translate_vec: Vector3 = Vector3{ .x = x, .y = @as(f32, @floatFromInt(getDisplayHeight())) - (y + height), .z = -2.5 };
+    const scale_vec: Vector3 = Vector3{ .x = width, .y = height, .z = 1.0 };
 
-    var model = Mat4.identity;
-    model = model.mul(Mat4.translate(translate_vec));
-    model = model.mul(Mat4.scale(scale_vec));
+    var model = Mat4.fromIdentity;
+    model = model.multiply(Mat4.translate(translate_vec));
+    model = model.multiply(Mat4.scale(scale_vec));
 
     // make our default shader params
     const vs_params = shader_default.VsParams{
-        .u_projViewMatrix = proj.mul(view),
+        .u_projViewMatrix = proj.multiply(view),
         .u_modelMatrix = model,
         .u_color = color.toArray(),
-        .u_tex_pan = Vec4.zero.toArray(),
+        .u_tex_pan = Vector4.zero.toArray(),
     };
 
     const fs_params = shader_default.FsParams{

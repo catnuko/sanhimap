@@ -14,8 +14,8 @@ const CameraMatrices = graphics.CameraMatrices;
 const Color = colors.Color;
 const Rect = @import("../spatial/rect.zig").Rect;
 const Frustum = @import("../spatial/frustum.zig").Frustum;
-const Vec3 = math.Vec3;
-const Vec2 = math.Vec2;
+const Vector3 = math.Vector3;
+const Vector2 = math.Vector2;
 const Mesh = mesh.Mesh;
 const MeshConfig = mesh.MeshConfig;
 
@@ -121,7 +121,7 @@ pub const PlayingAnimation = struct {
 
         for (0..num_joints) |_| {
             try self.joint_transforms.?.append(.{});
-            try self.joint_calced_matrices.?.append(math.Mat4.identity);
+            try self.joint_calced_matrices.?.append(math.Mat4.fromIdentity);
         }
     }
 
@@ -141,9 +141,9 @@ pub const PlayingAnimation = struct {
 };
 
 pub const AnimationTransform = struct {
-    translation: math.Vec3 = math.Vec3.zero,
-    scale: math.Vec3 = math.Vec3.one,
-    rotation: math.Quaternion = math.Quaternion.identity,
+    translation: math.Vector3 = math.Vector3.zero,
+    scale: math.Vector3 = math.Vector3.one,
+    rotation: math.Quaternion = math.Quaternion.fromIdentity,
 
     // cache the calculated mat4
     calced_matrix: math.Mat4 = undefined,
@@ -164,10 +164,10 @@ pub const SkinnedMesh = struct {
 
     // local space joint locations
     joint_transforms: ?std.ArrayList(AnimationTransform) = null,
-    joint_transform_mats: [max_joints]math.Mat4 = [_]math.Mat4{math.Mat4.identity} ** max_joints,
+    joint_transform_mats: [max_joints]math.Mat4 = [_]math.Mat4{math.Mat4.fromIdentity} ** max_joints,
 
     // the world space joint locations, with the skeleton's heirarchy applied
-    joint_locations: [max_joints]math.Mat4 = [_]math.Mat4{math.Mat4.identity} ** max_joints,
+    joint_locations: [max_joints]math.Mat4 = [_]math.Mat4{math.Mat4.fromIdentity} ** max_joints,
     joint_locations_dirty: bool = true,
 
     // the index at which a named joint lives
@@ -233,10 +233,10 @@ pub const SkinnedMesh = struct {
         graphics.drawWithMaterial(&self.mesh.bindings, material, cam_matrices, model_matrix);
     }
 
-    /// Resets all joints back to their identity matrix
+    /// Resets all joints back to their fromIdentity matrix
     pub fn resetJoints(self: *SkinnedMesh) void {
         for (0..self.joint_locations.len) |i| {
-            self.joint_locations[i] = math.Mat4.identity;
+            self.joint_locations[i] = math.Mat4.fromIdentity;
         }
     }
 
@@ -329,8 +329,8 @@ pub const SkinnedMesh = struct {
         for (0..nodes_count) |i| {
             const node = nodes[i];
             local_transforms[i] = .{
-                .translation = math.Vec3.fromArray(node.translation),
-                .scale = math.Vec3.fromArray(node.scale),
+                .translation = math.Vector3.fromArray(node.translation),
+                .scale = math.Vector3.fromArray(node.scale),
                 .rotation = math.Quaternion.new(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]),
             };
         }
@@ -354,11 +354,11 @@ pub const SkinnedMesh = struct {
 
             switch (channel.target_path) {
                 .translation => {
-                    const sampled_translation = sampleAnimation(math.Vec3, sampler, t);
+                    const sampled_translation = sampleAnimation(math.Vector3, sampler, t);
                     local_transforms[node_idx].translation = sampled_translation;
                 },
                 .scale => {
-                    const sampled_scale = sampleAnimation(math.Vec3, sampler, t);
+                    const sampled_scale = sampleAnimation(math.Vector3, sampler, t);
                     local_transforms[node_idx].scale = sampled_scale;
                 },
                 .rotation => {
@@ -391,8 +391,8 @@ pub const SkinnedMesh = struct {
         for (0..nodes_count) |i| {
             const node = nodes[i];
             local_transforms[i] = .{
-                .translation = math.Vec3.fromArray(node.translation),
-                .scale = math.Vec3.fromArray(node.scale),
+                .translation = math.Vector3.fromArray(node.translation),
+                .scale = math.Vector3.fromArray(node.scale),
                 .rotation = math.Quaternion.new(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]),
             };
         }
@@ -427,7 +427,7 @@ pub const SkinnedMesh = struct {
                     continue;
 
                 const parent_transform = local_transforms[parent_idx].toMat4();
-                self.joint_transform_mats[i] = parent_transform.mul(self.joint_transform_mats[i]);
+                self.joint_transform_mats[i] = parent_transform.multiply(self.joint_transform_mats[i]);
             }
         }
 
@@ -435,7 +435,7 @@ pub const SkinnedMesh = struct {
         const inverse_bind_mat_data = zmesh.io.getAnimationSamplerData(self.mesh.zmesh_data.?.skins.?[0].inverse_bind_matrices.?);
         for (0..nodes_count) |i| {
             const inverse_mat = access(math.Mat4, inverse_bind_mat_data, i);
-            self.joint_locations[i] = self.joint_transform_mats[i].mul(inverse_mat);
+            self.joint_locations[i] = self.joint_transform_mats[i].multiply(inverse_mat);
         }
 
         self.joint_locations_dirty = false;
@@ -459,8 +459,8 @@ pub const SkinnedMesh = struct {
             }
         } else {
             for (0..nodes_count) |i| {
-                local_transforms[i].translation = math.Vec3.lerp(local_transforms[i].translation, anim_transforms[i].translation, alpha);
-                local_transforms[i].scale = math.Vec3.lerp(local_transforms[i].scale, anim_transforms[i].scale, alpha);
+                local_transforms[i].translation = math.Vector3.lerp(local_transforms[i].translation, anim_transforms[i].translation, alpha);
+                local_transforms[i].scale = math.Vector3.lerp(local_transforms[i].scale, anim_transforms[i].scale, alpha);
                 local_transforms[i].rotation = math.Quaternion.slerp(local_transforms[i].rotation, anim_transforms[i].rotation, alpha);
             }
         }
@@ -558,7 +558,7 @@ fn linearInterpolation(samples: []const f32, t: f32) struct {
 /// Grab animation data from a slice
 pub fn access(comptime T: type, data: []const f32, i: usize) T {
     return switch (T) {
-        Vec3 => Vec3.new(data[3 * i + 0], data[3 * i + 1], data[3 * i + 2]),
+        Vector3 => Vector3.new(data[3 * i + 0], data[3 * i + 1], data[3 * i + 2]),
         math.Quaternion => math.Quaternion.new(data[4 * i + 0], data[4 * i + 1], data[4 * i + 2], data[4 * i + 3]),
         math.Mat4 => math.Mat4.fromSlice(data[16 * i ..][0..16]),
         else => @compileError("unexpected type"),

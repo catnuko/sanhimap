@@ -212,8 +212,8 @@ fn on_post_draw() void {
 }
 
 /// Returns the current mouse position
-pub fn getMousePosition() math.Vec2 {
-    return math.Vec2{
+pub fn getMousePosition() math.Vector2 {
+    return math.Vector2{
         .x = state.mouse_x,
         .y = state.mouse_y,
     };
@@ -351,6 +351,6 @@ pub fn onMouseUp(btn: i32) void {
 }
 
 /// Difference in mouse position from last frame
-pub fn getMouseDelta() math.Vec2 {
-    return math.Vec2.new(state.mouse_dx, state.mouse_dy);
+pub fn getMouseDelta() math.Vector2 {
+    return math.Vector2.new(state.mouse_dx, state.mouse_dy);
 }

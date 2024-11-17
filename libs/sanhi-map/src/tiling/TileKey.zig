@@ -78,7 +78,7 @@ pub const TileKey = struct {
     pub fn fromCartographic(comptime TilingScheme: type, tilingscheme: TilingScheme, cartograpic: *const Cartographic, level: usize) Self {
         return Utils.geoCoordinatesToTileKey(TilingScheme, tilingscheme, cartograpic, level);
     }
-    pub fn fromCartesian(comptime TilingScheme: type, tilingscheme: TilingScheme, cartesian: *const math.Vec3, level: usize) Self {
+    pub fn fromCartesian(comptime TilingScheme: type, tilingscheme: TilingScheme, cartesian: *const math.Vector3, level: usize) Self {
         return Utils.worldCoordinatesToTileKey(TilingScheme, tilingscheme, cartesian, level);
     }
     pub fn fromGeoRectangle(comptime TilingScheme: type, tilingscheme: TilingScheme, geoBox: *const GeoBox, level: usize) []Self {

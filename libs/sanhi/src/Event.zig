@@ -8,7 +8,7 @@ const Callback = struct {
 const ListenerList = std.ArrayList(Callback);
 const Self = @This();
 listeners: ListenerList,
-id: u32 = 0,
+id: u32 = 1,
 pub fn new(allocator: std.mem.Allocator) Self {
     return .{
         .listeners = ListenerList.init(allocator),
@@ -16,7 +16,7 @@ pub fn new(allocator: std.mem.Allocator) Self {
 }
 pub fn deinit(self: *Self) void {
     self.listeners.deinit();
-    self.id = 0;
+    self.id = 1;
 }
 pub fn on(self: *Self, name: []const u8, func: CallbackFunc) u32 {
     const id = self.id;

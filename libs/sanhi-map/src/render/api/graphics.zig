@@ -35,7 +35,7 @@ pub fn libPreDraw() void {
 
 /// Called when ready to draw
 pub fn libDraw() void {
-    const view = math.Mat4.lookat(.{ .x = 0.0, .y = 0.0, .z = 5 }, math.Vec3.zero, math.Vec3.up);
+    const view = math.Mat4.lookat(.{ .x = 0.0, .y = 0.0, .z = 5 }, math.Vector3.zero, math.Vector3.up);
     const proj = graphics.getProjectionOrtho(0.001, 10.0, true);
     const model = math.Mat4.translate(.{ .x = 0.0, .y = 0.0, .z = -2.5 });
 

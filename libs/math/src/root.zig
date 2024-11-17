@@ -1,64 +1,61 @@
 const std = @import("std");
 const testing = std.testing;
 
-const vec = @import("vec.zig");
-const mat = @import("mat.zig");
-const q = @import("quat.zig");
-const ray = @import("ray.zig");
-const h = @import("hpr.zig");
+const vec = @import("Vector.zig");
+const mat = @import("Matrix.zig");
+const q = @import("Quaternion.zig");
+const ray = @import("Ray3.zig");
+const h = @import("HeadingPitchRoll.zig");
 pub const epsilon = @import("epsilon.zig");
 pub usingnamespace epsilon;
 
-/// Public namespaces
-pub const collision = @import("collision.zig");
-
 /// Standard f32 precision types
-pub const Vec2 = vec.Vec2(f32);
-pub const Vec3 = vec.Vec3(f32);
-pub const Vec4 = vec.Vec4(f32);
-pub const Quat = q.Quat(f32);
-pub const Mat2x2 = mat.Mat2x2(f32);
-pub const Mat3x3 = mat.Mat3x3(f32);
-pub const Mat4x4 = mat.Mat4x4(f32);
+pub const Vector2 = vec.Vector2(f32);
+pub const Vector3 = vec.Vector3(f32);
+pub const Vector4 = vec.Vector4(f32);
+pub const Quaternion = q.Quaternion(f32);
+pub const Matrix2 = mat.Matrix2(f32);
+pub const Matrix3 = mat.Matrix3(f32);
+pub const Matrix4 = mat.Matrix4(f32);
 pub const Ray = ray.Ray3(f32);
 pub const HeadingPitchRoll = h.HeadingPitchRoll(f32);
 
 /// Double-precision f64 types
-pub const Vec2d = vec.Vec2(f64);
-pub const Vec3d = vec.Vec3(f64);
-pub const Vec4d = vec.Vec4(f64);
-pub const Quatd = q.Quat(f64);
-pub const Mat2x2d = mat.Mat2x2(f64);
-pub const Mat3x3d = mat.Mat3x3(f64);
-pub const Mat4x4d = mat.Mat4x4(f64);
-pub const Rayd = ray.Ray3(f64);
-pub const HeadingPitchRolld = h.HeadingPitchRoll(f64);
+pub const Vector2D = vec.Vector2(f64);
+pub const Vector3D = vec.Vector3(f64);
+pub const Vector4D = vec.Vector4(f64);
+pub const QuaternionD = q.Quaternion(f64);
+pub const Matrix2D = mat.Matrix2(f64);
+pub const Matrix3D = mat.Matrix3(f64);
+pub const Matrix4D = mat.Matrix4(f64);
+pub const RayD = ray.Ray3(f64);
+pub const HeadingPitchRollD = h.HeadingPitchRoll(f64);
 
 /// Standard f32 precision initializers
-pub const vec2 = Vec2.new;
-pub const vec3 = Vec3.new;
-pub const vec4 = Vec4.new;
-pub const vec2FromInt = Vec2.fromInt;
-pub const vec3FromInt = Vec3.fromInt;
-pub const vec4FromInt = Vec4.fromInt;
-pub const quat = Quat.new;
-pub const mat2x2 = Mat2x2.new;
-pub const mat3x3 = Mat3x3.new;
-pub const mat4x4 = Mat4x4.new;
+pub const vec2 = Vector2.new;
+pub const vec3 = Vector3.new;
+pub const vec4 = Vector4.new;
+pub const vec2FromInt = Vector2.fromInt;
+pub const vec3FromInt = Vector3.fromInt;
+pub const vec4FromInt = Vector4.fromInt;
+pub const quat = Quaternion.new;
+pub const mat2 = Matrix2.new;
+pub const mat3 = Matrix3.new;
+pub const mat4 = Matrix4.new;
 pub const hpr = HeadingPitchRoll.new;
 
 /// Double-precision f64 initializers
-pub const vec2d = Vec2d.new;
-pub const vec3d = Vec3d.new;
-pub const vec4d = Vec4d.new;
-pub const vec2dFromInt = Vec2d.fromInt;
-pub const vec3dFromInt = Vec3d.fromInt;
-pub const vec4dFromInt = Vec4d.fromInt;
-pub const quatd = Quatd.new;
-pub const mat2x2d = Mat2x2d.new;
-pub const mat3x3d = Mat3x3d.new;
-pub const mat4x4d = Mat4x4d.new;
-pub const hprd = HeadingPitchRolld.new;
+pub const vec2d = Vector2D.new;
+pub const vec3d = Vector3D.new;
+pub const vec4d = Vector4D.new;
+pub const vec2dFromInt = Vector2D.fromInt;
+pub const vec3dFromInt = Vector3D.fromInt;
+pub const vec4dFromInt = Vector4D.fromInt;
+pub const quatd = QuaternionD.new;
+pub const mat2d = Matrix2D.new;
+pub const mat3d = Matrix3D.new;
+pub const mat4d = Matrix4D.new;
+pub const hprd = HeadingPitchRollD.new;
 
 test {
     testing.refAllDeclsRecursive(@This());

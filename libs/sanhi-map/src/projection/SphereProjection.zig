@@ -1,8 +1,8 @@
 const std = @import("std");
 const math = @import("../math.zig");
-const Vec3 = math.Vec3;
-const Mat4 = math.Mat4x4;
-const Mat3 = math.Mat3x3;
+const Vector3 = math.Vector3;
+const Mat4 = math.Matrix4;
+const Mat3 = math.Matrix3;
 const Cartographic = @import("../Cartographic.zig").Cartographic;
 const earth = @import("./Earth.zig");
 const ProjectionImpl = @import("./Projection.zig").Projection;
@@ -13,12 +13,12 @@ const AABB = @import("../AABB.zig").AABB;
 const OBB = @import("../OBB.zig").OBB;
 const GeoBox = @import("../GeoBox.zig").GeoBox;
 /// convert geo coordinate to world point
-pub fn innerProject(geoPoint: *const Cartographic, unitScale: f64) Vec3 {
+pub fn innerProject(geoPoint: *const Cartographic, unitScale: f64) Vector3 {
     const radius = unitScale + geoPoint.height;
     const latitude = geoPoint.lat;
     const longitude = geoPoint.lon;
     const cosLatitude = math.cos(latitude);
-    return Vec3.new(
+    return Vector3.new(
         radius * cosLatitude * math.cos(longitude),
         radius * cosLatitude * math.sin(longitude),
         radius * math.sin(latitude),
@@ -38,14 +38,14 @@ pub fn getType(self: *const Self) ProjectionType {
 }
 pub fn worldExtent(self: *const Self, _: f64, max_elevation: f64) AABB {
     const radius = self.unitScale + max_elevation;
-    const min = Vec3.new(-radius, -radius, -radius);
-    const max = Vec3.new(radius, radius, radius);
+    const min = Vector3.new(-radius, -radius, -radius);
+    const max = Vector3.new(radius, radius, radius);
     return AABB.new(min, max);
 }
-pub fn project(self: *const Self, geoPoint: *const Cartographic) Vec3 {
+pub fn project(self: *const Self, geoPoint: *const Cartographic) Vector3 {
     return innerProject(geoPoint, self.unitScale);
 }
-pub fn unproject(self: *const Self, worldPoint: *const Vec3) Cartographic {
+pub fn unproject(self: *const Self, worldPoint: *const Vector3) Cartographic {
     const parallelRadiusSq = worldPoint.x() * worldPoint.x() + worldPoint.y() * worldPoint.y();
     const parallelRadius = math.sqrt(parallelRadiusSq);
     const v = worldPoint.z() / parallelRadius;
@@ -56,7 +56,7 @@ pub fn unproject(self: *const Self, worldPoint: *const Vec3) Cartographic {
     const radius = math.sqrt(parallelRadiusSq + worldPoint.z() * worldPoint.z());
     return Cartographic.new(math.atan2(worldPoint.y(), worldPoint.x()), math.atan(v), radius - self.unitScale);
 }
-pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P, worldPoint: *const Vec3) Vec3 {
+pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P, worldPoint: *const Vector3) Vector3 {
     if (sourceProjection == webMercatorProjection or sourceProjection == mercatorProjection) {
         const xx = worldPoint.x();
         const yy = worldPoint.y();
@@ -77,7 +77,7 @@ pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P
         if (sourceProjection == webMercatorProjection) {
             z = -z;
         }
-        return Vec3.new(x, y, z);
+        return Vector3.new(x, y, z);
     } else {
         if (self == sourceProjection) {
             return worldPoint.clone();
@@ -142,17 +142,17 @@ fn makeBox3(self: *const Self, geoBox: *const GeoBox) AABB {
     const zCenter = (zMax + zMin) * halfEquatorialRadius;
     const zExtent = (zMax - zMin) * halfEquatorialRadius;
 
-    const min = Vec3.new(xCenter - xExtent, yCenter - yExtent, zCenter - zExtent);
-    const max = Vec3.new(xCenter + xExtent, yCenter + yExtent, zCenter + zExtent);
+    const min = Vector3.new(xCenter - xExtent, yCenter - yExtent, zCenter - zExtent);
+    const max = Vector3.new(xCenter + xExtent, yCenter + yExtent, zCenter + zExtent);
 
     return AABB.new(min, max);
 }
 
-fn apply(xAxis: *const Vec3, yAxis: *const Vec3, zAxis: *const Vec3, v: *const Vec3) Vec3 {
+fn apply(xAxis: *const Vector3, yAxis: *const Vector3, zAxis: *const Vector3, v: *const Vector3) Vector3 {
     const x = xAxis.x() * v.x() + yAxis.x() * v.y() + zAxis.x() * v.z();
     const y = xAxis.y() * v.x() + yAxis.y() * v.y() + zAxis.y() * v.z();
     const z = xAxis.z() * v.x() + yAxis.z() * v.y() + zAxis.z() * v.z();
-    return Vec3.new(x, y, z);
+    return Vector3.new(x, y, z);
 }
 
 pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxType: type) ResultBoxType {
@@ -165,14 +165,14 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
             var y = (bounds.max.y() + bounds.min.y()) * 0.5;
             var z = (bounds.max.z() + bounds.min.z()) * 0.5;
 
-            const center = Vec3.new(x, y, z);
+            const center = Vector3.new(x, y, z);
 
             x = (bounds.max.x() - bounds.min.x()) * 0.5;
             y = (bounds.max.y() - bounds.min.y()) * 0.5;
             z = (bounds.max.z() - bounds.min.z()) * 0.5;
 
-            const scale = Vec3.new(x, y, z);
-            var halfAxes = Mat3.ident.clone();
+            const scale = Vector3.new(x, y, z);
+            var halfAxes = Mat3.identity.clone();
             halfAxes.setScale(&scale);
 
             return OBB.new(center, halfAxes);
@@ -198,9 +198,9 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
         const cosMidY = math.cos(midY);
         const sinMidY = math.sin(midY);
 
-        const zAxis = Vec3.new(cosMidX * cosMidY, sinMidX * cosMidY, sinMidY);
-        const xAxis = Vec3.new(-sinMidX, cosMidX, 0);
-        const yAxis = Vec3.new(-cosMidX * sinMidY, -sinMidX * sinMidY, cosMidY);
+        const zAxis = Vector3.new(cosMidX * cosMidY, sinMidX * cosMidY, sinMidY);
+        const xAxis = Vector3.new(-sinMidX, cosMidX, 0);
+        const yAxis = Vector3.new(-cosMidX * sinMidY, -sinMidX * sinMidY, cosMidY);
 
         var width: f64 = 0;
         var minY: f64 = 0;
@@ -234,15 +234,15 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
 
         const d = cosMidY * (cosMidX * cosEast + sinMidX * sinEast);
         const minZ = @min(cosNorth * d + sinNorth * sinMidY, cosSouth * d + sinSouth * sinMidY);
-        const extents = Vec3.new(width * rMax, (maxY - minY) * rMax, rMax - minZ * rMin);
-        var positionTemp = Vec3.new(0, (minY + maxY) * rMax, rMax + rMax);
+        const extents = Vector3.new(width * rMax, (maxY - minY) * rMax, rMax - minZ * rMin);
+        var positionTemp = Vector3.new(0, (minY + maxY) * rMax, rMax + rMax);
 
         positionTemp = apply(&xAxis, &yAxis, &zAxis, &positionTemp);
 
         const x = positionTemp.x() - zAxis.x() * extents.z();
         const y = positionTemp.y() - zAxis.y() * extents.z();
         const z = positionTemp.z() - zAxis.z() * extents.z();
-        const position = Vec3.new(x, y, z);
+        const position = Vector3.new(x, y, z);
 
         var halfAxes = Mat3.new(&xAxis, &yAxis, &zAxis).transpose();
         halfAxes.setScale(&extents);
@@ -254,30 +254,30 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
 // pub fn unprojectBox(_: *const Self, _: *const OBB) GeoBox {
 //     @compileError("unprojectBox not implemented");
 // }
-pub fn unprojectAltitude(_: *const Self, worldPoint: *const Vec3) f64 {
-    return worldPoint.len() - earth.EQUATORIAL_RADIUS;
+pub fn unprojectAltitude(_: *const Self, worldPoint: *const Vector3) f64 {
+    return worldPoint.length() - earth.EQUATORIAL_RADIUS;
 }
-pub fn getScaleFactor(_: *const Self, _: *const Vec3) f64 {
+pub fn getScaleFactor(_: *const Self, _: *const Vector3) f64 {
     return 1;
 }
-pub fn surfaceNormal(_: *const Self, worldPoint: *const Vec3) Vec3 {
-    var length = worldPoint.len();
+pub fn surfaceNormal(_: *const Self, worldPoint: *const Vector3) Vector3 {
+    var length = worldPoint.length();
     if (length == 0) {
         length = 1.0;
     }
     const scale = 1 / length;
-    return worldPoint.mulScalar(scale);
+    return worldPoint.multiplyByScalar(scale);
 }
-pub fn groundDistance(self: *const Self, worldPoint: *const Vec3) f64 {
-    return worldPoint.len() - self.unitScale;
+pub fn groundDistance(self: *const Self, worldPoint: *const Vector3) f64 {
+    return worldPoint.length() - self.unitScale;
 }
-pub fn scalePointToSurface(self: *const Self, worldPoint: *const Vec3) Vec3 {
-    var length = worldPoint.len();
+pub fn scalePointToSurface(self: *const Self, worldPoint: *const Vector3) Vector3 {
+    var length = worldPoint.length();
     if (length == 0) {
         length = 1.0;
     }
     const scale = self.unitScale / length;
-    return worldPoint.mulScalar(scale);
+    return worldPoint.multiplyByScalar(scale);
 }
 pub fn localTangentSpace(self: *const Self, geoPoint: *const Cartographic) Mat4 {
     const world_point = self.project(geoPoint);
@@ -308,7 +308,7 @@ pub fn localTangentSpace(self: *const Self, geoPoint: *const Cartographic) Mat4 
     slice[13] = world_point.y();
     slice[14] = world_point.z();
     slice[15] = 1;
-    return Mat4.fromArray(&slice);
+    return Mat4.fromColumnMajorArray(&slice);
 }
 pub const sphereProjection = ProjectionImpl(SphereProjection).new(earth.EQUATORIAL_RADIUS);
 

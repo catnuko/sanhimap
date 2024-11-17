@@ -4,33 +4,33 @@ const plane = @import("plane.zig");
 const boundingbox = @import("boundingbox.zig");
 const assert = std.debug.assert;
 
-const Vec3 = math.Vec3;
+const Vector3 = math.Vector3;
 const Mat4 = math.Mat4;
 const Plane = plane.Plane;
 
 /// A view frustum is composed of six planes: left, right, top, bottom, front and back
 pub const Frustum = struct {
     planes: [6]Plane,
-    corners: [8]Vec3,
+    corners: [8]Vector3,
 
     /// Creates a frustum from a view matrix
     pub fn init(proj_view: Mat4) Frustum {
         const inv_proj_view = proj_view.invert();
 
         // corners in clip space
-        const frustum_corners_clip = [_]math.Vec4{
-            math.Vec4.new(-1.0, -1.0, 1.0, 1.0), // left, bottom, far
-            math.Vec4.new(-1.0, 1.0, 1.0, 1.0), // left, top, far
-            math.Vec4.new(1.0, -1.0, 1.0, 1.0), // right, bottom, far
-            math.Vec4.new(1.0, 1.0, 1.0, 1.0), // right, top, far
-            math.Vec4.new(-1.0, -1.0, -1.0, 1.0), // left, bottom, near
-            math.Vec4.new(-1.0, 1.0, -1.0, 1.0), // left, top, near
-            math.Vec4.new(1.0, -1.0, -1.0, 1.0), // right, bottom, near
-            math.Vec4.new(1.0, 1.0, -1.0, 1.0), // right, top, near
+        const frustum_corners_clip = [_]math.Vector4{
+            math.Vector4.new(-1.0, -1.0, 1.0, 1.0), // left, bottom, far
+            math.Vector4.new(-1.0, 1.0, 1.0, 1.0), // left, top, far
+            math.Vector4.new(1.0, -1.0, 1.0, 1.0), // right, bottom, far
+            math.Vector4.new(1.0, 1.0, 1.0, 1.0), // right, top, far
+            math.Vector4.new(-1.0, -1.0, -1.0, 1.0), // left, bottom, near
+            math.Vector4.new(-1.0, 1.0, -1.0, 1.0), // left, top, near
+            math.Vector4.new(1.0, -1.0, -1.0, 1.0), // right, bottom, near
+            math.Vector4.new(1.0, 1.0, -1.0, 1.0), // right, top, near
         };
 
         // corners in world space
-        const frustum_corners = [_]math.Vec3{
+        const frustum_corners = [_]math.Vector3{
             frustum_corners_clip[0].projMat4(inv_proj_view).toVec3(),
             frustum_corners_clip[1].projMat4(inv_proj_view).toVec3(),
             frustum_corners_clip[2].projMat4(inv_proj_view).toVec3(),
@@ -55,7 +55,7 @@ pub const Frustum = struct {
     }
 
     /// Check to see if this frustum contains this point
-    pub fn containsPoint(self: *const Frustum, point: Vec3) bool {
+    pub fn containsPoint(self: *const Frustum, point: Vector3) bool {
         // frustum contains a point if it is in front of all planes
         for (self.planes) |p| {
             if (p.testPoint(point) == .BACK)
@@ -66,7 +66,7 @@ pub const Frustum = struct {
     }
 
     /// Check to see if this frustum contains this sphere
-    pub fn containsSphere(self: *const Frustum, point: Vec3, radius: f32) bool {
+    pub fn containsSphere(self: *const Frustum, point: Vector3, radius: f32) bool {
         for (self.planes) |p| {
             if (p.distanceToPoint(point) < -radius)
                 return false;
@@ -96,18 +96,18 @@ pub const Frustum = struct {
 
 test "Frustum.init" {
     const proj_mat = Mat4.ortho(-2, 3, -4, 5, 0.1, 21);
-    const view_mat = Mat4.lookat(Vec3.new(0, 0, 0), Vec3.zero.add(Vec3.new(0, 0, 1)), Vec3.up);
-    const frustum = Frustum.init(proj_mat.mul(view_mat));
+    const view_mat = Mat4.lookat(Vector3.new(0, 0, 0), Vector3.zero.add(Vector3.new(0, 0, 1)), Vector3.up);
+    const frustum = Frustum.init(proj_mat.multiply(view_mat));
 
     // std.debug.print("\n", .{});
     // for(frustum.planes) |p| {
     //     std.debug.print("plane: {}\n", .{p});
     // }
 
-    assert(std.meta.eql(frustum.planes[0].normal, Vec3.new(0, 0, -1))); // far
-    assert(std.meta.eql(frustum.planes[1].normal, Vec3.new(0, 0, 1))); // near
-    assert(std.meta.eql(frustum.planes[2].normal, Vec3.new(-1, 0, 0))); // left
-    assert(std.meta.eql(frustum.planes[3].normal, Vec3.new(1, 0, 0))); // right
-    assert(std.meta.eql(frustum.planes[4].normal, Vec3.new(0, -1, 0))); // top
-    assert(std.meta.eql(frustum.planes[5].normal, Vec3.new(0, 1, 0))); // bottom
+    assert(std.meta.eql(frustum.planes[0].normal, Vector3.new(0, 0, -1))); // far
+    assert(std.meta.eql(frustum.planes[1].normal, Vector3.new(0, 0, 1))); // near
+    assert(std.meta.eql(frustum.planes[2].normal, Vector3.new(-1, 0, 0))); // left
+    assert(std.meta.eql(frustum.planes[3].normal, Vector3.new(1, 0, 0))); // right
+    assert(std.meta.eql(frustum.planes[4].normal, Vector3.new(0, -1, 0))); // top
+    assert(std.meta.eql(frustum.planes[5].normal, Vector3.new(0, 1, 0))); // bottom
 }

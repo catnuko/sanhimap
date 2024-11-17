@@ -1,10 +1,10 @@
 const testing = @import("testing.zig");
 const math = @import("root.zig");
-const vec = @import("vec.zig");
+const vec = @import("Vector.zig");
 
 // A Ray in three-dimensional space
 pub fn Ray3(comptime Scalar: type) type {
-    const Vec3P = vec.Vec3(Scalar);
+    const Vec3P = vec.Vector3(Scalar);
 
     // Floating point precision, will be either f16, f32, or f64
     const P: type = Vec3P.T;
@@ -20,9 +20,9 @@ pub fn Ray3(comptime Scalar: type) type {
     };
 
     const Vec4P = switch (Vec3P) {
-        math.Vec3 => math.Vec4,
-        math.Vec3d => math.Vec4d,
-        else => @compileError("Expected Vec3, Vec3h, Vec3d, found '" ++
+        math.Vector3 => math.Vector4,
+        math.Vector3D => math.Vector4D,
+        else => @compileError("Expected Vector3, Vec3h, Vector3D, found '" ++
             @typeName(Vec3P) ++ "'"),
     };
 
@@ -151,7 +151,7 @@ pub fn Ray3(comptime Scalar: type) type {
             // hit.t counts as a previous hit for backface culling,
             // in which case triangle behind will no longer be
             // considered a hit.
-            // Since Ray.Hit is represented by a Vec4, t is the last
+            // Since Ray.Hit is represented by a Vector4, t is the last
             // element of that vector
             var hit: Hit = Vec4P.new(
                 undefined,
@@ -185,9 +185,9 @@ pub fn Ray3(comptime Scalar: type) type {
 }
 
 test "triangleIntersect_basic_frontface_bc_hit" {
-    const a: math.Vec3 = math.vec3(0, 0, 0);
-    const b: math.Vec3 = math.vec3(1, 0, 0);
-    const c: math.Vec3 = math.vec3(0, 1, 0);
+    const a: math.Vector3 = math.vec3(0, 0, 0);
+    const b: math.Vector3 = math.vec3(1, 0, 0);
+    const c: math.Vector3 = math.vec3(0, 1, 0);
     const ray0: math.Ray = math.Ray{
         .origin = math.vec3(0.1, 0.1, 1),
         .direction = math.vec3(0.1, 0.1, -1),
@@ -211,9 +211,9 @@ test "triangleIntersect_basic_frontface_bc_hit" {
 }
 
 test "triangleIntersect_basic_backface_no_bc_hit" {
-    const a: math.Vec3 = math.vec3(0, 0, 0);
-    const b: math.Vec3 = math.vec3(1, 0, 0);
-    const c: math.Vec3 = math.vec3(0, 1, 0);
+    const a: math.Vector3 = math.vec3(0, 0, 0);
+    const b: math.Vector3 = math.vec3(1, 0, 0);
+    const c: math.Vector3 = math.vec3(0, 1, 0);
     const ray0: math.Ray = math.Ray{
         .origin = math.vec3(0.1, 0.1, 1),
         .direction = math.vec3(0.1, 0.1, -1),
@@ -238,9 +238,9 @@ test "triangleIntersect_basic_backface_no_bc_hit" {
 }
 
 test "triangleIntersect_basic_backface_bc_miss" {
-    const a: math.Vec3 = math.vec3(0, 0, 0);
-    const b: math.Vec3 = math.vec3(1, 0, 0);
-    const c: math.Vec3 = math.vec3(0, 1, 0);
+    const a: math.Vector3 = math.vec3(0, 0, 0);
+    const b: math.Vector3 = math.vec3(1, 0, 0);
+    const c: math.Vector3 = math.vec3(0, 1, 0);
     const ray0: math.Ray = math.Ray{
         .origin = math.vec3(0.1, 0.1, 1),
         .direction = math.vec3(0.1, 0.1, -1),
@@ -258,17 +258,17 @@ test "triangleIntersect_basic_backface_bc_miss" {
 }
 
 test "triangleIntersect_precise_frontface_bc_hit_f32" {
-    const a: math.Vec3 = math.vec3(
+    const a: math.Vector3 = math.vec3(
         3164.91,
         3559.55,
         3044.54,
     );
-    const b: math.Vec3 = math.vec3(
+    const b: math.Vector3 = math.vec3(
         1011.92,
         3113.34,
         3674.56,
     );
-    const c: math.Vec3 = math.vec3(
+    const c: math.Vector3 = math.vec3(
         503.804,
         2311.16,
         2449.58,
@@ -304,22 +304,22 @@ test "triangleIntersect_precise_frontface_bc_hit_f32" {
 }
 
 test "triangleIntersect_precise_frontface_bc_hit_f64" {
-    const a: math.Vec3d = math.vec3d(
+    const a: math.Vector3D = math.vec3d(
         2371.01,
         3208.12,
         1570.04,
     );
-    const b: math.Vec3d = math.vec3d(
+    const b: math.Vector3D = math.vec3d(
         1412.2,
         2978.36,
         1501.33,
     );
-    const c: math.Vec3d = math.vec3d(
+    const c: math.Vector3D = math.vec3d(
         2520.99,
         3323.93,
         1567.18,
     );
-    const ray0: math.Rayd = math.Rayd{
+    const ray0: math.RayD = math.RayD{
         .origin = math.vec3d(
             246.713,
             279.646,
@@ -332,7 +332,7 @@ test "triangleIntersect_precise_frontface_bc_hit_f64" {
         ),
     };
 
-    const result: math.Rayd.Hit = ray0.triangleIntersect(
+    const result: math.RayD.Hit = ray0.triangleIntersect(
         &a,
         &b,
         &c,
@@ -350,9 +350,9 @@ test "triangleIntersect_precise_frontface_bc_hit_f64" {
 }
 
 test "triangleIntersect_ray_no_direction" {
-    const a: math.Vec3 = math.vec3(0, 0, 0);
-    const b: math.Vec3 = math.vec3(1, 0, 0);
-    const c: math.Vec3 = math.vec3(0, 1, 0);
+    const a: math.Vector3 = math.vec3(0, 0, 0);
+    const b: math.Vector3 = math.vec3(1, 0, 0);
+    const c: math.Vector3 = math.vec3(0, 1, 0);
     const ray: math.Ray = math.Ray{
         .origin = math.vec3(0.1, 0.1, 1),
         .direction = math.vec3(0.0, 0.0, 0.0),
@@ -369,9 +369,9 @@ test "triangleIntersect_ray_no_direction" {
 }
 
 test "triangleIntersect_ray_no_x_y_direction" {
-    const a: math.Vec3 = math.vec3(-1, 1, 0);
-    const b: math.Vec3 = math.vec3(-1, -1, 0);
-    const c: math.Vec3 = math.vec3(1, -1, 0);
+    const a: math.Vector3 = math.vec3(-1, 1, 0);
+    const b: math.Vector3 = math.vec3(-1, -1, 0);
+    const c: math.Vector3 = math.vec3(1, -1, 0);
     const ray: math.Ray = math.Ray{
         .origin = math.vec3(0.0, 0.0, 1),
         .direction = math.vec3(0.0, 0.0, -1),
@@ -395,9 +395,9 @@ test "triangleIntersect_ray_no_x_y_direction" {
 }
 
 test "triangleIntersect_ray_no_y_z_direction" {
-    const a: math.Vec3 = math.vec3(0, -1, 1);
-    const b: math.Vec3 = math.vec3(0, -1, -1);
-    const c: math.Vec3 = math.vec3(0, 1, -1);
+    const a: math.Vector3 = math.vec3(0, -1, 1);
+    const b: math.Vector3 = math.vec3(0, -1, -1);
+    const c: math.Vector3 = math.vec3(0, 1, -1);
     const ray: math.Ray = math.Ray{
         .origin = math.vec3(1, 0.0, 0.0),
         .direction = math.vec3(-1, 0.0, 0.0),
@@ -420,9 +420,9 @@ test "triangleIntersect_ray_no_y_z_direction" {
 }
 
 test "triangleIntersect_ray_no_x_z_direction" {
-    const a: math.Vec3 = math.vec3(-1, 0, 1);
-    const b: math.Vec3 = math.vec3(-1, 0, -1);
-    const c: math.Vec3 = math.vec3(1, 0, -1);
+    const a: math.Vector3 = math.vec3(-1, 0, 1);
+    const b: math.Vector3 = math.vec3(-1, 0, -1);
+    const c: math.Vector3 = math.vec3(1, 0, -1);
     const ray: math.Ray = math.Ray{
         .origin = math.vec3(0.0, -1.0, 0.0),
         .direction = math.vec3(0.0, 1.0, 0.0),
