@@ -4,12 +4,11 @@ const backend = lib.backend;
 const zglfw = lib.zglfw;
 const stdmath = @import("std").math;
 const math = @import("math");
-const Vector2 = math.Vector2;
-const Vector3 = math.Vector3;
-const Mat4 = math.Matrix4;
-const Mat3 = math.Matrix3;
-const Quaternion = math.Quaternion;
-const HeadingPitchRoll = math.HeadingPitchRoll;
+const Vector2D = math.Vector2D;
+const Vector3D = math.Vector3D;
+const Mat4 = math.Matrix4D;
+const Mat3 = math.Matrix3D;
+const QuaternionD = math.QuaternionD;
 const MouseButton = zglfw.MouseButton;
 const Action = zglfw.Action;
 const Window = zglfw.Window;
@@ -18,13 +17,13 @@ const Camera = @import("./Camera.zig");
 pub const KEYS = enum { LEFT, UP, RIGHT, BOTTOM };
 pub const _STATE = enum(i32) { NONE = -1, ROTATE = 0, DOLLY = 1, PAN = 2, TOUCH_ROTATE = 3, TOUCH_PAN = 4, TOUCH_DOLLY_PAN = 5, TOUCH_DOLLY_ROTATE = 6 };
 const Spherical = struct {
-    radius: f32 = 1.0,
-    phi: f32 = 0, // polar angle
-    theta: f32 = 0, // azimuthal angle
+    radius: f64 = 1.0,
+    phi: f64 = 0, // polar angle
+    theta: f64 = 0, // azimuthal angle
     pub fn default() Spherical {
         return .{};
     }
-    pub fn init(radius: f32, phi: f32, theta: f32) Spherical {
+    pub fn init(radius: f64, phi: f64, theta: f64) Spherical {
         return Spherical{
             .radius = radius,
             .phi = phi,
@@ -32,7 +31,7 @@ const Spherical = struct {
         };
     }
 
-    pub fn set(self: *Spherical, radius: f32, phi: f32, theta: f32) void {
+    pub fn set(self: *Spherical, radius: f64, phi: f64, theta: f64) void {
         self.radius = radius;
         self.phi = phi;
         self.theta = theta;
@@ -50,11 +49,11 @@ const Spherical = struct {
         self.phi = @max(EPS, @min(math.pi - EPS, self.phi));
     }
 
-    pub fn setFromVector3(self: *Spherical, v: *const Vector3) void {
+    pub fn setFromVector3(self: *Spherical, v: *const Vector3D) void {
         self.setFromCartesianCoords(v.x(), v.y(), v.z());
     }
 
-    pub fn setFromCartesianCoords(self: *Spherical, x: f32, y: f32, z: f32) void {
+    pub fn setFromCartesianCoords(self: *Spherical, x: f64, y: f64, z: f64) void {
         self.radius = stdmath.sqrt(x * x + y * y + z * z);
 
         if (self.radius == 0) {
@@ -70,7 +69,7 @@ const Spherical = struct {
         newSpherical.copy(self);
         return newSpherical;
     }
-    pub fn clamp(value: f32, minVal: f32, maxVal: f32) f32 {
+    pub fn clamp(value: f64, minVal: f64, maxVal: f64) f64 {
         return @max(minVal, @min(maxVal, value));
     }
 };
@@ -78,71 +77,71 @@ const GLFW_PRESS = 1; // GLFW 按钮按下状态
 
 pub const OrbitControl = struct {
     camera: *Camera,
-    target: Vector3 = Vector3.fromZero(),
-    cursor: Vector3 = Vector3.fromZero(),
-    minDistance: f32 = 0,
-    maxDistance: f32 = stdmath.inf(f32),
-    minZoom: f32 = 0,
-    maxZoom: f32 = stdmath.inf(f32),
+    target: Vector3D = Vector3D.fromZero(),
+    cursor: Vector3D = Vector3D.fromZero(),
+    minDistance: f64 = 0,
+    maxDistance: f64 = stdmath.inf(f64),
+    minZoom: f64 = 0,
+    maxZoom: f64 = stdmath.inf(f64),
 
-    minTargetRadius: f32 = 0,
-    maxTargetRadius: f32 = stdmath.inf(f32),
+    minTargetRadius: f64 = 0,
+    maxTargetRadius: f64 = stdmath.inf(f64),
 
-    minPolarAngle: f32 = 0,
-    maxPolarAngle: f32 = math.pi,
+    minPolarAngle: f64 = 0,
+    maxPolarAngle: f64 = math.pi,
 
-    minAzimuthAngle: f32 = -stdmath.inf(f32),
-    maxAzimuthAngle: f32 = stdmath.inf(f32),
+    minAzimuthAngle: f64 = -stdmath.inf(f64),
+    maxAzimuthAngle: f64 = stdmath.inf(f64),
 
     enableDamping: bool = false,
-    dampingFactor: f32 = 0.05,
+    dampingFactor: f64 = 0.05,
 
     enableZoom: bool = true,
-    zoomSpeed: f32 = 1.0,
+    zoomSpeed: f64 = 1.0,
 
     enableRotate: bool = true,
-    rotateSpeed: f32 = 1.0,
+    rotateSpeed: f64 = 1.0,
 
     enablePan: bool = true,
-    panSpeed: f32 = 1.0,
+    panSpeed: f64 = 1.0,
     screenSpacePanning: bool = true,
-    keyPanSpeed: f32 = 7.0,
+    keyPanSpeed: f64 = 7.0,
     zoomToCursor: bool = false,
 
     autoRotate: bool = false,
-    autoRotateSpeed: f32 = 2.0,
+    autoRotateSpeed: f64 = 2.0,
 
-    target0: Vector3 = Vector3.fromZero(),
-    position0: Vector3 = Vector3.fromZero(),
-    zoom0: f32 = 0,
+    target0: Vector3D = Vector3D.fromZero(),
+    position0: Vector3D = Vector3D.fromZero(),
+    zoom0: f64 = 0,
 
-    _lastPosition: Vector3 = Vector3.fromZero(),
-    _lastQuaternion: Quaternion = Quaternion.fromZero(),
-    _lastTargetPosition: Vector3 = Vector3.fromZero(),
+    _lastPosition: Vector3D = Vector3D.fromZero(),
+    _lastQuaternion: QuaternionD = QuaternionD.fromZero(),
+    _lastTargetPosition: Vector3D = Vector3D.fromZero(),
 
-    _quat: Quaternion = Quaternion.fromZero(),
-    _quatInverse: Quaternion = Quaternion.fromZero(),
+    _quat: QuaternionD = QuaternionD.fromZero(),
+    _quatInverse: QuaternionD = QuaternionD.fromZero(),
 
     _spherical: Spherical = Spherical.default(),
     _sphericalDelta: Spherical = Spherical.default(),
 
-    _scale: f32 = 1,
-    _panOffset: Vector3 = Vector3.fromZero(),
+    _scale: f64 = 1,
+    _panOffset: Vector3D = Vector3D.fromZero(),
 
-    _rotateStart: Vector2 = Vector2.fromZero(),
-    _rotateEnd: Vector2 = Vector2.fromZero(),
-    _rotateDelta: Vector2 = Vector2.fromZero(),
+    _rotateStart: Vector2D = Vector2D.fromZero(),
+    _rotateEnd: Vector2D = Vector2D.fromZero(),
+    _rotateDelta: Vector2D = Vector2D.fromZero(),
 
-    _panStart: Vector2 = Vector2.fromZero(),
-    _panEnd: Vector2 = Vector2.fromZero(),
-    _panDelta: Vector2 = Vector2.fromZero(),
+    _panStart: Vector2D = Vector2D.fromZero(),
+    _panEnd: Vector2D = Vector2D.fromZero(),
+    _panDelta: Vector2D = Vector2D.fromZero(),
 
-    _dollyStart: Vector2 = Vector2.fromZero(),
-    _dollyEnd: Vector2 = Vector2.fromZero(),
-    _dollyDelta: Vector2 = Vector2.fromZero(),
+    _dollyStart: Vector2D = Vector2D.fromZero(),
+    _dollyEnd: Vector2D = Vector2D.fromZero(),
+    _dollyDelta: Vector2D = Vector2D.fromZero(),
 
-    _dollyDirection: Vector3 = Vector3.fromZero(),
-    _mouse: Vector2 = Vector2.fromZero(),
+    _dollyDirection: Vector3D = Vector3D.fromZero(),
+    _mouse: Vector2D = Vector2D.fromZero(),
     _performCursorZoom: bool = false,
     enable: bool = true,
 
@@ -171,7 +170,7 @@ pub const OrbitControl = struct {
         };
         self.position0 = self.camera.position.clone();
         self.zoom0 = self.camera.zoom;
-        self._quat = Quaternion.fromUnitVectors(&self.camera.up, &Vector3.new(0, 1, 0));
+        self._quat = QuaternionD.fromUnitVectors(&self.camera.up, &Vector3D.new(0, 1, 0));
         self._quatInverse = self._quat.inverse();
         const Closure = struct {
             var this: *OrbitControl = undefined;
@@ -271,7 +270,7 @@ pub const OrbitControl = struct {
         _ = lib.input.event.off(self.on_wheel_id);
         lib.mem.getAllocator().destroy(self);
     }
-    pub fn update(self: *Self, deltaTime: ?f32) void {
+    pub fn update(self: *Self, deltaTime: ?f64) void {
         var targetToPosition = self.camera.position.subtract(&self.target);
         targetToPosition = self._quat.multiplyByPoint(&targetToPosition);
         self._spherical.setFromVector3(&targetToPosition);
@@ -327,10 +326,10 @@ pub const OrbitControl = struct {
             self._panOffset = self._panOffset.multiplyByScalar(1 - self.dampingFactor);
         } else {
             self._sphericalDelta.set(0, 0, 0);
-            self._panOffset = Vector3.new(0, 0, 0);
+            self._panOffset = Vector3D.new(0, 0, 0);
         }
         if (self.zoomToCursor and self._performCursorZoom) {
-            var newRadius: f32 = 0;
+            var newRadius: f64 = 0;
             if (self.camera.isPerspectiveCamera) {
                 const prevRadius = targetToPosition.length();
                 newRadius = self._clampDistance(prevRadius * self._scale);
@@ -358,7 +357,7 @@ pub const OrbitControl = struct {
 
             if (newRadius == 0) {
                 if (self.screenSpacePanning) {
-                    self.target = self.camera.matrix.transformDirection(&Vector3.new(0, 0, -1))
+                    self.target = self.camera.matrix.transformDirection(&Vector3D.new(0, 0, -1))
                         .multiplyByScalar(newRadius)
                         .add(&self.camera.position);
                 } else {}
@@ -375,29 +374,29 @@ pub const OrbitControl = struct {
         self.camera.updateMatrix();
         // self.camera.position.print();
     }
-    pub fn setFromSpherical(v: *Vector3, s: *const Spherical) void {
+    pub fn setFromSpherical(v: *Vector3D, s: *const Spherical) void {
         const sinPhiRadius = math.sin(s.phi) * s.radius;
         v.v[0] = sinPhiRadius * math.sin(s.theta);
         v.v[1] = math.cos(s.phi) * s.radius;
         v.v[2] = sinPhiRadius * math.cos(s.theta);
     }
-    pub fn _clampDistance(self: *const Self, distance: f32) f32 {
+    pub fn _clampDistance(self: *const Self, distance: f64) f64 {
         return @max(self.minDistance, @min(self.maxDistance, distance));
     }
-    pub fn getDistance(self: *const Self) f32 {
+    pub fn getDistance(self: *const Self) f64 {
         return self.camera.position.distance(self.target);
     }
-    pub fn getPolarAngle(self: *const Self) f32 {
+    pub fn getPolarAngle(self: *const Self) f64 {
         return self._spherical.phi;
     }
-    pub fn _getAutoRotationAngle(self: *const Self, deltaTime: ?f32) f32 {
+    pub fn _getAutoRotationAngle(self: *const Self, deltaTime: ?f64) f64 {
         if (deltaTime) |t| {
             return (math.tau / 60.0 * self.autoRotateSpeed) * t;
         } else {
             return math.tau / 60.0 * self.autoRotateSpeed;
         }
     }
-    pub fn getAzimuthalAngle(self: *const Self) f32 {
+    pub fn getAzimuthalAngle(self: *const Self) f64 {
         return self._spherical.theta;
     }
     fn dispatchEvent(self: *Self, _: []const u8) void {
@@ -417,7 +416,7 @@ pub const OrbitControl = struct {
         self._dollyStart.setX(event.clientX);
         self._dollyStart.setY(event.clientY);
     }
-    fn _updateZoomParameters(self: *Self, x: f32, y: f32) void {
+    fn _updateZoomParameters(self: *Self, x: f64, y: f64) void {
         if (!self.zoomToCursor) return;
         self._performCursorZoom = true;
         const size = self.getWindowSize();
@@ -434,12 +433,12 @@ pub const OrbitControl = struct {
         self._dollyDirection = self.camera.projection_matrix.multiply(&self.camera.view_matrix).multiplyByPoint(&self._dollyDirection).subtract(&self.camera.position).normalize();
     }
     ///get size of window
-    fn getWindowSize(self: *Self) [2]f32 {
+    fn getWindowSize(self: *Self) [2]f64 {
         const size = self.window.getSize();
         return .{ @floatFromInt(size[0]), @floatFromInt(size[1]) };
     }
     ///get left and top corner of window
-    fn getWindowPos(self: *Self) [2]f32 {
+    fn getWindowPos(self: *Self) [2]f64 {
         const pos = self.window.getPos();
         return .{ @floatFromInt(pos[0]), @floatFromInt(pos[1]) };
     }
@@ -484,28 +483,28 @@ pub const OrbitControl = struct {
         self._panStart = self._panEnd.clone();
         self.update(null);
     }
-    fn _rotateLeft(self: *Self, angle: f32) void {
+    fn _rotateLeft(self: *Self, angle: f64) void {
         self._sphericalDelta.theta -= angle;
     }
-    fn _rotateUp(self: *Self, angle: f32) void {
+    fn _rotateUp(self: *Self, angle: f64) void {
         self._sphericalDelta.phi -= angle;
     }
-    fn _dollyOut(self: *Self, dollyScale: f32) void {
+    fn _dollyOut(self: *Self, dollyScale: f64) void {
         self._scale /= dollyScale;
     }
-    fn _dollyIn(self: *Self, dollyScale: f32) void {
+    fn _dollyIn(self: *Self, dollyScale: f64) void {
         self._scale *= dollyScale;
     }
-    fn _getZoomScale(self: *Self, delta: f32) f32 {
+    fn _getZoomScale(self: *Self, delta: f64) f64 {
         const normalizedDelta = @abs(delta * 0.01);
-        return stdmath.pow(f32, 0.95, self.zoomSpeed * normalizedDelta);
+        return stdmath.pow(f64, 0.95, self.zoomSpeed * normalizedDelta);
     }
-    fn _panLeft(self: *Self, distance: f32, objectMatrix: Mat4) void {
+    fn _panLeft(self: *Self, distance: f64, objectMatrix: Mat4) void {
         const v = objectMatrix.getColVector3(0);
         self._panOffset = self._panOffset.add(&v.multiplyByScalar(-distance));
     }
-    fn _panUp(self: *Self, distance: f32, objectMatrix: Mat4) void {
-        var _v: Vector3 = undefined;
+    fn _panUp(self: *Self, distance: f64, objectMatrix: Mat4) void {
+        var _v: Vector3D = undefined;
         if (self.screenSpacePanning == true) {
             _v = objectMatrix.getColVector3(1);
         } else {
@@ -514,7 +513,7 @@ pub const OrbitControl = struct {
         }
         self._panOffset = self._panOffset.add(&_v.multiplyByScalar(-distance));
     }
-    fn _pan(self: *Self, deltaX: f32, deltaY: f32) void {
+    fn _pan(self: *Self, deltaX: f64, deltaY: f64) void {
         if (self.camera.isPerspectiveCamera) {
             const _v = self.camera.position.subtract(&self.target);
             const targetDistance = _v.length() * stdmath.tan(self.camera.fovy / 2);
@@ -527,10 +526,10 @@ pub const OrbitControl = struct {
             // self._panUp(deltaY * (self.camera.top - self.camera.bottom) / self.camera.zoom / size[1], self.camera.matrix);
         }
     }
-    pub fn modAngle32(in_angle: f32) f32 {
+    pub fn modAngle32(in_angle: f64) f64 {
         const angle = in_angle + math.pi;
-        var temp: f32 = @abs(angle);
-        temp = temp - (2.0 * math.pi * @as(f32, @floatFromInt(@as(i32, @intFromFloat(temp / math.pi)))));
+        var temp: f64 = @abs(angle);
+        temp = temp - (2.0 * math.pi * @as(f64, @floatFromInt(@as(i32, @intFromFloat(temp / math.pi)))));
         temp = temp - math.pi;
         if (angle < 0.0) {
             temp = -temp;

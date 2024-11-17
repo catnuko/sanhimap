@@ -2,24 +2,18 @@ const lib = @import("../lib.zig");
 const wgpu = lib.wgpu;
 const zgpu = lib.zgpu;
 const math = @import("math");
-const Mat4 = math.Matrix4;
+const Matrix4 = math.Matrix4;
+const Matrix4D = math.Matrix4D;
 const Vector3 = math.Vector3;
-const Quaternion = math.Quaternion;
+const QuaternionD = math.Quaternion;
 const mesh = @import("./index.zig");
 const Geometry = mesh.Geometry;
 const Material = mesh.Material;
 const Context = mesh.Context;
 pub const MeshUniforms = struct {
-    model: Mat4,
-    view: Mat4,
-    projection: Mat4,
-    pub fn new() MeshUniforms {
-        return .{
-            .model = Mat4.fromIdentity(),
-            .view = Mat4.fromIdentity(),
-            .projection = Mat4.fromIdentity(),
-        };
-    }
+    model: [16]f32,
+    view: [16]f32,
+    projection: [16]f32,
 };
 const State = struct {
     pipeline: zgpu.RenderPipelineHandle,
@@ -30,8 +24,8 @@ geometry: ?Geometry = null,
 material: ?Material = null,
 state: ?State = null,
 is_upload: bool = false,
-matrix: Mat4 = Mat4.fromIdentity(),
-matrixWorld: Mat4 = Mat4.fromIdentity(),
+matrix: Matrix4D = Matrix4D.fromIdentity(),
+matrixWorld: Matrix4D = Matrix4D.fromIdentity(),
 parent: ?*Self = null,
 children: lib.ArrayList(*Self),
 pub fn empty() *Self {
@@ -180,9 +174,9 @@ pub fn draw(self: *Self, ctx: *Context) void {
         {
             const mem0 = gctx.uniformsAllocate(MeshUniforms, 1);
             mem0.slice[0] = .{
-                .model = self.matrixWorld,
-                .view = ctx.view,
-                .projection = ctx.projection,
+                .model = mat4ToGpuMat4(&self.matrixWorld),
+                .view = mat4ToGpuMat4(&ctx.view),
+                .projection = mat4ToGpuMat4(&ctx.projection),
             };
             pass.setBindGroup(0, mesh_uniforms_bg, &.{mem0.offset});
             pass.setBindGroup(1, material_uniforms_bg, &.{material.uniform.write_uniform(ctx)});
@@ -192,4 +186,12 @@ pub fn draw(self: *Self, ctx: *Context) void {
     for (self.children.items) |children| {
         children.draw(ctx);
     }
+}
+fn mat4ToGpuMat4(mat4: *const Matrix4D) [16]f32 {
+    const v = mat4.toColumnMajorArray();
+    var res: [16]f32 = .{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    for (v, 0..) |vv, i| {
+        res[i] = @floatCast(vv);
+    }
+    return res;
 }

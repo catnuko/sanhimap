@@ -330,12 +330,12 @@ pub fn Quaternion(comptime Scalar: type) type {
             a.v.print();
         }
         pub fn fromUnitVectors(vFrom: *const vec.Vector3(T), vTo: *const vec.Vector3(T)) Quaternion(T) {
-            var xx: f32 = 0;
-            var yy: f32 = 0;
-            var zz: f32 = 0;
-            var ww: f32 = 0;
+            var xx: T = 0;
+            var yy: T = 0;
+            var zz: T = 0;
+            var ww: T = 0;
             var r = vFrom.dot(vTo) + 1.0;
-            if (r < math.eps_f32) {
+            if (r < math.floatEps(T)) {
                 r = 0;
                 if (@abs(vFrom.x()) > @abs(vFrom.z())) {
                     xx = -vFrom.y();

@@ -1,12 +1,12 @@
 const stdmath = @import("std").math;
 pub const math = @import("math");
-pub const Vector2 = math.Vector2D;
-pub const Vector3 = math.Vector3D;
+pub const Vector2D = math.Vector2D;
+pub const Vector3D = math.Vector3D;
 pub const Vector4 = math.Vector4D;
 pub const Mat2 = math.Matrix2D;
 pub const Mat3 = math.Matrix3D;
 pub const Mat4 = math.Matrix4D;
-pub const Quaternion = math.QuaternionD;
+pub const QuaternionD = math.QuaternionD;
 pub const HeadingPitchRoll = math.HeadingPitchRollD;
 pub const vec2 = math.Vector2D.new;
 pub const vec3 = math.Vector3D.new;

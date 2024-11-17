@@ -2,15 +2,15 @@ const lib = @import("../lib.zig");
 const backend = lib.backend;
 const zglfw = lib.zglfw;
 const math = @import("math");
-const Vector3 = math.Vector3;
-const Mat4 = math.Matrix4;
-const Mat3 = math.Matrix3;
-const Quaternion = math.Quaternion;
+const Vector3D = math.Vector3D;
+const Mat4 = math.Matrix4D;
+const Mat3 = math.Matrix3D;
+const QuaternionD = math.QuaternionD;
 const HeadingPitchRoll = math.HeadingPitchRoll;
 
-position:Vector3 = Vector3.fromZero(),
-rotation:Quaternion = Quaternion.fromZero(),
-scale:Vector3 = Vector3.splat(1),
+position:Vector3D = Vector3D.fromZero(),
+rotation:QuaternionD = QuaternionD.fromZero(),
+scale:Vector3D = Vector3D.splat(1),
 matrix:Mat4,
 matrix_world:Mat4,
 const Self = @This();

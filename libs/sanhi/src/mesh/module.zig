@@ -6,8 +6,8 @@ const zgpu = lib.zgpu;
 const wgpu = lib.wgpu;
 const modules = lib.modules;
 const math = @import("math");
-const Mat4 = math.Matrix4;
-const Vector3 = math.Vector3;
+const Mat4 = math.Matrix4D;
+const Vector3D = math.Vector3D;
 const mesh = @import("./index.zig");
 const Mesh = mesh.Mesh;
 const Context = mesh.Context;
@@ -158,11 +158,3 @@ fn createDepthTexture(gctx: *zgpu.GraphicsContext) struct {
     return .{ .texture = texture, .view = view };
 }
 
-fn mat4ToGpuMat4(mat4: *const Mat4) [16]f32 {
-    const v = mat4.toColumnMajorArray();
-    var res: [16]f32 = [1]f32{0} ** 16;
-    for (v, 0..) |vv, i| {
-        res[i] = @floatCast(@round(vv));
-    }
-    return res;
-}

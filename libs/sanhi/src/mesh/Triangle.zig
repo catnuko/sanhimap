@@ -6,8 +6,8 @@ const Mesh = mesh.Mesh;
 const Geometry = mesh.Geometry;
 const Material = mesh.Material;
 const math = @import("math");
-const Mat4 = math.Matrix4;
-const Vector3 = math.Vector3;
+const Mat4 = math.Matrix4D;
+const Vector3D = math.Vector3D;
 const wgsl_vs =
     \\  struct MeshUniforms {
     \\      model: mat4<f32>,

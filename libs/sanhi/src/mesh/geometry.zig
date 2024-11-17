@@ -3,9 +3,9 @@ const lib = @import("../lib.zig");
 const wgpu = lib.wgpu;
 const zgpu = lib.zgpu;
 const math = @import("math");
-const Mat4 = math.Matrix4;
-const Vector3 = math.Vector3;
-const Quaternion = math.Quaternion;
+const Mat4 = math.Matrix4D;
+const Vector3D = math.Vector3D;
+const QuaternionD = math.QuaternionD;
 const Geometry = @import("./Geometry.zig");
 
 attributes: []const wgpu.VertexAttribute,
