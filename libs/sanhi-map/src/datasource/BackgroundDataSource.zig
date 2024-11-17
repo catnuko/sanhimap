@@ -78,6 +78,9 @@ pub fn BackgroundDataSource(comptime TilingScheme: type) type {
         }
     };
 }
+pub const Vertex = struct {
+    
+};
 const DefaultBackgroundDataSource = BackgroundDataSource(tiling.TilingScheme(proj.WebMercatorProjection));
 pub fn createGroundPlaneGeometry(
     tile: *const DefaultBackgroundDataSource.Tile,

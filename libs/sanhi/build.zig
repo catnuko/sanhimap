@@ -43,7 +43,7 @@ pub fn build(b: *std.Build) !void {
         .{ .module = uuid.module("uuid"), .name = "uuid" },
         .{ .module = math.module("root"), .name = "math" },
     };
-    const sanhi_mod = b.addModule("sanhi", .{
+    const sanhi_mod = b.addModule("root", .{
         .root_source_file = b.path("src/lib.zig"),
         .target = target,
         .optimize = optimize,

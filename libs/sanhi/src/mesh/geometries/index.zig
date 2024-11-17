@@ -45,36 +45,19 @@ pub fn init_axes_geometry(size: f32) Geometry {
         },
     );
     geometry.primitiveTopology = wgpu.PrimitiveTopology.line_list;
-    const positions = &[_][3]f32{
-        .{ 0, 0, 0 },
-        .{ size, 0, 0 },
-        .{ 0, 0, 0 },
-        .{ 0, size, 0 },
-        .{ 0, 0, 0 },
-        .{ 0, 0, size },
+    const Vertex = struct {
+        position: [3]f32,
+        color: [3]f32,
     };
-    const colors = &[_][3]f32{
-        .{ 1, 0, 0 },
-        .{ 1, 0, 0 },
-        .{ 0, 1, 0 },
-        .{ 0, 1, 0 },
-        .{ 0, 0, 1 },
-        .{ 0, 0, 1 },
+    const vertices = [_]Vertex{
+        .{ .position = .{ 0, 0, 0 }, .color = .{ 1, 0, 0 } },
+        .{ .position = .{ size, 0, 0 }, .color = .{ 1, 0, 0 } },
+        .{ .position = .{ 0, 0, 0 }, .color = .{0, 1, 0 } },
+        .{ .position = .{ 0, size, 0  }, .color = .{0, 1, 0 } },
+        .{ .position = .{ 0, 0, 0 }, .color = .{ 0, 0, 1 } },
+        .{ .position = .{ 0, 0, size }, .color = .{ 0, 0, 1 } },
     };
-    const vertex_length = 6;
-    var buffer = lib.ArrayList(f32).initCapacity(lib.mem.getAllocator(), vertex_length * 6) catch unreachable;
-    defer buffer.deinit();
-    for (0..vertex_length) |i| {
-        const position = positions[i];
-        const color = colors[i];
-        buffer.appendAssumeCapacity(position[0]);
-        buffer.appendAssumeCapacity(position[1]);
-        buffer.appendAssumeCapacity(position[2]);
-        buffer.appendAssumeCapacity(color[0]);
-        buffer.appendAssumeCapacity(color[1]);
-        buffer.appendAssumeCapacity(color[2]);
-    }
-    geometry.set_vertex_data(f32, buffer.items);
+    geometry.set_vertex_data(Vertex, &vertices);
     const indices = [_]u32{ 0, 1, 2, 3, 4, 5 };
     geometry.set_index_data(u32, &indices);
     return geometry;

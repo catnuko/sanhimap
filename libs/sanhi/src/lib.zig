@@ -17,6 +17,7 @@ pub const utils = @import("./utils.zig");
 pub const mesh = @import("./mesh//index.zig");
 pub const Event = @import("./Event.zig");
 pub const Viewer = @import("./Viewer.zig");
+pub const uuid = @import("uuid");
 pub const ArrayList = std.ArrayList;
 pub const AutoHashMap = std.AutoHashMap;
 pub const StringHashMap = std.StringHashMap;
