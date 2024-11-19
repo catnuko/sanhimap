@@ -16,3 +16,18 @@ pub fn erase_list(allocator: std.mem.Allocator, comptime T: type, data: []const 
     @memcpy(buffer_cloned[0..], gpu_data[0..size]);
     return buffer_cloned;
 }
+
+pub fn removeById(comptime T:type,list:*std.ArrayList(T),id:anytype) ?T {
+    var get_it: bool = false;
+    var targetIndex: usize = 0;
+    for (list.items, 0..) |item, i| {
+        if (item.id == id) {
+            targetIndex = i;
+            get_it = true;
+            break;
+        }
+    }
+    if (get_it) {
+        return list.swapRemove(targetIndex);
+    }
+}

@@ -5,6 +5,8 @@ const mesh = @import("../index.zig");
 const Mesh = mesh.Mesh;
 const Geometry = mesh.Geometry;
 const Material = mesh.Material;
+const GeometryBuilder = mesh.GeometryBuilder;
+const AttributeData = mesh.AttributeData;
 
 pub fn init_sphere_geometry(slices: i32, stacks: i32) Geometry {
     var geometry = Geometry.new(
@@ -32,35 +34,85 @@ pub fn init_sphere_geometry(slices: i32, stacks: i32) Geometry {
         buffer.appendAssumeCapacity(normal[1]);
         buffer.appendAssumeCapacity(normal[2]);
     }
-    geometry.set_vertex_data(f32, buffer.items);
-    geometry.set_index_data(u32, shape.indices);
+    geometry.setVertexData(f32, buffer.items);
+    geometry.setIndexData(u32, shape.indices);
     return geometry;
 }
 
 pub fn init_axes_geometry(size: f32) Geometry {
-    var geometry = Geometry.new(
-        &[_]wgpu.VertexAttribute{
-            .{ .format = wgpu.VertexFormat.float32x3, .shader_location = 0, .offset = 0 },
-            .{ .format = wgpu.VertexFormat.float32x3, .shader_location = 1, .offset = 12 },
-        },
-    );
-    geometry.primitiveTopology = wgpu.PrimitiveTopology.line_list;
-    const Vertex = struct {
-        position: [3]f32,
-        color: [3]f32,
-    };
-    const vertices = [_]Vertex{
-        .{ .position = .{ 0, 0, 0 }, .color = .{ 1, 0, 0 } },
-        .{ .position = .{ size, 0, 0 }, .color = .{ 1, 0, 0 } },
-        .{ .position = .{ 0, 0, 0 }, .color = .{0, 1, 0 } },
-        .{ .position = .{ 0, size, 0  }, .color = .{0, 1, 0 } },
-        .{ .position = .{ 0, 0, 0 }, .color = .{ 0, 0, 1 } },
-        .{ .position = .{ 0, 0, size }, .color = .{ 0, 0, 1 } },
-    };
-    geometry.set_vertex_data(Vertex, &vertices);
-    const indices = [_]u32{ 0, 1, 2, 3, 4, 5 };
-    geometry.set_index_data(u32, &indices);
-    return geometry;
+    // var geometry = Geometry.new(
+    //     &[_]wgpu.VertexAttribute{
+    //         .{ .format = wgpu.VertexFormat.float32x3, .shader_location = 0, .offset = 0 },
+    //         .{ .format = wgpu.VertexFormat.float32x3, .shader_location = 1, .offset = 12 },
+    //     },
+    // );
+    // geometry.primitiveTopology = wgpu.PrimitiveTopology.line_list;
+    // const Vertex = struct {
+    //     position: [3]f32,
+    //     color: [3]f32,
+    // };
+    // const vertices = [_]Vertex{
+    //     .{ .position = .{ 0, 0, 0 }, .color = .{ 1, 0, 0 } },
+    //     .{ .position = .{ size, 0, 0 }, .color = .{ 1, 0, 0 } },
+    //     .{ .position = .{ 0, 0, 0 }, .color = .{0, 1, 0 } },
+    //     .{ .position = .{ 0, size, 0  }, .color = .{0, 1, 0 } },
+    //     .{ .position = .{ 0, 0, 0 }, .color = .{ 0, 0, 1 } },
+    //     .{ .position = .{ 0, 0, size }, .color = .{ 0, 0, 1 } },
+    // };
+    // geometry.setVertexData(Vertex, &vertices);
+    // const indices = [_]u32{ 0, 1, 2, 3, 4, 5 };
+    // geometry.setIndexData(u32, &indices);
+    // return geometry;
+    // var builder = GeometryBuilder.new();
+    // defer builder.deinit();
+    // builder.primitiveTopology = wgpu.PrimitiveTopology.line_list;
+    // const allocator = lib.mem.getAllocator();
+    // var positions = lib.ArrayList([3]f32).initCapacity(allocator, 6) catch unreachable;
+    // positions.appendSliceAssumeCapacity(&.{
+    //     .{ 0, 0, 0 },
+    //     .{ size, 0, 0 },
+    //     .{ 0, 0, 0 },
+    //     .{ 0, size, 0 },
+    //     .{ 0, 0, 0 },
+    //     .{ 0, 0, size },
+    // });
+
+    // var colors = lib.ArrayList([3]f32).initCapacity(allocator, 6) catch unreachable;
+    // colors.appendSliceAssumeCapacity(&.{
+    //     .{ 1, 0, 0 },
+    //     .{ 1, 0, 0 },
+    //     .{ 0, 1, 0 },
+    //     .{ 0, 1, 0 },
+    //     .{ 0, 0, 1 },
+    //     .{ 0, 0, 1 },
+    // });
+    // builder.setAttribute("position", AttributeData{ .float32x3 = positions });
+    // builder.setAttribute("color", AttributeData{ .float32x3 = colors });
+
+    // var indices = lib.ArrayList(u32).initCapacity(allocator, 6) catch unreachable;
+    // indices.appendSliceAssumeCapacity(&.{ 0, 1, 2, 3, 4, 5 });
+    // builder.index = indices;
+    // return builder.finish() orelse unreachable;
+    var builder = GeometryBuilder.new();
+    builder.primitiveTopology = wgpu.PrimitiveTopology.line_list;
+    builder.setAttributeBySlice("position", [3]f32, &.{
+        .{ 0, 0, 0 },
+        .{ size, 0, 0 },
+        .{ 0, 0, 0 },
+        .{ 0, size, 0 },
+        .{ 0, 0, 0 },
+        .{ 0, 0, size },
+    },false);
+    builder.setAttributeBySlice("color", [3]f32, &.{
+        .{ 1, 0, 0 },
+        .{ 1, 0, 0 },
+        .{ 0, 1, 0 },
+        .{ 0, 1, 0 },
+        .{ 0, 0, 1 },
+        .{ 0, 0, 1 },
+    },false);
+    builder.setIndexBySlice(&.{ 0, 1, 2, 3, 4, 5 });
+    return builder.finish() orelse unreachable;
 }
 
 pub fn init_grid_geometry(size: f32) Geometry {
@@ -108,7 +160,7 @@ pub fn init_grid_geometry(size: f32) Geometry {
         },
     );
     geometry.primitiveTopology = wgpu.PrimitiveTopology.line_list;
-    geometry.set_vertex_data(f32, buffer.items);
-    geometry.set_index_data(u32, indices);
+    geometry.setVertexData(f32, buffer.items);
+    geometry.setIndexData(u32, indices);
     return geometry;
 }
