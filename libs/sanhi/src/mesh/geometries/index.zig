@@ -7,8 +7,6 @@ const Geometry = mesh.Geometry;
 const Material = mesh.Material;
 const GeometryBuilder = mesh.GeometryBuilder;
 const AttributeData = mesh.AttributeData;
-const GeometryBuilder = mesh.GeometryBuilder;
-const AttributeData = mesh.AttributeData;
 
 pub fn init_sphere_geometry(slices: i32, stacks: i32) Geometry {
     var geometry = Geometry.new(
