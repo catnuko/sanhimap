@@ -59,9 +59,9 @@ pub fn initTriangleMesh() *Mesh {
         },
     );
     const data = [_]f32{ 0.0, 0.5, 0.0, 1.0, 0.0, 0.0, 1.0, -0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 1.0 };
-    geometry.set_vertex_data(f32, &data);
+    geometry.setVertexData(f32, &data);
     const indices = [_]u32{ 0, 1, 2 };
-    geometry.set_index_data(u32, &indices);
+    geometry.setIndexData(u32, &indices);
     var material = Material{
         .vs = wgsl_vs,
         .fs = wgsl_fs,

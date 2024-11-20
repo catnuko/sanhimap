@@ -7,7 +7,7 @@ const Mat4 = math.Matrix4D;
 const Vector3D = math.Vector3D;
 const QuaternionD = math.QuaternionD;
 const Geometry = @import("./Geometry.zig");
-
+/// geometry will copy attributes,vertex_data,index_data
 attributes: []const wgpu.VertexAttribute,
 primitiveTopology: wgpu.PrimitiveTopology = wgpu.PrimitiveTopology.triangle_list,
 index_data: []const u8 = undefined,
@@ -17,8 +17,9 @@ vertex_data: []const u8 = undefined,
 vertex_buffer: zgpu.BufferHandle = undefined,
 const Self = @This();
 pub fn new(attributes: []const wgpu.VertexAttribute) Self {
+    const allocator = lib.mem.getAllocator();
     return .{
-        .attributes = attributes,
+        .attributes = allocator.dupe(wgpu.VertexAttribute, attributes) catch unreachable,
     };
 }
 pub fn deinit(self: *Self) void {
@@ -28,6 +29,7 @@ pub fn release(self: *const Self) void {
     const allocator = lib.mem.getAllocator();
     allocator.free(self.vertex_data);
     allocator.free(self.index_data);
+    allocator.free(self.attributes);
 }
 pub fn vertexBufferLayout(self: *const Self) wgpu.VertexBufferLayout {
     var array_stride: u64 = 0;
@@ -40,12 +42,20 @@ pub fn vertexBufferLayout(self: *const Self) wgpu.VertexBufferLayout {
         .attributes = self.attributes.ptr,
     };
 }
-pub fn set_vertex_data(self: *Self, comptime T: type, data: []const T) void {
+pub fn setVertexData(self: *Self, comptime T: type, data: []const T) void {
     self.vertex_data = lib.utils.erase_list(lib.mem.getAllocator(), T, data);
 }
-pub fn set_index_data(self: *Self, comptime T: type, data: []const T) void {
+pub fn setVertexDataBySliceU8(self: *Self, data: []u8) void {
+    const allocator = lib.mem.getAllocator();
+    self.vertex_data = allocator.dupe(u8, data) catch unreachable;
+}
+pub fn setIndexData(self: *Self, comptime T: type, data: []const T) void {
     self.index_count = @intCast(data.len);
     self.index_data = lib.utils.erase_list(lib.mem.getAllocator(), T, data);
+}
+pub fn setIndexDataBySliceU8(self: *Self, data: []u8) void {
+    const allocator = lib.mem.getAllocator();
+    self.index_data = allocator.dupe(u8, data) catch unreachable;
 }
 pub fn upload(self: *Self, gctx: *zgpu.GraphicsContext) void {
     const vertex_buffer = gctx.createBuffer(.{
