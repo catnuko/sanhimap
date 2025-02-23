@@ -8,7 +8,8 @@
         "editor.formatOnSave": false,
         "editor.defaultFormatter": "ziglang.vscode-zig",
         "files.eol": "\n"
-    }
+    },
+    "cmake.sourceDirectory": "D:/code/geo/libs/zpcre2/pcre2"
 } // {
 //     "zig-language-extras.testArgs": "-ODebug --dep math -Mroot=${workspaceFolder}/libs/shanhaimap/src/root.zig -ODebug -Mmath=D:/code/geo/libs/math/src/root.zig --cache-dir ${workspaceFolder}:/code/geo/libs/shanhaimap/.zig-cache --global-cache-dir C:/Users/catnuko/AppData/Local/zig --name test",
 // }

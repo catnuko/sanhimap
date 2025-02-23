@@ -1,4 +1,8 @@
 const std = @import("std");
+const math = @import("math");
+const Matrix4 = math.Matrix4;
+const Matrix4D = math.Matrix4D;
+const Vector3 = math.Vector3;
 const lib = @import("./lib.zig");
 pub fn to_list(comptime T: type, constList: anytype) lib.ArrayList(T) {
     const allocator = lib.mem.getAllocator(); // 使用合适的内存分配器
@@ -31,3 +35,22 @@ pub fn removeById(comptime T:type,list:*std.ArrayList(T),id:anytype) ?T {
         return list.swapRemove(targetIndex);
     }
 }
+pub fn getByName(comptime T:type,list:*std.ArrayList(T),name:[]const u8) ?T {
+    var get_it: bool = false;
+    var targetIndex: usize = 0;
+    for (list.items, 0..) |item, i| {
+        if (std.mem.eql(u8, item.name, name)) {
+            targetIndex = i;
+            get_it = true;
+            break;
+        }
+    }
+    if (get_it) {
+        return list.items[targetIndex];
+    }
+    return null;
+}
+
+// pub fn createSlicefromVector3(vec3List:[]const Vector3)[]f64{
+    
+// }

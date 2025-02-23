@@ -235,7 +235,7 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
             return .{ .v = a.v + b.v };
         }
 
-        pub inline fn addScaledVector(a:*const VecN,b:*const VecN,s:VecN.T)VecN{
+        pub inline fn addScaledVector(a: *const VecN, b: *const VecN, s: VecN.T) VecN {
             return .{ .v = a.v + b.v * VecN.splat(s).v };
         }
 
@@ -497,6 +497,21 @@ pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
                 std.debug.print("{d},", .{a.v[coli]});
             }
             std.debug.print("\n", .{});
+        }
+        pub inline fn toArray(a: *const VecN) [VecN.n]VecN.T {
+            var list: [VecN.n]VecN.T = .{};
+            inline for (0..VecN.n) |coli| {
+                list[coli] = a.v[coli];
+            }
+            return list;
+        }
+        pub inline fn angleTo(a: *const VecN, b: *const VecN) VecN.T {
+            const denominator = std.math.sqrt(a.length2() * b.length());
+            if (denominator == 0) {
+                return std.math.pi / 2;
+            }
+            const theta = a.dot(&b) / denominator;
+            return std.math.acos(@max(-1, @min(theta, 1)));
         }
     };
 }

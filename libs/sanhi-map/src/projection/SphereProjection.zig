@@ -12,6 +12,7 @@ const mercatorProjection = @import("./MercatorProjection.zig").mercatorProjectio
 const AABB = @import("../AABB.zig").AABB;
 const OBB = @import("../OBB.zig").OBB;
 const GeoBox = @import("../GeoBox.zig").GeoBox;
+const stdmath = std.math;
 /// convert geo coordinate to world point
 pub fn innerProject(geoPoint: *const Cartographic, unitScale: f64) Vector3 {
     const radius = unitScale + geoPoint.height;
@@ -56,7 +57,7 @@ pub fn unproject(self: *const Self, worldPoint: *const Vector3) Cartographic {
     const radius = math.sqrt(parallelRadiusSq + worldPoint.z() * worldPoint.z());
     return Cartographic.new(math.atan2(worldPoint.y(), worldPoint.x()), math.atan(v), radius - self.unitScale);
 }
-pub fn reproject(self: *const Self, comptime P: type, sourceProjection: *const P, worldPoint: *const Vector3) Vector3 {
+pub fn reproject(self: *const Self, sourceProjection: anytype, worldPoint: *const Vector3) Vector3 {
     if (sourceProjection == webMercatorProjection or sourceProjection == mercatorProjection) {
         const xx = worldPoint.x();
         const yy = worldPoint.y();

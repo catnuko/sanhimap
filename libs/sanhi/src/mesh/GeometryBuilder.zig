@@ -85,8 +85,8 @@ pub fn setAttribute(self: *Self, name: []const u8, data: AttributeData) void {
     }
     self.attributes.append(.{ .name = name, .data = data }) catch unreachable;
 }
-pub fn setAttributeBySlice(self: *Self, name: []const u8, comptime T: type, slice: []const T,norm:bool) void {
-    self.setAttribute(name, AttributeData.fromSlice(T, slice,norm));
+pub fn setAttributeBySlice(self: *Self, name: []const u8, comptime T: type, slice: []const T, norm: bool) void {
+    self.setAttribute(name, AttributeData.fromSlice(T, slice, norm));
 }
 pub fn setIndexBySlice(self: *Self, index_data: []const u32) void {
     var list = std.ArrayList(u32).initCapacity(lib.mem.getAllocator(), index_data.len) catch unreachable;
@@ -94,8 +94,21 @@ pub fn setIndexBySlice(self: *Self, index_data: []const u32) void {
     self.setIndex(list);
 }
 pub inline fn setIndex(self: *Self, index_data: std.ArrayList(u32)) void {
+    self.index.deinit();
     self.index = index_data;
 }
-// pub fn getAttribute(self: *Self, name: []const u8) *GeometryAttribute {
-
-// }
+pub fn getAttribute(self: *Self, name: []const u8) ?*GeometryAttribute {
+    var get_it: bool = false;
+    var targetIndex: usize = 0;
+    for (self.attributes.items, 0..) |item, i| {
+        if (std.mem.eql(u8, item.name, name)) {
+            targetIndex = i;
+            get_it = true;
+            break;
+        }
+    }
+    if (get_it) {
+        return &self.attributes.items[targetIndex];
+    }
+    return null;
+}

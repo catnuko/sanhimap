@@ -1,0 +1,2 @@
+pub const SphericalGeometrySubdivisionModifier = @import("./SphericalGeometrySubdivisionModifier.zig").SphericalGeometrySubdivisionModifier;
+pub const subdivisionModifier = @import("./subdivision_modifier.zig").subdivisionModifier;

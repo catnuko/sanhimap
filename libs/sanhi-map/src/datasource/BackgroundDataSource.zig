@@ -2,6 +2,8 @@ const std = @import("std");
 const shm = @import("../lib.zig");
 const sanhi = @import("sanhi");
 const wgpu = sanhi.wgpu;
+const Mesh = sanhi.mesh.Mesh;
+const Material = sanhi.mesh.Material;
 const GeometryBuilder = sanhi.mesh.GeometryBuilder;
 const AttributeData = sanhi.mesh.AttributeData;
 const DataSourceImpl = shm.datasource.DataSource;
@@ -11,6 +13,8 @@ const Value = shm.datasource.Value;
 const ValueMap = shm.datasource.ValueMap;
 const proj = shm.projection;
 const TileKey = shm.tiling.TileKey;
+const modifier = @import("../modifier/index.zig");
+
 pub fn DataSourceShared(comptime Self: type) type {
     return struct {
         pub inline fn name(self: Self) []const u8 {
@@ -82,21 +86,43 @@ pub fn BackgroundDataSource(comptime TilingScheme: type) type {
         }
     };
 }
-const GeometryVertex = struct {
-    position: [3]f64,
-    normal: ?[3]f64 = null,
-    uv: ?[2]f64 = null,
-};
 const DefaultBackgroundDataSource = BackgroundDataSource(tiling.TilingScheme(proj.WebMercatorProjection));
+pub fn createGroundPlane(
+    allocator: std.mem.Allocator,
+    tile: *const DefaultBackgroundDataSource.Tile,
+    createTexCoords: bool,
+    receiveShadow: bool,
+    material: Material,
+    createMultiLod: bool,
+    opacity: f64,
+) *Mesh {
+    const source_projection = tile.projection();
+    const shouldSubdivide = source_projection.getType() == .Spherical;
+    const useLocalTargetCoords = !shouldSubdivide;
+    const geometry_builder = createGroundPlaneGeometry(allocator, tile, useLocalTargetCoords, createTexCoords, receiveShadow);
+    if (!shouldSubdivide) {
+        return Mesh.new(geometry_builder.finish(), material);
+    }
+    const geometries = std.ArrayList(GeometryBuilder).init(allocator) catch unreachable;
+    // const sphericalModifier =
+    const sphericalModifier = modifier.SphericalGeometrySubdivisionModifier(DefaultBackgroundDataSource.Projection, std.math.degreesToRadians(10), source_projection);
+    if (!createMultiLod) {
+        sphericalModifier.modify(allocator, geometry_builder);
+
+        return Mesh.new(geometry_builder.finish(), material);
+    }
+}
+pub fn toLocalTargetCoords(geometry_builder: *GeometryBuilder, comptime CTile: type, src_projection: CTile.Projection, tile: CTile) void {
+    var position = if (geometry_builder.getAttribute("position")) |position_attr| position_attr.data.float32x3 orelse unreachable;
+    
+}
 pub fn createGroundPlaneGeometry(
     allocator: std.mem.Allocator,
     tile: *const DefaultBackgroundDataSource.Tile,
     useLocalTargetCoords: bool,
     createTexCoords: bool,
     receiveShadow: bool,
-) void {
-    const vertices = std.ArrayList(GeometryVertex).init(allocator);
-    defer vertices.deinit();
+) *GeometryBuilder {
     const geometry_builder = GeometryBuilder.new();
     const corners = tiling.projectTilePlaneCorners(DefaultBackgroundDataSource.Tile, tile);
     if (useLocalTargetCoords) {
@@ -105,12 +131,21 @@ pub fn createGroundPlaneGeometry(
         corners.nw = corners.nw.subtract(tile.center());
         corners.ne = corners.ne.subtract(tile.center());
     }
-    const positions = std.ArrayList([3]f64).initCapacity(sanhi.mem.getAllocator(), 4) catch unreachable;
-    positions.appendSliceAssumeCapacity(corners.sw, corners.se, corners.nw, corners.ne);
+    const positions = std.ArrayList([3]f64).initCapacity(allocator, 4) catch unreachable;
+    positions.appendSliceAssumeCapacity(.{ corners.sw.toArray(), corners.se.toArray(), corners.nw.toArray(), corners.ne.toArray() });
     geometry_builder.setAttribute("position", AttributeData{ .float32x3 = positions });
-    geometry_builder.setIndexBySlice(&.{0, 1, 2, 2, 1, 3});
-    if (receiveShadow) {}
-    if (createTexCoords) {}
+    if (receiveShadow) {
+        const source_projection = tile.projection();
+        const tmpv = source_projection.surfaceNormal(&corners.sw).negate();
+        const normals = std.ArrayList([3]f64).initCapacity(allocator, 4) catch unreachable;
+        normals.appendSliceAssumeCapacity(.{ tmpv.toArray(), tmpv.toArray(), tmpv.toArray(), tmpv.toArray() });
+        geometry_builder.setAttribute("normal", .{ .float32x3 = normals });
+    }
+    geometry_builder.setIndexBySlice(&.{ 0, 1, 2, 2, 1, 3 });
+    if (createTexCoords) {
+        geometry_builder.setAttributeBySlice("uv", [3]f32, &.{ 0, 0, 1, 0, 0, 1, 1, 1 });
+    }
+    return geometry_builder;
 }
 // fn createGroundPlaneGeometry(tile: Tile, useLocalTargetCoords: bool, createTexCoords: bool) void {}
 test "BackgroundDataSource" {
