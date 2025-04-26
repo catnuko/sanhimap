@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/libs/css-color-parser" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/libs/sanhimap-style" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/libs/zig-proj4/src/PROJ" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/libs/zig-test/src/s2geometry" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/libs/zpcre2" vcs="Git" />
+  </component>
+</project>

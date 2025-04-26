@@ -31,7 +31,7 @@ fn ExpectFloat(comptime T: type) type {
 
 fn ExpectVector(comptime T: type) type {
     const Elem = std.meta.Elem(T);
-    const len = @typeInfo(T).Vector.len;
+    const len = @typeInfo(T).vector.len;
     return struct {
         expected: T,
 
@@ -114,7 +114,7 @@ fn Expect(comptime T: type) type {
     if (T == type) return ExpectComptime(T);
     if (T == f16 or T == f32 or T == f64) return ExpectFloat(T);
     if (T == []const u8) return ExpectBytes(T);
-    if (@typeInfo(T) == .Vector) return ExpectVector(T);
+    if (@typeInfo(T) == .vector) return ExpectVector(T);
 
     // Vector and matrix equality
     const is_vec2 = T == math.Vector2 or T == math.Vector2D;
