@@ -66,6 +66,7 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = b.path("./examples/basic.zig"),
     });
     app.root_module.addImport("sanhi", sanhi_mod);
+    @import("zgpu").addLibraryPathsTo(app);
     switch (target.result.os.tag) {
         .windows => {
             if (target.result.cpu.arch.isX86()) {

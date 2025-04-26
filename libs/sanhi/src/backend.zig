@@ -20,7 +20,7 @@ pub const AppBackend = struct {
     pub fn init(self: *Self, allocator: std.mem.Allocator) !void {
         try zglfw.init();
 
-        zglfw.windowHintTyped(.client_api, .no_api);
+        // zglfw.windowHintUntyped(.client_api, .no_api);
 
         const window = try zglfw.Window.create(self.width, self.height, self.title, null);
         const gctx = try zgpu.GraphicsContext.create(
