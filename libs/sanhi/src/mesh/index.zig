@@ -1,4 +1,4 @@
-pub const module = @import("./module.zig");
+pub const plugin = @import("./plugin.zig");
 pub const Mesh = @import("./Mesh.zig");
 pub const Context = @import("./Context.zig");
 pub const triangle = @import("./Triangle.zig");

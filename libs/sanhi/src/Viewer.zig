@@ -31,7 +31,7 @@ pub fn new() !Self {
         0.1,
         10000.0,
     );
-    mesh.module.init(scene, camera);
+    mesh.plugin.init(scene, camera);
     mesh.Control.setCamera(camera,app.get_app_backend());
     return .{
         .scene = scene,
@@ -39,7 +39,7 @@ pub fn new() !Self {
     };
 }
 pub fn startMainLoop(_: *Self) void {
-    try app.addPlugin(mesh.module);
+    try app.addPlugin(mesh.plugin);
     try app.addPlugin(mesh.Control);
     app.startMainLoop();
 }

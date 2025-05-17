@@ -1,5 +1,5 @@
 const lib = @import("./lib.zig");
-const modules = lib.modules;
+const plugins = lib.plugins;
 const zglfw = lib.zglfw;
 const math = @import("math");
 const Vector2D = math.Vector2D;
@@ -81,8 +81,8 @@ pub fn init(app_backend: *lib.backend.AppBackend) !void {
 pub fn deinit() !void {
     event.deinit();
 }
-pub fn module() modules.Module {
-    const inputSubsystem = modules.Module{
+pub fn plugin() plugins.Plugin {
+    const inputSubsystem = plugins.Plugin{
         .name = "input",
         .init_fn = init,
         .cleanup_fn = deinit,

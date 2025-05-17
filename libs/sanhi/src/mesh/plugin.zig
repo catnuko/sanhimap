@@ -4,7 +4,7 @@ const backend = lib.backend;
 const zgui = lib.zgui;
 const zgpu = lib.zgpu;
 const wgpu = lib.wgpu;
-const modules = lib.modules;
+const plugins = lib.plugins;
 const math = @import("math");
 const Mat4 = math.Matrix4D;
 const Vector3D = math.Vector3D;
@@ -125,8 +125,8 @@ fn on_pre_draw(_: *backend.AppBackend) void {
 }
 fn on_post_draw(_: *backend.AppBackend) void {}
 fn on_tick(_: f32) void {}
-pub fn module() modules.Module {
-    const meshes = modules.Module{
+pub fn plugin() plugins.Plugin {
+    const meshes = plugins.Plugin{
         .name = "meshes",
         .pre_draw_fn = on_pre_draw,
         .post_draw_fn = on_post_draw,

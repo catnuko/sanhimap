@@ -1,5 +1,5 @@
 const backend = @import("./backend.zig");
-const modules = @import("./modules.zig");
+const plugins = @import("./plugins.zig");
 const mem = @import("./mem.zig");
 const std = @import("std");
 const time = @import("std").time;
@@ -170,7 +170,7 @@ pub fn init(cfg: AppConfig) !void {
     try app_backend.init(mem.getAllocator());
 }
 pub fn addPlugin(plugin: anytype) !void {
-    try modules.registerModule(&app_backend, plugin.module());
+    try plugins.registerPlugin(&app_backend, plugin.plugin());
 }
 pub fn deinit() void {
     app_backend.deinit();
@@ -178,7 +178,7 @@ pub fn deinit() void {
 }
 
 fn on_init() void {
-    modules.startModules();
+    plugins.startPlugins();
 }
 
 pub fn startMainLoop() void {
@@ -186,9 +186,9 @@ pub fn startMainLoop() void {
 }
 
 fn on_deinit() void {
-    modules.stopModules();
-    modules.cleanupModules();
-    modules.deinit();
+    plugins.stopPlugins();
+    plugins.cleanupPlugins();
+    plugins.deinit();
 }
 
 fn on_update() void {
@@ -206,7 +206,7 @@ fn on_update() void {
         // keep ticking until we catch up to the actual time
         while (updateState.time_accumulator_ns >= fixed_delta_ns) {
             // fixed timestamp, tick at our constant rate
-            modules.fixedTickModules(updateState.fixed_timestep_delta_f);
+            plugins.fixedTickPlugins(updateState.fixed_timestep_delta_f);
             updateState.time_accumulator_ns -= fixed_delta_ns;
         }
 
@@ -214,15 +214,15 @@ fn on_update() void {
         updateState.fixed_timestep_lerp = @as(f32, @floatFromInt(updateState.time_accumulator_ns)) / @as(f32, @floatFromInt(fixed_delta_ns));
     }
 
-    modules.tickModules(updateState.delta_time);
-    // tell modules we are getting ready to draw!
-    modules.preDrawModules(&app_backend);
+    plugins.tickPlugins(updateState.delta_time);
+    // tell plugins we are getting ready to draw!
+    plugins.preDrawPlugins(&app_backend);
 
     // then draw!
-    modules.drawModules(&app_backend);
+    plugins.drawPlugins(&app_backend);
 
-    // tell modules this frame is done
-    modules.postDrawModules(&app_backend);
+    // tell plugins this frame is done
+    plugins.postDrawPlugins(&app_backend);
 
     // keep under our FPS limit, if needed
     updateState.did_limit_fps = updateState.limitFps();

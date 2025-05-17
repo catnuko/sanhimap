@@ -1,7 +1,7 @@
 const lib = @import("./lib.zig");
 const mem = @import("./mem.zig");
 const zglfw = lib.zglfw;
-const modules = lib.modules;
+const plugins = lib.plugins;
 const math = lib.math;
 const backend = lib.backend;
 const std = lib.std;
@@ -66,9 +66,9 @@ pub fn removeEventListener(ty: []const u8, func: *const fn (point: [2]f64) void)
     }
     return false;
 }
-/// Registers the input subsystem as a module
-pub fn module() modules.Module {
-    const inputSubsystem = modules.Module{
+/// Registers the input subsystem as a plugin
+pub fn plugin() plugins.Plugin {
+    const inputSubsystem = plugins.Plugin{
         .name = "input",
         .pre_draw_fn = on_update,
         .init_fn = init,

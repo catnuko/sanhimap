@@ -1,5 +1,5 @@
 const lib = @import("../lib.zig");
-const modules = lib.modules;
+const plugins = lib.plugins;
 const backend = lib.backend;
 const zglfw = lib.zglfw;
 const stdmath = @import("std").math;
@@ -538,14 +538,14 @@ pub const OrbitControl = struct {
     }
 };
 
-// module
+// plugin
 var control: *OrbitControl = undefined;
 pub fn setCamera(camera: *Camera, app_backend: *lib.backend.AppBackend) void {
     control = OrbitControl.new(camera, app_backend);
 }
 
-pub fn module() modules.Module {
-    const inputSubsystem = modules.Module{
+pub fn plugin() plugins.Plugin {
+    const inputSubsystem = plugins.Plugin{
         .name = "camera-control",
         .pre_draw_fn = on_update,
         .cleanup_fn = on_deinit,

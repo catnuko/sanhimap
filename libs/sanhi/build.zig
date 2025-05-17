@@ -67,6 +67,7 @@ pub fn build(b: *std.Build) !void {
     const names = [_][]const u8{
         "basic",
         "ecs",
+        "app"
     };
 
     for (names) |name| {

@@ -2,7 +2,7 @@ const std = @import("std");
 const lib = @import("./lib.zig");
 const backend = lib.backend;
 const zgui = lib.zgui;
-const modules = lib.modules;
+const plugins = lib.plugins;
 var show_fps: bool = false;
 var last_fps_str: ?[:0]u8 = null;
 var last_fps: i32 = -1;
@@ -24,8 +24,8 @@ pub fn drawFPS(appBackend: *backend.AppBackend) void {
         .{ appBackend.gctx.stats.average_cpu_time, appBackend.gctx.stats.fps },
     );
 }
-pub fn module() modules.Module {
-    const fps = modules.Module{
+pub fn plugin() plugins.Plugin {
+    const fps = plugins.Plugin{
         .name = "fps",
         .draw_fn = drawFPS,
     };
