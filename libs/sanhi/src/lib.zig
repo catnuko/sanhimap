@@ -18,6 +18,7 @@ pub const Event = @import("./Event.zig");
 pub const Viewer = @import("./Viewer.zig");
 pub const uuid = @import("uuid");
 pub const math = @import("math");
+pub const ecs = @import("zflecs");
 pub const ArrayList = std.ArrayList;
 pub const AutoHashMap = std.AutoHashMap;
 pub const StringHashMap = std.StringHashMap;

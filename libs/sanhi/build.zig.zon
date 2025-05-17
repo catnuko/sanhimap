@@ -4,10 +4,6 @@
     .fingerprint = 0x20c9231dd03bb82c,
     .dependencies = .{
         .math = .{ .path = "../math" },
-        .entt = .{
-            .url = "https://github.com/prime31/zig-ecs/archive/master.tar.gz",
-            .hash = "entt-1.0.0-qJPtbAB1AgDHqBxxDmRYRWqlA9x7rKez5XpebJmDKTOj",
-        },
         .zgpu = .{
             .url = "https://github.com/zig-gamedev/zgpu/archive/3ae4a71af16df3a7dfa95023bba1a1e6a0bfb80d.tar.gz",
             .hash = "zgpu-0.12.0-dev-nqFT5BCgCADqzg95ZvomJREp6oIl3NTubfyiUNHc18Pr",
@@ -36,7 +32,7 @@
             .url = "https://github.com/r4gus/uuid-zig/archive/refs/tags/0.3.0.tar.gz",
             .hash = "uuid-0.3.0-oOieIVZ4AAB_apOo9zFV0a85GYAST-trqzRJMeEfYuQu",
         },
-         .dawn_x86_64_windows_gnu = .{
+        .dawn_x86_64_windows_gnu = .{
             .url = "https://github.com/michal-z/webgpu_dawn-x86_64-windows-gnu/archive/d3a68014e6b6b53fd330a0ccba99e4dcfffddae5.tar.gz",
             .hash = "N-V-__8AAGsYnAT5RIzeAu881RveLghQ1EidqgVBVx10gVTo",
             .lazy = true,
@@ -60,6 +56,10 @@
             .url = "https://github.com/michal-z/webgpu_dawn-x86_64-macos/archive/901716b10b31ce3e0d3fe479326b41e91d59c661.tar.gz",
             .hash = "N-V-__8AAIz1QAKx8C8vft2YoHjGTjEAkH2QMR2UiAo8xZJ-",
             .lazy = true,
+        },
+        .zflecs = .{
+            .url = "https://github.com/zig-gamedev/zflecs/archive/34f6cc3f6d11fa13a44ae759e9ed6bec3a455fa4.tar.gz",
+            .hash = "zflecs-0.2.0-dev-1PN3yuhMNQDj3J57z74E3AIGM8bmVg3FhAd6XZKb_A9W",
         },
     },
     .paths = .{
