@@ -22,6 +22,7 @@ pub fn Quaternion(comptime Scalar: type) type {
         pub fn new(xv: T, yv: T, zv: T, wv: T) Quaternion(T) {
             return .{ .v = Vec.new(xv, yv, zv, wv) };
         }
+        pub const zero = new(0, 0, 0, 1);
         pub inline fn clone(self: *const Quaternion(T)) Quaternion(T) {
             return Quaternion(T).new(self.x(), self.y(), self.z(), self.w());
         }

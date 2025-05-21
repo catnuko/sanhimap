@@ -1,5 +1,5 @@
 const std = @import("std");
-const lib = @import("./lib.zig");
+const lib = @import("../lib.zig");
 const backend = lib.backend;
 const zgui = lib.zgui;
 const plugins = lib.plugins;
@@ -24,10 +24,8 @@ pub fn drawFPS(appBackend: *backend.AppBackend) void {
         .{ appBackend.gctx.stats.average_cpu_time, appBackend.gctx.stats.fps },
     );
 }
-pub fn plugin() plugins.Plugin {
-    const fps = plugins.Plugin{
-        .name = "fps",
-        .draw_fn = drawFPS,
-    };
-    return fps;
-}
+
+pub const plugin = plugins.Plugin{
+    .name = "fps",
+    .draw_fn = drawFPS,
+};

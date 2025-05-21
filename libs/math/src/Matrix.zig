@@ -369,7 +369,7 @@ pub fn Matrix3(
             res.v[2].v[2] = (a11 * a00 - a01 * a10) * det;
             return res;
         }
-        pub fn lookAt(eye: *const Vec, target: *const Vec, updir: *const Vec)Matrix {
+        pub fn lookAt(eye: *const Vec, target: *const Vec, updir: *const Vec) Matrix {
             const zAxis = eye.subtract(target).normalize();
             const xAxis = updir.cross(&zAxis).normalize();
             const yAxis = zAxis.cross(&xAxis).normalize();
@@ -1068,6 +1068,14 @@ test "new" {
             math.Vector3.new(1337, 7331, 1),
         },
     });
+
+    try testing.expect(math.Matrix3, math.Matrix3.fromIdentity()).eql(math.Matrix3{
+        .v = [_]math.Vector3{
+            math.Vector3.new(1, 0, 0),
+            math.Vector3.new(0, 1, 0),
+            math.Vector3.new(0, 0, 1),
+        },
+    });
 }
 
 test "Matrix2_ident" {
@@ -1595,5 +1603,5 @@ test "Matrix4_lookAt" {
     const m = math.Matrix3D.lookAt(&position, &target, &up);
     const mm = math.Matrix4D.fromRotation(&m);
     const expect = math.Matrix4D.fromColumnMajorArray(&.{ 0.9988899201242548, 0, -0.04710549303594798, 0, -0.010034882991636218, 0.9770456595353209, -0.2127935156590389, 0, 0.04602421751104426, 0.21302999597049582, 0.9759610608109867, 0, 0, 0, 0, 1 }).transpose();
-    try testing.expect(bool,true).eql(expect.eqlApprox(&mm, math.epsilon11));
+    try testing.expect(bool, true).eql(expect.eqlApprox(&mm, math.epsilon11));
 }

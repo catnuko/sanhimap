@@ -17,7 +17,7 @@ scene: *Scene,
 camera: *Camera,
 pub fn new() !Self {
     try app.init(.{});
-    try app.addPlugin(lib.input);
+    try app.addPlugin(lib.input.plugin());
     const allocator = lib.mem.getAllocator();
     zmesh.init(allocator);
     const scene = try allocator.create(Scene);
@@ -39,8 +39,8 @@ pub fn new() !Self {
     };
 }
 pub fn startMainLoop(_: *Self) void {
-    try app.addPlugin(mesh.plugin);
-    try app.addPlugin(mesh.Control);
+    try app.addPlugin(mesh.plugin.plugin());
+    try app.addPlugin(mesh.Control.plugin());
     app.startMainLoop();
 }
 pub fn deinit(self: *Self) void {

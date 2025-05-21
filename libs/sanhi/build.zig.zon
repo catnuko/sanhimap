@@ -28,10 +28,6 @@
             .url = "https://github.com/zig-gamedev/system_sdk/archive/c0dbf11cdc17da5904ea8a17eadc54dee26567ec.tar.gz",
             .hash = "system_sdk-0.3.0-dev-alwUNnYaaAJAtIdE2fg4NQfDqEKs7QCXy_qYukAOBfmF",
         },
-        .uuid = .{
-            .url = "https://github.com/r4gus/uuid-zig/archive/refs/tags/0.3.0.tar.gz",
-            .hash = "uuid-0.3.0-oOieIVZ4AAB_apOo9zFV0a85GYAST-trqzRJMeEfYuQu",
-        },
         .dawn_x86_64_windows_gnu = .{
             .url = "https://github.com/michal-z/webgpu_dawn-x86_64-windows-gnu/archive/d3a68014e6b6b53fd330a0ccba99e4dcfffddae5.tar.gz",
             .hash = "N-V-__8AAGsYnAT5RIzeAu881RveLghQ1EidqgVBVx10gVTo",
@@ -57,9 +53,12 @@
             .hash = "N-V-__8AAIz1QAKx8C8vft2YoHjGTjEAkH2QMR2UiAo8xZJ-",
             .lazy = true,
         },
+        // .zflecs = .{
+        //     .url = "https://github.com/zig-gamedev/zflecs/archive/34f6cc3f6d11fa13a44ae759e9ed6bec3a455fa4.tar.gz",
+        //     .hash = "zflecs-0.2.0-dev-1PN3yuhMNQDj3J57z74E3AIGM8bmVg3FhAd6XZKb_A9W",
+        // },
         .zflecs = .{
-            .url = "https://github.com/zig-gamedev/zflecs/archive/34f6cc3f6d11fa13a44ae759e9ed6bec3a455fa4.tar.gz",
-            .hash = "zflecs-0.2.0-dev-1PN3yuhMNQDj3J57z74E3AIGM8bmVg3FhAd6XZKb_A9W",
+            .path = "./third/zflecs",
         },
     },
     .paths = .{

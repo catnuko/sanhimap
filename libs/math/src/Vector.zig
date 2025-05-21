@@ -66,6 +66,7 @@ pub fn Vector3(comptime Scalar: type) type {
 
         const VecN = @This();
 
+        pub const one = new(1, 1, 1);
         pub const zero = new(0, 0, 0);
         pub const unit_x = new(1, 0, 0);
         pub const unit_y = new(0, 1, 0);
@@ -122,7 +123,7 @@ pub fn Vector3(comptime Scalar: type) type {
         }
 
         /// Vector * Matrix multiplication
-        pub fn mulMat(vector: *const VecN, matrix: *const mat.Matrix3(T)) VecN {
+        pub fn multiplyByMatrix3(vector: *const VecN, matrix: *const mat.Matrix3(T)) VecN {
             var result = [_]VecN.T{0} ** 3;
             inline for (0..3) |i| {
                 inline for (0..3) |j| {
@@ -134,7 +135,7 @@ pub fn Vector3(comptime Scalar: type) type {
 
         /// Vector * Quaternion multiplication
         /// https://github.com/greggman/wgpu-matrix/blob/main/src/vec3-impl.ts#L718
-        pub fn mulQuat(v: *const VecN, q: *const quat.Quaternion(Scalar)) VecN {
+        pub fn multiplyByQuaternion(v: *const VecN, q: *const quat.Quaternion(Scalar)) VecN {
             const qx = q.v.x();
             const qy = q.v.y();
             const qz = q.v.z();
@@ -212,7 +213,7 @@ pub fn Vector4(comptime Scalar: type) type {
             v.v[3] = value;
         }
         /// Vector * Matrix multiplication
-        pub fn mulMat(vector: *const VecN, matrix: *const mat.Matrix4(T)) VecN {
+        pub fn multiplyByMatrix3(vector: *const VecN, matrix: *const mat.Matrix4(T)) VecN {
             var result = [_]VecN.T{0} ** 4;
             inline for (0..4) |i| {
                 inline for (0..4) |j| {
@@ -1075,7 +1076,7 @@ test "Matrix3_mulMat" {
     );
     const v = math.vec3(1, 2, 0);
 
-    const m = math.Vector3.mulMat(&v, &matrix);
+    const m = math.Vector3.multiplyByMatrix3(&v, &matrix);
     const expected = math.vec3(8, 10, 8);
     try testing.expect(math.Vector3, expected).eql(m);
 }
@@ -1089,16 +1090,16 @@ test "Matrix4_mulMat" {
     );
     const v = math.vec4(1, 2, 0, -1);
 
-    const m = math.Vector4.mulMat(&v, &matrix);
+    const m = math.Vector4.multiplyByMatrix3(&v, &matrix);
     const expected = math.vec4(7, 9, 6, -1);
     try testing.expect(math.Vector4, expected).eql(m);
 }
 
-test "mulQuat" {
+test "multiplyByQuaternion" {
     const up = math.vec3(0, 1, 0);
     const id = math.Quaternion.fromIdentity();
     const rot = math.Quaternion.rotateZ(&id, -stdmath.pi / 2.0);
-    try testing.expect(math.Vector3, math.vec3(1, 0, 0)).eql(up.mulQuat(&rot));
+    try testing.expect(math.Vector3, math.vec3(1, 0, 0)).eql(up.multiplyByQuaternion(&rot));
 }
 
 test "Vec2_fromInt" {

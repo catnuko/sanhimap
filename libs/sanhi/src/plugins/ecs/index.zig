@@ -1,0 +1,1 @@
+pub const plugin = @import("./plugin.zig").plugin;

@@ -5,7 +5,7 @@ const ModuleImport = struct {
     name: []const u8,
     linkLib: ?*Build.Step.Compile = null,
 };
-fn addImport(module: *std.Build.Module, imports: *const [7]ModuleImport) void {
+fn addImport(module: *std.Build.Module, imports: *const [6]ModuleImport) void {
     for (imports) |import| {
         module.addImport(import.name, import.module);
         if (import.linkLib) |linkLib| {
@@ -24,7 +24,6 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .backend = .glfw_wgpu,
     });
-    const uuid = b.dependency("uuid", .{});
     const math = b.dependency("math", .{
         .target = target,
         .optimize = optimize,
@@ -45,7 +44,6 @@ pub fn build(b: *std.Build) !void {
         .{ .module = zgui.module("root"), .name = "zgui", .linkLib = zgui.artifact("imgui") },
         .{ .module = zmesh.module("root"), .name = "zmesh", .linkLib = zmesh.artifact("zmesh") },
         .{ .module = zflecs.module("root"), .name = "zflecs", .linkLib = zflecs.artifact("flecs") },
-        .{ .module = uuid.module("uuid"), .name = "uuid" },
         .{ .module = math.module("root"), .name = "math" },
     };
     const sanhi_mod = b.addModule("root", .{

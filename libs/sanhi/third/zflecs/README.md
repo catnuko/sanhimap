@@ -1,7 +1,26 @@
-const std = @import("std");
-const sanhi = @import("sanhi");
-const ecs = sanhi.ecs;
+# [zflecs](https://github.com/zig-gamedev/zflecs)
 
+Zig build package and bindings for [flecs](https://github.com/SanderMertens/flecs) ECS v4.0.4
+
+## Getting started
+
+Example`build.zig`:
+
+```zig
+pub fn build(b: *std.Build) void {
+    const exe = b.addExecutable(.{ ... });
+
+    const zflecs = b.dependency("zflecs", .{});
+    exe.root_module.addImport("zflecs", zflecs.module("root"));
+    exe.linkLibrary(zflecs.artifact("flecs"));
+}
+```
+
+Now in your code you may import and use `zflecs`:
+
+```zig
+const std = @import("std");
+const ecs = @import("zflecs");
 
 const Position = struct { x: f32, y: f32 };
 const Velocity = struct { x: f32, y: f32 };
@@ -26,6 +45,7 @@ fn move_system_with_it(it: *ecs.iter_t, positions: []Position, velocities: []con
         p.y += v.y;
     }
 }
+
 pub fn main() !void {
     const world = ecs.init();
     defer _ = ecs.fini(world);
@@ -36,8 +56,8 @@ pub fn main() !void {
     ecs.TAG(world, Eats);
     ecs.TAG(world, Apples);
 
-    _ = ecs.ADD_SYSTEM(world, "move system", ecs.OnUpdate, move_system);
-    _ = ecs.ADD_SYSTEM(world, "move system with iterator", ecs.OnUpdate, move_system_with_it);
+    ecs.ADD_SYSTEM(world, "move system", ecs.OnUpdate, move_system);
+    ecs.ADD_SYSTEM(world, "move system with iterator", ecs.OnUpdate, move_system_with_it);
 
     const bob = ecs.new_entity(world, "Bob");
     _ = ecs.set(world, bob, Position, .{ .x = 0, .y = 0 });
@@ -50,3 +70,12 @@ pub fn main() !void {
     const p = ecs.get(world, bob, Position).?;
     std.debug.print("Bob's position is ({d}, {d})\n", .{ p.x, p.y });
 }
+```
+
+`zig build run` should result in:
+
+```
+Move entities with [main.Position, main.Velocity, (Identifier,Name), (main.Eats,main.Apples)]
+Move entities with [main.Position, main.Velocity, (Identifier,Name), (main.Eats,main.Apples)]
+Bob's position is (4, 8)
+```
