@@ -8,7 +8,6 @@ pub const Allocator = std.mem.Allocator;
 pub const print = std.debug.print;
 pub const app = @import("./app.zig");
 pub const backend = @import("./backend.zig");
-pub const plugin = @import("./plugin.zig");
 pub const mem = @import("./mem.zig");
 pub const utils = @import("./utils.zig");
 pub const mesh = @import("./mesh/index.zig");

@@ -65,12 +65,12 @@ pub const AppBackend = struct {
         self.gctx = gctx;
         self.allocator = allocator;
     }
-    pub fn startMainLoop(self: *Self) void {
-        while (!self.window.shouldClose() and self.window.getKey(.escape) != .press) {
-            zglfw.pollEvents();
-            self.on_update_fn();
-        }
-    }
+    // pub fn startMainLoop(self: *Self) void {
+    //     while (!self.window.shouldClose() and self.window.getKey(.escape) != .press) {
+    //         zglfw.pollEvents();
+    //         self.on_update_fn();
+    //     }
+    // }
     pub fn deinit(self: *Self) void {
         self.on_deinit_fn();
         zgui.backend.deinit();
