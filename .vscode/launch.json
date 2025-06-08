@@ -9,17 +9,17 @@
             "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "test",
-            "console":"integratedTerminal"
+            "console": "integratedTerminal"
         },
         {
             "type": "cppvsdbg",
             "request": "launch",
-            "name": "run-basic",
-            "program": "${workspaceFolder}/libs/sanhi/zig-out/bin/basic.exe",
+            "name": "run-app",
+            "program": "${workspaceFolder}/libs/sanhi/zig-out/bin/app.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build-sanhi",
-            "console":"integratedTerminal"
+            "console": "integratedTerminal"
         }
     ]
 }

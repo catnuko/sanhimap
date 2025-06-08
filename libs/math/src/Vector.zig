@@ -22,9 +22,12 @@ pub fn Vector2(comptime Scalar: type) type {
 
         const VecN = @This();
 
-        pub const zero = new(0, 0);
-        pub const unit_x = new(1, 0);
-        pub const unit_y = new(0, 1);
+        pub inline fn uintX() VecN {
+            return new(1, 0);
+        }
+        pub inline fn uintY() VecN {
+            return new(0, 1);
+        }
 
         const Shared = VecShared(Scalar, VecN);
 
@@ -66,11 +69,15 @@ pub fn Vector3(comptime Scalar: type) type {
 
         const VecN = @This();
 
-        pub const one = new(1, 1, 1);
-        pub const zero = new(0, 0, 0);
-        pub const unit_x = new(1, 0, 0);
-        pub const unit_y = new(0, 1, 0);
-        pub const unit_z = new(0, 0, 1);
+        pub inline fn uintX() VecN {
+            return new(1, 0, 0);
+        }
+        pub inline fn uintY() VecN {
+            return new(0, 1, 0);
+        }
+        pub inline fn uintZ() VecN {
+            return new(0, 0, 1);
+        }
 
         const Shared = VecShared(Scalar, VecN);
 
@@ -174,11 +181,18 @@ pub fn Vector4(comptime Scalar: type) type {
 
         const VecN = @This();
 
-        pub const zero = new(0, 0, 0, 0);
-        pub const unit_x = new(1, 0, 0, 0);
-        pub const unit_y = new(0, 1, 0, 0);
-        pub const unit_z = new(0, 0, 1, 0);
-        pub const unit_w = new(0, 0, 0, 1);
+        pub inline fn uintX() VecN {
+            return new(1, 0, 0, 0);
+        }
+        pub inline fn uintY() VecN {
+            return new(0, 1, 0, 0);
+        }
+        pub inline fn uintZ() VecN {
+            return new(0, 0, 1, 0);
+        }
+        pub inline fn uintW() VecN {
+            return new(0, 0, 0, 1);
+        }
 
         const Shared = VecShared(Scalar, VecN);
 
@@ -228,6 +242,12 @@ pub fn Vector4(comptime Scalar: type) type {
 
 pub fn VecShared(comptime Scalar: type, comptime VecN: type) type {
     return struct {
+        pub inline fn zero() VecN {
+            return splat(0);
+        }
+        pub inline fn one() VecN {
+            return splat(1);
+        }
         pub inline fn fromZero() VecN {
             return splat(0);
         }

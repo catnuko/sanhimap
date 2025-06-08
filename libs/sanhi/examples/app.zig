@@ -1,14 +1,15 @@
-const std = @import("std");
 const sanhi = @import("sanhi");
+const sokol = sanhi.sokol;
+const slog = sokol.log;
+const sg = sokol.gfx;
+const sapp = sokol.app;
+const sglue = sokol.glue;
+const std = sanhi.std;
 const ecs = sanhi.ecs;
-const app = sanhi.app;
-const math = sanhi.math;
-const Vec3 = math.Vector3;
-const Quat = math.Quaternion;
-const Mat4 = math.Matrix4;
 pub fn main() !void {
-    var appa  = try sanhi.app.App.init(.{});
-    defer appa.deinit();
-    appa.addPlugin(sanhi.plugins.fps.plugin);
-    appa.run();
+    var app = try sanhi.app.App.init(.{});
+    defer app.deinit();
+    // app.add_plugin(sanhi.plugins.input.plugin);
+    try app.add_plugins(&sanhi.plugins.plugins);
+    app.run();
 }

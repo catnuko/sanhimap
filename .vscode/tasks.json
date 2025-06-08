@@ -28,7 +28,7 @@
         {
             "label": "build-sanhi",
             "type": "shell",
-            "command":"zig",
+            "command": "zig",
             "options": {
                 "cwd": "${workspaceFolder}/libs/sanhi" // 设置工作目录
             },

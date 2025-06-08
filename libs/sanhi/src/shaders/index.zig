@@ -1,0 +1,1 @@
+pub const scene_glsl = @import("./scene.main.zig");

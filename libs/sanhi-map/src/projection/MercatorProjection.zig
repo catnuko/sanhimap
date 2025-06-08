@@ -84,7 +84,7 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
             latitudeSpan * 0.5,
             @max(math.eps_f64, geoBox.altitudeSpan() * 0.5),
         );
-        var halfAxes = Mat3.identity.clone();
+        var halfAxes = Mat3.identity();
         halfAxes.setScale(&scale);
         return OBB.new(center, halfAxes);
     } else {

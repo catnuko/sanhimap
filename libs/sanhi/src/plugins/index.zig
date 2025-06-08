@@ -1,4 +1,8 @@
-pub const fps = @import("./fps.zig");
-// pub const ecs = @import("./ecs/index.zig");
-// pub const input = @import("./input.zig");
-// pub const default = @import("./default.zig");
+const sanhi = @import("../lib.zig");
+pub const input = @import("./input.zig");
+pub const render = @import("./render/index.zig");
+
+pub var plugins = [_]sanhi.app.Plugin{
+    input.plugin,
+    render.plugin,
+};

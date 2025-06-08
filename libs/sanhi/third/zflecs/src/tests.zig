@@ -523,13 +523,15 @@ fn module(world: *ecs.world_t) callconv(.C) void {
 
     ecs.COMPONENT(world, Position);
     ecs.COMPONENT(world, Velocity);
+    
+    const scopeEntity = ecs.lookup(world, "SimpleModule");
+    expectEqual(scopeEntity, ecs.get_scope(world)) catch unreachable;
 }
 test "zflecs-module" {
     const world = ecs.init();
     defer _ = ecs.fini(world);
 
     const module_id = ecs.import_c(world, module, "SimpleModule");
-
     try expect(module_id != 0);
 
     _ = ecs.ADD_SYSTEM(world, "move system", ecs.OnUpdate, move_system);
@@ -543,4 +545,18 @@ test "zflecs-module" {
 
     const p = ecs.get(world, bob, Position).?;
     print("Bob's position is ({d}, {d})\n", .{ p.x, p.y });
+}
+
+test "zflecs-module2" {
+    const world = ecs.init();
+    defer _ = ecs.fini(world);
+
+    // const child = ecs.new_entity(world, "Child");
+
+    try expectEqual(ecs.get_scope(world), 0);
+
+    const module_id = ecs.import_c(world, module, "SimpleModule");
+    try expect(module_id != 0);
+
+    try expectEqual(ecs.get_scope(world), 0);
 }

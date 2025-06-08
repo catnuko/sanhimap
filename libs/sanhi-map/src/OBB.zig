@@ -7,7 +7,7 @@ pub const OBB = struct {
     center: Vector3,
     halfAxes: Mat3,
     const Self = @This();
-    pub const ZERO = new(Vector3.zero.clone(), Mat3.identity.clone());
+    pub const ZERO = new(Vector3.zero.clone(), Mat3.identity());
     pub fn new(centerv: Vector3, halfAxesv: Mat3) Self {
         return .{ .center = centerv, .halfAxes = halfAxesv };
     }
@@ -29,7 +29,7 @@ const testing = @import("std").testing;
 test "OBB.contains" {
     const center = Vector3.new(0, 0, 0);
     // var halfAxes = Mat3.rotateX(30 * math.rad_per_deg);
-    var halfAxes = Mat3.identity.clone();
+    var halfAxes = Mat3.identity();
     const scale = Vector3.new(2, 2, 2);
     halfAxes.setScale(&scale);
     const obb = OBB.new(center, halfAxes);

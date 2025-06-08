@@ -50,8 +50,6 @@ pub fn Matrix2(
 
         const Shared = MatShared(RowVec, ColVec, Matrix);
 
-        /// Identity matrix
-        pub const identity = Matrix.fromIdentity();
         /// Constructs a 2x2 matrix with the given rows. For example to write a translation
         /// matrix like in the left part of this equation:
         ///
@@ -178,8 +176,6 @@ pub fn Matrix3(
 
         const Shared = MatShared(RowVec, ColVec, Matrix);
 
-        /// Identity matrix
-        pub const identity = Matrix.fromIdentity();
         /// Constructs a 3x3 matrix with the given rows. For example to write a translation
         /// matrix like in the left part of this equation:
         ///
@@ -436,8 +432,6 @@ pub fn Matrix4(
 
         const Shared = MatShared(RowVec, ColVec, Matrix);
 
-        /// Identity matrix
-        pub const identity = Matrix.fromIdentity();
         /// Constructs a 4x4 matrix with the given rows. For example to write a translation
         /// matrix like in the left part of this equation:
         ///
@@ -618,28 +612,63 @@ pub fn Matrix4(
             m.* = multiplyByScale(m, &scaleRatio);
         }
 
+        // pub fn lookAt(eye: *const Vector3, target: *const Vector3, updir: *const Vector3) Matrix {
+        //     const zAxis = eye.subtract(target).normalize();
+        //     const xAxis = updir.cross(&zAxis).normalize();
+        //     const yAxis = zAxis.cross(&xAxis).normalize();
+        //     var res: Matrix = undefined;
+        //     res.v[0].v[0] = xAxis.x();
+        //     res.v[0].v[1] = yAxis.x();
+        //     res.v[0].v[2] = zAxis.x();
+        //     res.v[0].v[3] = 0;
+        //     res.v[1].v[0] = xAxis.y();
+        //     res.v[1].v[1] = yAxis.y();
+        //     res.v[1].v[2] = zAxis.y();
+        //     res.v[1].v[3] = 0;
+        //     res.v[2].v[0] = xAxis.z();
+        //     res.v[2].v[1] = yAxis.z();
+        //     res.v[2].v[2] = zAxis.z();
+        //     res.v[2].v[3] = 0;
+        //     res.v[3].v[0] = -(xAxis.x() * eye.x() + xAxis.y() * eye.y() + xAxis.z() * eye.z());
+        //     res.v[3].v[1] = -(yAxis.x() * eye.x() + yAxis.y() * eye.y() + yAxis.z() * eye.z());
+        //     res.v[3].v[2] = -(zAxis.x() * eye.x() + zAxis.y() * eye.y() + zAxis.z() * eye.z());
+        //     res.v[3].v[3] = 1;
+        //     return res;
+        // }
         pub fn lookAt(eye: *const Vector3, target: *const Vector3, updir: *const Vector3) Matrix {
-            const zAxis = eye.subtract(target).normalize();
-            const xAxis = updir.cross(&zAxis).normalize();
+            // 计算 Z 轴，指向从 eye 到 target 的反方向
+            var zAxis = eye.subtract(target);
+            if (zAxis.length2() == 0) {
+                zAxis.v[2] = 1;
+            }
+            zAxis = zAxis.normalize();
+            // 计算 X 轴，通过 updir 和 Z 轴叉乘得到
+            var xAxis = updir.cross(&zAxis);
+            if (xAxis.length2() == 0) {
+                if (@abs(updir.z()) == 1) {
+                    zAxis.v[0] += 0.0001;
+                } else {
+                    zAxis.v[2] += 0.0001;
+                }
+                zAxis = zAxis.normalize();
+                xAxis = updir.cross(&zAxis);
+            }
+            xAxis = xAxis.normalize();
+            // 计算 Y 轴，通过 Z 轴和 X 轴叉乘得到
             const yAxis = zAxis.cross(&xAxis).normalize();
-            var res: Matrix = undefined;
-            res.v[0].v[0] = xAxis.x();
-            res.v[0].v[1] = yAxis.x();
-            res.v[0].v[2] = zAxis.x();
-            res.v[0].v[3] = 0;
-            res.v[1].v[0] = xAxis.y();
-            res.v[1].v[1] = yAxis.y();
-            res.v[1].v[2] = zAxis.y();
-            res.v[1].v[3] = 0;
-            res.v[2].v[0] = xAxis.z();
-            res.v[2].v[1] = yAxis.z();
-            res.v[2].v[2] = zAxis.z();
-            res.v[2].v[3] = 0;
-            res.v[3].v[0] = -(xAxis.x() * eye.x() + xAxis.y() * eye.y() + xAxis.z() * eye.z());
-            res.v[3].v[1] = -(yAxis.x() * eye.x() + yAxis.y() * eye.y() + yAxis.z() * eye.z());
-            res.v[3].v[2] = -(zAxis.x() * eye.x() + zAxis.y() * eye.y() + zAxis.z() * eye.z());
-            res.v[3].v[3] = 1;
-            return res;
+
+            // 计算平移分量
+            const tx = -xAxis.dot(eye);
+            const ty = -yAxis.dot(eye);
+            const tz = -zAxis.dot(eye);
+
+            // 构建视图矩阵
+            return new(
+                &RowVec.new(xAxis.x(), yAxis.x(), zAxis.x(), 0),
+                &RowVec.new(xAxis.y(), yAxis.y(), zAxis.y(), 0),
+                &RowVec.new(xAxis.z(), yAxis.z(), zAxis.z(), 0),
+                &RowVec.new(tx, ty, tz, 1),
+            );
         }
         pub fn perspective(fovy: T, aspect: T, near: T, far: T) Matrix {
             const bottom = stdmath.tan(fovy * 0.5);
@@ -783,6 +812,7 @@ pub fn Matrix4(
             return Vector3.new(m.v[i].v[0], m.v[i].v[1], m.v[i].v[2]);
         }
 
+        pub const identity = Shared.fromIdentity;
         pub const fromIdentity = Shared.fromIdentity;
         pub const getRow = Shared.getRow;
         pub const getCol = Shared.getCol;
@@ -822,7 +852,7 @@ pub fn MatShared(comptime RowVec: type, comptime ColVec: type, comptime Matrix: 
             }
             return result;
         }
-
+        pub const identity = fromIdentity;
         pub fn fromIdentity() Matrix {
             var result: Matrix = undefined;
             inline for (0..Matrix.cols) |coli| {
@@ -1079,7 +1109,7 @@ test "new" {
 }
 
 test "Matrix2_ident" {
-    try testing.expect(math.Matrix2, math.Matrix2.identity).eql(math.Matrix2{
+    try testing.expect(math.Matrix2, math.Matrix2.identity()).eql(math.Matrix2{
         .v = [_]math.Vector2{
             math.Vector2.new(1, 0),
             math.Vector2.new(0, 1),
@@ -1088,7 +1118,7 @@ test "Matrix2_ident" {
 }
 
 test "Matrix3_ident" {
-    try testing.expect(math.Matrix3, math.Matrix3.identity).eql(math.Matrix3{
+    try testing.expect(math.Matrix3, math.Matrix3.identity()).eql(math.Matrix3{
         .v = [_]math.Vector3{
             math.Vector3.new(1, 0, 0),
             math.Vector3.new(0, 1, 0),
@@ -1098,7 +1128,7 @@ test "Matrix3_ident" {
 }
 
 test "Matrix4_ident" {
-    try testing.expect(math.Matrix4, math.Matrix4.identity).eql(math.Matrix4{
+    try testing.expect(math.Matrix4, math.Matrix4.identity()).eql(math.Matrix4{
         .v = [_]math.Vector4{
             math.Vector4.new(1, 0, 0, 0),
             math.Vector4.new(0, 1, 0, 0),
@@ -1317,7 +1347,7 @@ test "Matrix4_getTranslation" {
 
 test "Matrix2_mulVec_vec2_ident" {
     const v = math.Vector2.splat(1);
-    const identity = math.Matrix2.identity;
+    const identity = math.Matrix2.identity();
     const expected = v;
     const m = math.Matrix2.multiplyByVector(&identity, &v);
 
@@ -1338,7 +1368,7 @@ test "Matrix2_mulVec_vec2" {
 
 test "Matrix3_mulVec_vec3_ident" {
     const v = math.Vector3.splat(1);
-    const identity = math.Matrix3.identity;
+    const identity = math.Matrix3.identity();
     const expected = v;
     const m = math.Matrix3.multiplyByVector(&identity, &v);
 
@@ -1590,7 +1620,7 @@ test "Matrix4_fromTranslationQuaternionScale" {
     const expected = math.Matrix4D.fromColumnMajorArray(&.{ 7.0, 0.0, 0.0, 1.0, 0.0, 0.0, 9.0, 2.0, 0.0, -8.0, 0.0, 3.0, 0.0, 0.0, 0.0, 1.0 }).transpose();
     const returnedResult = math.Matrix4D.fromTranslationQuaternionScale(
         &math.vec3d(1.0, 2.0, 3.0), // translation
-        &math.QuaternionD.fromAxisAngle(&math.Vector3D.unit_x, stdmath.degreesToRadians(-90.0)), // rotation
+        &math.QuaternionD.fromAxisAngle(&math.Vector3D.uintX(), stdmath.degreesToRadians(-90.0)), // rotation
         &math.vec3d(7.0, 8.0, 9.0),
     ); // scale
     try testing.expect(bool, true).eql(expected.eqlApprox(&returnedResult, math.epsilon14));
@@ -1599,7 +1629,7 @@ test "Matrix4_fromTranslationQuaternionScale" {
 test "Matrix4_lookAt" {
     const position = math.vec3d(0.13089289583616875, 0.6058574068283575, 2.7756337072375956);
     const target = math.Vector3D.fromZero();
-    const up = math.Vector3D.unit_y.clone();
+    const up = math.Vector3D.uintY();
     const m = math.Matrix3D.lookAt(&position, &target, &up);
     const mm = math.Matrix4D.fromRotation(&m);
     const expect = math.Matrix4D.fromColumnMajorArray(&.{ 0.9988899201242548, 0, -0.04710549303594798, 0, -0.010034882991636218, 0.9770456595353209, -0.2127935156590389, 0, 0.04602421751104426, 0.21302999597049582, 0.9759610608109867, 0, 0, 0, 0, 1 }).transpose();

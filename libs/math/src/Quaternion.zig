@@ -22,7 +22,9 @@ pub fn Quaternion(comptime Scalar: type) type {
         pub fn new(xv: T, yv: T, zv: T, wv: T) Quaternion(T) {
             return .{ .v = Vec.new(xv, yv, zv, wv) };
         }
-        pub const zero = new(0, 0, 0, 1);
+        pub inline fn zero() Quaternion(T) {
+            return new(0, 0, 0, 0);
+        }
         pub inline fn clone(self: *const Quaternion(T)) Quaternion(T) {
             return Quaternion(T).new(self.x(), self.y(), self.z(), self.w());
         }
@@ -356,7 +358,7 @@ pub fn Quaternion(comptime Scalar: type) type {
                 zz = vFrom.x() * vTo.y() - vFrom.y() * vTo.x();
                 ww = r;
             }
-            const res =  Quaternion(T).new(xx, yy, zz, ww);
+            const res = Quaternion(T).new(xx, yy, zz, ww);
             return res.normalize();
         }
     };
@@ -478,7 +480,7 @@ test "conjugate" {
 
 test "fromRotationMatrix" {
     {
-        const qqq = math.QuaternionD.fromAxisAngle(&math.Vector3D.unit_z.clone().negate(), stdmath.pi);
+        const qqq = math.QuaternionD.fromAxisAngle(&math.Vector3D.uintZ().negate(), stdmath.pi);
         const rotation = math.Matrix3D.fromColumnMajorArray(&.{ -1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 1.0 }).transpose();
         const actual = math.QuaternionD.fromRotationMatrix(&rotation);
         try testing.expect(bool, true).eql(qqq.eqlApprox(&actual, math.epsilon15));

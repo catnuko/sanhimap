@@ -173,7 +173,7 @@ pub fn projectBox(self: *const Self, geoBox: *const GeoBox, comptime ResultBoxTy
             z = (bounds.max.z() - bounds.min.z()) * 0.5;
 
             const scale = Vector3.new(x, y, z);
-            var halfAxes = Mat3.identity.clone();
+            var halfAxes = Mat3.identity();
             halfAxes.setScale(&scale);
 
             return OBB.new(center, halfAxes);

@@ -5,7 +5,7 @@ const ModuleImport = struct {
     name: []const u8,
     linkLib: ?*Build.Step.Compile = null,
 };
-fn addImport(module: *std.Build.Module, imports: *const [6]ModuleImport) void {
+fn addImport(module: *std.Build.Module, imports: *const [4]ModuleImport) void {
     for (imports) |import| {
         module.addImport(import.name, import.module);
         if (import.linkLib) |linkLib| {
@@ -17,14 +17,15 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const zglfw = b.dependency("zglfw", .{});
-    const zgpu = b.dependency("zgpu", .{});
-    const zgui = b.dependency("zgui", .{
+    const math = b.dependency("math", .{
         .target = target,
         .optimize = optimize,
-        .backend = .glfw_wgpu,
     });
-    const math = b.dependency("math", .{
+    const zflecs = b.dependency("zflecs", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const sokol = b.dependency("sokol", .{
         .target = target,
         .optimize = optimize,
     });
@@ -33,17 +34,11 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .shape_use_32bit_indices = true,
     });
-    const zflecs = b.dependency("zflecs", .{
-        .target = target,
-        .optimize = optimize,
-    });
     //导入模块
     const imports = [_]ModuleImport{
-        .{ .module = zglfw.module("root"), .name = "zglfw", .linkLib = zglfw.artifact("glfw") },
-        .{ .module = zgpu.module("root"), .name = "zgpu", .linkLib = zgpu.artifact("zdawn") },
-        .{ .module = zgui.module("root"), .name = "zgui", .linkLib = zgui.artifact("imgui") },
-        .{ .module = zmesh.module("root"), .name = "zmesh", .linkLib = zmesh.artifact("zmesh") },
+        .{ .module = sokol.module("sokol"), .name = "sokol" },
         .{ .module = zflecs.module("root"), .name = "zflecs", .linkLib = zflecs.artifact("flecs") },
+        .{ .module = zmesh.module("root"), .name = "zmesh", .linkLib = zmesh.artifact("zmesh") },
         .{ .module = math.module("root"), .name = "math" },
     };
     const sanhi_mod = b.addModule("root", .{
@@ -53,20 +48,16 @@ pub fn build(b: *std.Build) !void {
     });
     addImport(sanhi_mod, &imports);
 
-    // const sanhi_lib = b.addStaticLibrary(.{
-    //     .name = "sanhi",
-    //     .root_source_file = b.path("src/lib.zig"),
-    //     .target = target,
-    //     .optimize = optimize,
-    // });
+    const sanhi_lib = b.addStaticLibrary(.{
+        .name = "sanhi",
+        .root_source_file = b.path("src/lib.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
-    // b.installArtifact(sanhi_lib);
+    b.installArtifact(sanhi_lib);
 
-    const names = [_][]const u8{
-        "basic",
-        "ecs",
-        "app"
-    };
+    const names = [_][]const u8{ "app", "ecs", "ecs2", "str" };
 
     for (names) |name| {
         try build_examples(b, target, optimize, name, sanhi_mod);
@@ -87,40 +78,10 @@ fn build_examples(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std
     const app = b.addExecutable(.{
         .target = target,
         .optimize = optimize,
-        .name = "basic",
+        .name = name,
         .root_source_file = b.path(root_source_file),
     });
     app.root_module.addImport("sanhi", sanhi_mod);
-    @import("zgpu").addLibraryPathsTo(app);
-    switch (target.result.os.tag) {
-        .windows => {
-            if (target.result.cpu.arch.isX86()) {
-                if (target.result.abi.isGnu() or target.result.abi.isMusl()) {
-                    if (b.lazyDependency("system_sdk", .{})) |system_sdk| {
-                        app.addLibraryPath(system_sdk.path("windows/lib/x86_64-windows-gnu"));
-                    }
-                }
-            }
-        },
-        .macos => {
-            if (b.lazyDependency("system_sdk", .{})) |system_sdk| {
-                app.addLibraryPath(system_sdk.path("macos12/usr/lib"));
-                app.addFrameworkPath(system_sdk.path("macos12/System/Library/Frameworks"));
-            }
-        },
-        .linux => {
-            if (target.result.cpu.arch.isX86()) {
-                if (b.lazyDependency("system_sdk", .{})) |system_sdk| {
-                    app.addLibraryPath(system_sdk.path("linux/lib/x86_64-linux-gnu"));
-                }
-            } else if (target.result.cpu.arch == .aarch64) {
-                if (b.lazyDependency("system_sdk", .{})) |system_sdk| {
-                    app.addLibraryPath(system_sdk.path("linux/lib/aarch64-linux-gnu"));
-                }
-            }
-        },
-        else => {},
-    }
 
     // app.linkLibrary(sanhi_lib);
     b.installArtifact(app);
